@@ -102,7 +102,6 @@ llama-index-experimental==0.5.4
 llama-index-finetuning==0.3.0
 llama-index-indices-managed-llama-cloud==0.6.8
 llama-index-llms-azure-openai==0.3.0
-llama-index-llms-llama-cpp==0.4.0
 llama-index-llms-mistralai==0.3.3
 llama-index-llms-ollama==0.5.2
 llama-index-llms-openai==0.3.22
@@ -116,7 +115,6 @@ llama-index-readers-pandas-ai==0.4.1
 llama-index-storage-chat-store-postgres==0.2.0
 llama-index-vector-stores-faiss==0.3.0
 llama-parse==0.6.2
-llama_cpp_python==0.3.7
 MarkupSafe==3.0.2
 marshmallow==3.26.1
 matplotlib==3.10.1

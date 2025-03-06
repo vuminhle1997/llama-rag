@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 
@@ -32,11 +33,12 @@ export default async function SlugChatPage({
           rows={2}
           className="bg-white resize-none shadow-md"
         ></Textarea>
-        <div className="flex justify-between p-2 mx-4">
-          <Button className="bg-green-400 rounded-4xl h-[30px] w-[30px]">
-            HI
+        <div className="flex justify-between py-2 mx-4">
+          <Button className="bg-blue-400 rounded-4xl h-[40px] w-[40px]">
+            +
           </Button>
-          <Button className="bg-green-400 rounded-4xl h-[30px] w-[30px]">
+          <Input type="file" hidden />
+          <Button className="bg-blue-400 rounded-4xl h-[40px] w-[40px]">
             HI
           </Button>
         </div>
