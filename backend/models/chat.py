@@ -13,9 +13,9 @@ class ChatBase(SQLModel):
 
 class Chat(ChatBase, table=True):
     id: str = Field(primary_key=True, default=str(uuid.uuid4()))
-    user_id: str = Field(nullable=False, index=True)
     created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     updated_at: datetime = Field(nullable=False, index=True, default=datetime.now())
+    user_id: str = Field(nullable=False, index=True)
     files: list["ChatFile"] = Relationship(back_populates="chat")
 
 class ChatPublic(ChatBase):
