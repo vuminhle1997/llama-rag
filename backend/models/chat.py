@@ -1,39 +1,32 @@
-# from datetime import datetime
-#
-# from fastapi import Depends, FastAPI, HTTPException, Query, UploadFile, File
-# from sqlalchemy import DateTime
-# from sqlmodel import Field, Session, SQLModel, create_engine, select, Column
-# from sqlalchemy.dialects.postgresql import UUID
-# import uuid
-#
-# class ChatBase(SQLModel):
-#     title: str = Field(index=True, max_length=500)
-#     description: str | None
-#     avatar_path: str | None
-#     context: str | None
-#     # later, the files
-#
-# class Chat(ChatBase, table=True):
-#     chat_id: Column = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-#     created_at: Column = Column(DateTime, default=datetime.now())
-#     updated_at: Column = Column(DateTime, default=datetime.now())
-#
-# class ChatPublic(ChatBase):
-#     id: UUID
-#     title: str
-#     description: str | None
-#     avatar_path: str | None
-#     context: str | None
-#     created_at: datetime
-#     updated_at: datetime
-#
-# class ChatCreate(ChatBase):
-#     title: str
-#     description: str | None
-#     context: str | None
-#
-# class ChatUpdate(ChatBase):
-#     title: str
-#     description: str | None
-#     context: str | None
-#
+from typing import TYPE_CHECKING, List
+from datetime import datetime
+from sqlmodel import Field, SQLModel, Relationship
+import uuid
+
+if TYPE_CHECKING:
+    from models import ChatFile
+
+class ChatBase(SQLModel):
+    title: str = Field(nullable=False, index=True)
+    description: str = Field(nullable=True, index=True)
+    context: str = Field(nullable=False)
+
+class Chat(ChatBase, table=True):
+    id: str = Field(primary_key=True, default=str(uuid.uuid4()))
+    user_id: str = Field(nullable=False, index=True)
+    created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
+    updated_at: datetime = Field(nullable=False, index=True, default=datetime.now())
+    files: list["ChatFile"] = Relationship(back_populates="chat")
+
+class ChatPublic(ChatBase):
+    id: str
+    user_id: str
+    created_at: datetime
+    updated_at: datetime
+    files: list["ChatFile"]
+
+class ChatCreate(ChatBase):
+    pass
+
+class ChatUpdate(ChatBase):
+    pass

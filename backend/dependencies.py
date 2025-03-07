@@ -1,10 +1,7 @@
 import os
 from dotenv import load_dotenv
-from fastapi import Depends
-from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
-from typing import Annotated
-from pydantic_settings import BaseSettings
+from redis import Redis
 
 # LLM
 from llama_index.core.settings import Settings
@@ -28,7 +25,6 @@ REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 # main DB
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
-
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, connect_args=connect_args)
 
@@ -38,12 +34,22 @@ def create_db_and_tables():
 
 
 def get_db_session():
-    with Session(engine) as session:
+    session = Session(engine)
+    try:
         yield session
-
+    finally:
+        session.close()
 
 def get_llama_index():
     yield {
         'llm': llm,
         'embed_model': embed_model,
+        'llm_settings': Settings,
     }
+
+def get_redis_client():
+    redis = Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+    try:
+        yield redis
+    finally:
+        redis.close()
