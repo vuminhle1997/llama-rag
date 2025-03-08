@@ -4,7 +4,7 @@ from sqlmodel import Field, SQLModel, Relationship
 import uuid
 
 if TYPE_CHECKING:
-    from models import ChatFile
+    from models.chat_file import ChatFile
 
 class ChatBase(SQLModel):
     title: str = Field(nullable=False, index=True)
@@ -16,7 +16,7 @@ class Chat(ChatBase, table=True):
     created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     updated_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     user_id: str = Field(nullable=False, index=True)
-    files: list["ChatFile"] = Relationship(back_populates="chat")
+    files: List["ChatFile"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
 
 class ChatPublic(ChatBase):
     id: str

@@ -6,7 +6,7 @@ from dependencies import get_db_session
 from fastapi.params import Query
 from sqlalchemy import select
 from sqlmodel import Session
-from models.chat import ChatCreate, Chat, ChatPublic, ChatUpdate
+from models.chat import ChatCreate, Chat, ChatUpdate
 from models.chat_file import ChatFile
 from pathlib import Path
 
@@ -19,74 +19,108 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-# @router.get("/", response_model=list[ChatPublic])
-# async def get_all_chats(session: SessionDep,
-#     offset: int = 0,
-#     limit: Annotated[int, Query(le=5)] = 5):
-#     chats = session.exec(select(Chat).offset(offset).limit(limit)).all()
-#     return chats
-#
-@router.get("/{chat_id}", response_model=Chat)
+@router.get("/")
+async def get_all_chats(db_client: Session = Depends(get_db_session),
+    offset: int = 0,
+    limit: Annotated[int, Query(le=3)] = 3):
+    # TODO: fix retrieving chats with query parameters
+    print(offset, limit)
+    chats = []
+    return chats
+
+@router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
-    db_chat = db_client.get(Chat, chat_id)
+    db_chat: Chat = db_client.get(Chat, chat_id)
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     if not db_chat:
-        raise HTTPException(status_code=404, detail="Hero not found")
-    return db_chat
+        raise HTTPException(status_code=404, detail="Chat not found")
+    return {
+        **db_chat.model_dump(),
+        'files': db_chat.files,
+    }
 
 @router.post("/{chat_id}/upload")
 async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_client: Session = Depends(get_db_session)):
-    file_id = str(uuid.uuid4())
     chat_folder = BASE_UPLOAD_DIR / f"{chat_id}"
     chat_folder.mkdir(parents=True, exist_ok=True)
 
+    if not file.filename:
+        raise HTTPException(status_code=404, detail="File not found")
+
     file_path = chat_folder / f"{file.filename}"
-    with open(file_path, "wb") as buffer:
-        buffer.write(await file.read())
+    with open(file_path, "wb+") as buffer:
+        buffer.write(file.file.read())
 
     db_chat = db_client.get(Chat, chat_id)
-    db_file = ChatFile(
-        file_id=file_id,
-        chat_id=db_chat.id,
-        file_path=file_path,
-        mime_type=file.content_type,
-        filename=file.filename,
-    )
-    db_client.add(db_file)
-    db_client.commit()
-    db_client.refresh(db_file)
-    return db_file
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    if not db_chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
 
-@router.post("/", response_model=Chat)
+    for chat_file in db_chat.files:
+        if chat_file.file_name == file.filename:
+            raise HTTPException(status_code=404, detail="File already exists")
+
+    db_file = ChatFile(
+        id=str(uuid.uuid4()),
+        chat_id=db_chat.id,
+        path_name=str(file_path),
+        mime_type=file.content_type,
+        file_name=file.filename,
+    )
+    db_chat.files.append(db_file)
+
+    try:
+        db_client.commit()
+        db_client.refresh(db_chat)
+        return {
+            **db_chat.model_dump(),
+            'files': db_chat.files,
+        }
+    except Exception as e:
+        db_client.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/")
 async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session)):
     try:
-        user_id = str(uuid.uuid4())  # replace this with session redis
-        db_chat = Chat(**chat.model_dump(), user_id=user_id)
+        user_id = str(uuid.uuid4())  # TODO: replace this with session redis
+        db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
         db_client.add(db_chat)
         db_client.commit()
         db_client.refresh(db_chat)
-        return {'db_chat': db_chat}
+        return {
+            **db_chat.model_dump(),
+            'files': db_chat.files,
+        }
     except Exception as e:
-        print(e)
         raise e
-#
-# @router.put("/{chat_id}", response_model=ChatPublic)
-# async def update_chat(chat_id: str, session: SessionDep = Depends(SessionDep), chat: ChatUpdate = Depends(ChatUpdate)):
-#     db_chat = session.get(Chat, chat_id)
-#     if not db_chat:
-#         raise HTTPException(status_code=404, detail="Chat not found")
-#     chat_data = chat.model_dump(exclude_unset=True)
-#     db_chat.sqlmodel_update(chat_data)
-#     session.add(db_chat)
-#     session.commit()
-#     session.refresh(db_chat)
-#     return db_chat
-#
-# @router.delete("/{chat_id}", response_model=ChatPublic)
-# async def delete_chat(chat_id: str, session: SessionDep = Depends(SessionDep)):
-#     db_chat = session.get(Chat, chat_id)
-#     if not db_chat:
-#         raise HTTPException(status_code=404, detail="Chat not found")
-#     session.delete(db_chat)
-#     session.commit()
-#     return db_chat
-#
+
+@router.put("/{chat_id}")
+async def update_chat(chat_id: str, chat: ChatUpdate, db_client: Session = Depends(get_db_session)):
+    db_chat = db_client.get(Chat, chat_id)
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    if not db_chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    chat_data = chat.model_dump(exclude_unset=True)
+    db_chat.sqlmodel_update(chat_data)
+    db_client.add(db_chat)
+    db_client.commit()
+    db_client.refresh(db_chat)
+    return {
+        **db_chat.model_dump(),
+        'files': db_chat.files,
+    }
+
+@router.delete("/{chat_id}")
+async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
+    db_chat = db_client.get(Chat, chat_id)
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    if not db_chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    db_client.delete(db_chat)
+    db_client.commit()
+    return {
+        **db_chat.model_dump(),
+    }
+
