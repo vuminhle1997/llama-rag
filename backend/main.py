@@ -7,11 +7,11 @@ from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
 from fastapi_pagination import add_pagination
+from utils import decode_jwt
 
 import os
 import uvicorn
 import uuid
-import jwt
 
 load_dotenv()
 
@@ -24,16 +24,6 @@ SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
 
 azure_app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, AUTHORITY)
-
-def decode_jwt(token: str):
-    """Decodes and verifies the JWT token"""
-    try:
-        decoded_token = jwt.decode(token, options={"verify_signature": False})  # No signature verification for now
-        return decoded_token
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
 
 app = FastAPI()
 app.include_router(route.router)
@@ -69,8 +59,10 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
 
 @app.get("/me")
 async def get_user_claims(request: Request, redis_client: Redis = Depends(get_redis_client)):
-    session_id = request.cookies.get("session_id")
     """Extracts JWT claims from access token"""
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
     return claims

@@ -1,5 +1,8 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from redis import Redis
+
+from starlette.requests import Request
 from dependencies import get_db_session
 from sqlmodel import Session
 from models.chat import ChatCreate, Chat, ChatUpdate
@@ -96,8 +99,14 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_cli
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
-async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session)):
+async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session),
+                      request: Request = Request,
+                      db_session: Redis = Depends(get_db_session)):
     try:
+        session_id = request.cookies.get("session_id")
+        if not session_id:
+            raise HTTPException(status_code=404, detail="Session not found")
+
         user_id = "julia-nguyen"  # TODO: replace this with session redis
         db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
         db_client.add(db_chat)
