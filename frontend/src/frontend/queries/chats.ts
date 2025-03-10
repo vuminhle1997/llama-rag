@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Chat } from "../types";
+import { Chat, Page } from "../types";
 
 export const usePostChat = () => {
   return useMutation({
@@ -25,7 +25,7 @@ export const useGetChats = (size: number, page: number) => {
   return useQuery({
     queryKey: ["chats", size, page],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats`, {
+      const response = await axios.get<Page<Chat>>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
         withCredentials: true,
         params: {
           size,

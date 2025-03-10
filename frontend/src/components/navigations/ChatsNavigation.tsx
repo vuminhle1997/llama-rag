@@ -18,25 +18,26 @@ import EllipsisHorizontalIcon from '@heroicons/react/24/solid/EllipsisHorizontal
 import HeartIcon from '@heroicons/react/24/solid/HeartIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
 import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import { Chat } from '@/frontend/types';
 
-export default function ChatsNavigation({ chats }: { chats: string[] }) {
+export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
   return (
     <SidebarMenu>
       {chats.map((chat, i) => (
         <SidebarMenuItem
-          className="flex flex-row items-center justify-center px-4"
-          key={`chat-${chat}`}
+          className="flex flex-row items-start justify-center px-4 py-2 min-h-[50px]"
+          key={`chat-${chat.id}`}
         >
-          <Link href={`/chat/${chat}`} className="flex-1">
-            <SidebarMenuButton className="w-full text-center">
-              {chat}
+          <Link href={`/chat/${chat.id}`} className="flex-1">
+            <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
+              {chat.title}
             </SidebarMenuButton>
           </Link>
           <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <DropdownMenuTrigger className="hover:bg-accent ml-2 w-[30px] flex justify-center rounded-md cursor-pointer">
+                  <DropdownMenuTrigger className="hover:bg-accent ml-2 w-[30px] h-[30px] flex justify-center items-center rounded-md cursor-pointer mt-1">
                     <EllipsisHorizontalIcon className="h-4 w-4" />
                   </DropdownMenuTrigger>
                 </TooltipTrigger>

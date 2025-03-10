@@ -22,14 +22,14 @@ import {
 import FooterNavigation from '../navigations/FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from '../navigations/ChatsNavigation';
-
-const chats = ['Finanzexperte Niklas', 'Jurist Marcel', 'People Manager Rabea'];
+import { useGetChats } from '@/frontend/queries/chats';
 
 export default function LayoutProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data } = useGetChats(50, 1);
   const isAuthorized= useAppSelector(selectAuthorized);
   return isAuthorized ? (
     <SidebarProvider
@@ -74,7 +74,7 @@ export default function LayoutProvider({
               <ChatEntryForm />
             </Dialog>
 
-            <ChatsNavigation chats={chats} />
+            <ChatsNavigation chats={data?.items ?? []} />
           </SidebarContent>
 
           <FooterNavigation />
