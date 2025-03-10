@@ -22,11 +22,17 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=Page[Chat])
-async def get_all_chats(db_client: Session = Depends(get_db_session)):
+async def get_all_chats(db_client: Session = Depends(get_db_session),
+                        request: Request = Request,
+                        redis_client: Redis = Depends(get_redis_client)):
     query = db_client.query(Chat)
-
-    # TODO: get chats by User ID in jwt Redis session
-    # query = query.filter(Chat.user_id == "julia-nguyen")
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    token = redis_client.get(f"session:{session_id}")
+    claims = decode_jwt(token)
+    user_id = claims["oid"]
+    query = query.filter(Chat.user_id == user_id)
     return sqlalchemy_pagination(query)
 
 @router.get("/{chat_id}")
@@ -113,7 +119,7 @@ async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_sess
         token = redis_client.get(f"session:{session_id}")
         claims = decode_jwt(token)
 
-        user_id = claims["oid"]  # TODO: replace this with session redis
+        user_id = claims["oid"]
         db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
         db_client.add(db_chat)
         db_client.commit()
