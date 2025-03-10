@@ -10,7 +10,13 @@ import {
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-
+import { usePostChat } from '@/frontend/queries/chats';
+import { useForm } from 'react-hook-form';
+import { Chat } from '@/frontend/types';
+import { toast } from 'sonner';
+import { Alert } from '../ui/alert';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 const placeholderForContext = `Your role is to assist with a variety of tasks, including answering general questions, providing summaries, and performing HR-related analyses.
 
 ## Conversation Style
@@ -56,8 +62,43 @@ Below is the conversation history, which you should consider when providing resp
 [Include conversation history here]
 `;
 
+type FormData = {
+  title: string;
+  description: string;
+  context: string;
+};
+
 export default function ChatEntryForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const [ showSuccess, setShowSuccess ] = useState(false);
+  const [ showError, setShowError ] = useState(false);
+  const { mutateAsync, isPending } = usePostChat();
+  const router = useRouter();
+  const onSubmit = async (data: FormData) => {
+    const newChat: Partial<Chat> = {
+      title: data.title,
+      description: data.description,
+      context: data.context,
+    };
+    
+    try {
+      const data = await mutateAsync(newChat as Chat);
+      setShowSuccess(true);
+      setShowError(false);
+      setTimeout(() => {
+        router.push(`/chats/${data.id}`);
+      }, 3000);
+    } catch (error) {
+      setShowError(true);
+      setShowSuccess(false);
+      setTimeout(() => {
+        setShowError(false);
+      }, 3000);
+    }
+  };
+
   return (
+    <>
     <DialogContent className="sm:max-w-[425px] md:max-w-[800px]">
       <DialogHeader>
         <DialogTitle>Chat erstellen</DialogTitle>
@@ -65,40 +106,64 @@ export default function ChatEntryForm() {
           Erstelle ein neuen Chat mit kontextbezogenen Inhalten.
         </DialogDescription>
       </DialogHeader>
-      <div className="grid gap-4 py-4 md:max-h-[500px] overflow-y-scroll my-4 px-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name" className="text-right">
-            Titel
-          </Label>
-          <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid gap-4 py-4 md:max-h-[500px] overflow-y-scroll my-4 px-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+              Titel
+            </Label>
+            <div className="col-span-3 space-y-2">
+              <Input 
+                id="title"
+                className={errors.title ? "border-red-500" : ""}
+                {...register('title', { 
+                  required: "Titel ist erforderlich" 
+                })}
+              />
+              {errors.title && (
+                <p className="text-red-500 text-sm">{errors.title.message}</p>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Beschreibung
+            </Label>
+            <Textarea
+              id="description"
+              className="col-span-3"
+              {...register('description')}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="context" className="text-right">
+              Kontext
+            </Label>
+            <div className="col-span-3 space-y-2">
+              <Textarea
+                id="context"
+                className={errors.context ? "border-red-500" : ""}
+                placeholder={placeholderForContext}
+                rows={10}
+                {...register('context', { 
+                  required: "Kontext ist erforderlich" 
+                })}
+              />
+              {errors.context && (
+                <p className="text-red-500 text-sm">{errors.context.message}</p>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="username" className="text-right">
-            Beschreibung
-          </Label>
-          <Textarea
-            id="username"
-            defaultValue="@peduarte"
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="context" className="text-right">
-            Kontext
-          </Label>
-          <Textarea
-            id="context"
-            className="col-span-3"
-            placeholder={placeholderForContext}
-            rows={10}
-          />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="submit" className="bg-primary">
-          Speichern
-        </Button>
-      </DialogFooter>
+        <DialogFooter>
+          <Button type="submit" className="bg-primary" disabled={isPending}>
+            {isPending ? 'Speichern...' : 'Speichern'}
+          </Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
+    { showSuccess && <Alert>Chat erfolgreich erstellt.</Alert> }
+    { showError && <Alert variant="destructive">Fehler beim Erstellen des Chats. Bitte versuchen Sie es erneut.</Alert> }
+    </>
   );
 }

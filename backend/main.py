@@ -65,9 +65,9 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
         # Store access token in Redis (expires in 1 hour)
         redis_client.setex(f"session:{session_id}", 3600, token_response["access_token"])
         # Set session cookie
-        response = JSONResponse({"message": "Login successful!"})
-        response.set_cookie("session_id", session_id, httponly=True, secure=False)  # Set secure=True in production
-        return RedirectResponse(url="http://localhost:3000")
+        resp = RedirectResponse(url="http://localhost:3000")
+        resp.set_cookie("session_id", session_id, httponly=True, secure=False)
+        return resp
     else:
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
 

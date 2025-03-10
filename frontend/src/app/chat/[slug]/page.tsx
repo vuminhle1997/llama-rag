@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
+import { Upload, Send, FileText } from "lucide-react";
 
 export default async function SlugChatPage({
   params,
@@ -10,37 +11,82 @@ export default async function SlugChatPage({
 }) {
   const { slug } = await params;
   return (
-    <main>
-      <div className="w-4/5 mx-auto overflow-y-scroll h-[80vh] my-4">
-        <div className="container flex flex-col">
-          <div className="text-xl inline-block p-4 my-4 rounded-sm bg-gray-200 self-start">
-            Hi I am Llama
+    <main className="flex flex-col h-screen w-screen bg-gray-50">
+      {/* Chat Messages Container */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+          {/* System Message */}
+          <div className="flex items-start space-x-4">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+              AI
+            </div>
+            <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
+              <p className="text-gray-800">Hi, I'm your AI assistant. How can I help you today?</p>
+            </div>
           </div>
-          <div className="text-xl p-4 my-4 rounded-sm bg-gray-200 self-end text-right inline-block">
-            Hi I am Llama
+
+          {/* User Message */}
+          <div className="flex items-start space-x-4 justify-end">
+            <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
+              <p className="text-white">I need help with my project.</p>
+            </div>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+              U
+            </div>
           </div>
-          <div className="text-xl inline-block p-4 my-4 rounded-sm bg-gray-200 self-start">
-            Hi I am Llama
+
+          {/* System Message */}
+          <div className="flex items-start space-x-4">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+              AI
+            </div>
+            <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
+              <p className="text-gray-800">I'd be happy to help! What kind of project are you working on?
+
+                <p><b>Title:</b> {slug}</p>
+              </p>
+            </div>
           </div>
-          <div className="text-xl inline-block p-4 my-4 rounded-sm bg-gray-200 self-start">
-            Hi I am Llama
-          </div>
-          <h2 className="text-4xl">{slug}</h2>
         </div>
       </div>
-      <div className="w-4/5 mx-auto resize-none flex flex-col my-4">
-        <Textarea
-          rows={2}
-          className="bg-white resize-none shadow-md"
-        ></Textarea>
-        <div className="flex justify-between py-2 mx-4">
-          <Button className="bg-blue-400 rounded-4xl h-[40px] w-[40px]">
-            +
-          </Button>
-          <Input type="file" hidden />
-          <Button className="bg-blue-400 rounded-4xl h-[40px] w-[40px]">
-            HI
-          </Button>
+
+      {/* Input Area */}
+      <div className="border-t bg-white p-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="relative">
+            <Textarea
+              rows={1}
+              className="w-full pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
+              placeholder="Type your message here..."
+            />
+            <div className="absolute right-2 bottom-2 flex space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                title="Upload file"
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                title="Manage files"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary hover:text-primary/80"
+                title="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <Input type="file" className="hidden" id="file-upload" />
         </div>
       </div>
     </main>

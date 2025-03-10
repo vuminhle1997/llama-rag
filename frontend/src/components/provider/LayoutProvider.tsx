@@ -40,7 +40,7 @@ export default function LayoutProvider({
         } as React.CSSProperties
       }
     >
-      <div className="flex h-screen">
+      <div className="flex h-screen w-screen">
         <Sidebar>
           <SidebarHeader>
             <Link href="/">

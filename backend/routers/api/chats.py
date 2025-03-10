@@ -3,13 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from redis import Redis
 
 from starlette.requests import Request
-from dependencies import get_db_session
+from dependencies import get_db_session, get_redis_client
 from sqlmodel import Session
 from models.chat import ChatCreate, Chat, ChatUpdate
 from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
+from utils import decode_jwt
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -59,7 +60,9 @@ async def chat_with_given_chat_id(chat_id: str, text: str, db_client: Session = 
 
 
 @router.post("/{chat_id}/upload")
-async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_client: Session = Depends(get_db_session)):
+async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
+                              db_client: Session = Depends(get_db_session),
+                              redis_session: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
@@ -101,13 +104,16 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_cli
 @router.post("/")
 async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session),
                       request: Request = Request,
-                      db_session: Redis = Depends(get_db_session)):
+                      redis_client: Redis = Depends(get_redis_client)):
     try:
         session_id = request.cookies.get("session_id")
         if not session_id:
             raise HTTPException(status_code=404, detail="Session not found")
 
-        user_id = "julia-nguyen"  # TODO: replace this with session redis
+        token = redis_client.get(f"session:{session_id}")
+        claims = decode_jwt(token)
+
+        user_id = claims["oid"]  # TODO: replace this with session redis
         db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
         db_client.add(db_chat)
         db_client.commit()
