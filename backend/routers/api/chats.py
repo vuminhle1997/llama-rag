@@ -132,13 +132,25 @@ async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_sess
         raise e
 
 @router.put("/{chat_id}")
-async def update_chat(chat_id: str, chat: ChatUpdate, db_client: Session = Depends(get_db_session)):
+async def update_chat(chat_id: str, chat: ChatUpdate,
+                      request: Request = Request,
+                      db_client: Session = Depends(get_db_session),
+                      redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=404, detail="Session not found")
+    token = redis_client.get(f"session:{session_id}")
+    claims = decode_jwt(token)
+    user_id = claims["oid"]
 
+    if db_chat.user_id != user_id:
+        raise HTTPException(status_code=404, detail="Chat does not belong to you")
+
+    # Update the entry
     chat_data = chat.model_dump(exclude_unset=True)
     db_chat.sqlmodel_update(chat_data)
     db_client.add(db_chat)

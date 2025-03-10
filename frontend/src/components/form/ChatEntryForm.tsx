@@ -1,4 +1,3 @@
-
 import { Button } from '../ui/button';
 import {
   DialogContent,
@@ -10,7 +9,7 @@ import {
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { usePostChat } from '@/frontend/queries/chats';
+import { usePostChat, useUpdateChat } from '@/frontend/queries/chats';
 import { useForm } from 'react-hook-form';
 import { Chat } from '@/frontend/types';
 import { toast } from 'sonner';
@@ -68,26 +67,52 @@ type FormData = {
   context: string;
 };
 
-export default function ChatEntryForm() {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+interface ChatEntryFormProps {
+  chat?: Chat;
+  onSuccess?: () => void;
+  mode?: 'create' | 'update';
+}
+
+export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' : 'create' }: ChatEntryFormProps) {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    defaultValues: chat ? {
+      title: chat.title,
+      description: chat.description || '',
+      context: chat.context || '',
+    } : {}
+  });
   const [ showSuccess, setShowSuccess ] = useState(false);
   const [ showError, setShowError ] = useState(false);
-  const { mutateAsync, isPending } = usePostChat();
+  const { mutateAsync: createChat, isPending: isCreating } = usePostChat();
+  const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(chat?.id || '');
   const router = useRouter();
+  
   const onSubmit = async (data: FormData) => {
-    const newChat: Partial<Chat> = {
+    const chatData: Partial<Chat> = {
+      ...chat,
       title: data.title,
       description: data.description,
       context: data.context,
     };
     
     try {
-      const data = await mutateAsync(newChat as Chat);
+      let response;
+      if (mode === 'create') {
+        response = await createChat(chatData as Chat);
+      } else {
+        response = await updateChat(chatData as Chat);
+      }
+      
       setShowSuccess(true);
       setShowError(false);
-      setTimeout(() => {
-        router.push(`/chats/${data.id}`);
-      }, 3000);
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        setTimeout(() => {
+          router.push(`/chats/${response.id}`);
+          window.location.reload();
+        }, 3000);
+      }
     } catch (error) {
       setShowError(true);
       setShowSuccess(false);
@@ -97,13 +122,19 @@ export default function ChatEntryForm() {
     }
   };
 
+  const isPending = mode === 'create' ? isCreating : isUpdating;
+
   return (
     <>
     <DialogContent className="sm:max-w-[425px] md:max-w-[800px]">
       <DialogHeader>
-        <DialogTitle>Chat erstellen</DialogTitle>
+        <DialogTitle>
+          {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
+        </DialogTitle>
         <DialogDescription>
-          Erstelle ein neuen Chat mit kontextbezogenen Inhalten.
+          {mode === 'create' 
+            ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten.'
+            : 'Bearbeite die Einstellungen des bestehenden Chats.'}
         </DialogDescription>
       </DialogHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -157,13 +188,27 @@ export default function ChatEntryForm() {
         </div>
         <DialogFooter>
           <Button type="submit" className="bg-primary" disabled={isPending}>
-            {isPending ? 'Speichern...' : 'Speichern'}
+            {isPending 
+              ? (mode === 'create' ? 'Erstellen...' : 'Speichern...') 
+              : (mode === 'create' ? 'Erstellen' : 'Speichern')}
           </Button>
         </DialogFooter>
       </form>
     </DialogContent>
-    { showSuccess && <Alert>Chat erfolgreich erstellt.</Alert> }
-    { showError && <Alert variant="destructive">Fehler beim Erstellen des Chats. Bitte versuchen Sie es erneut.</Alert> }
+    { showSuccess && (
+      <Alert>
+        {mode === 'create' 
+          ? 'Chat erfolgreich erstellt.' 
+          : 'Chat erfolgreich aktualisiert.'}
+      </Alert>
+    )}
+    { showError && (
+      <Alert variant="destructive">
+        {mode === 'create'
+          ? 'Fehler beim Erstellen des Chats. Bitte versuchen Sie es erneut.'
+          : 'Fehler beim Aktualisieren des Chats. Bitte versuchen Sie es erneut.'}
+      </Alert>
+    )}
     </>
   );
 }

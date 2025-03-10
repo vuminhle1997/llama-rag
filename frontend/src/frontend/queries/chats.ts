@@ -43,7 +43,7 @@ export const useGetChat = (id: string) => {
   return useQuery({
     queryKey: ["chats", id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/${id}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
         withCredentials: true       
       });
       return response.data;
@@ -56,7 +56,7 @@ export const useGetChat = (id: string) => {
 export const useDeleteChat = (id: string) => {
   return useMutation({
     mutationFn: async () => {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/${id}`, {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
         withCredentials: true
       });
       return response.data;
@@ -69,8 +69,10 @@ export const useDeleteChat = (id: string) => {
 export const useUpdateChat = (id: string) => {
   return useMutation({
     mutationFn: async (chat: Chat) => {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/${id}`, {
-        chat
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
+        title: chat.title,
+        description: chat.description,
+        context: chat.context
       }, {
         withCredentials: true
       });
@@ -84,7 +86,7 @@ export const useUpdateChat = (id: string) => {
 export const usePostFile = (id: string) => {
   return useMutation({
     mutationFn: async (file: File) => {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/${id}/upload`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}/upload`, {
         file
       }, {
         withCredentials: true
@@ -99,7 +101,7 @@ export const usePostFile = (id: string) => {
 export const useDeleteFile = (id: string, chatId: string) => {
   return useMutation({
     mutationFn: async () => {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chats/${chatId}/delete/${id}`, {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/delete/${id}`, {
         withCredentials: true
       });
       return response.data;
