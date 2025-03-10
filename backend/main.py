@@ -6,6 +6,7 @@ from dependencies import create_db_and_tables, get_redis_client
 from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
+from fastapi_pagination import add_pagination
 
 import os
 import uvicorn
@@ -36,6 +37,7 @@ def decode_jwt(token: str):
 
 app = FastAPI()
 app.include_router(route.router)
+add_pagination(app)
 
 @app.on_event("startup")
 def on_startup():

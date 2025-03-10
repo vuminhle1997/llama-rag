@@ -32,7 +32,6 @@ engine = create_engine(sqlite_url, connect_args=connect_args)
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-
 def get_db_session():
     session = Session(engine)
     try:

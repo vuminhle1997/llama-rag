@@ -1,12 +1,12 @@
 import uuid
-from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from dependencies import get_db_session
-from fastapi.params import Query
 from sqlmodel import Session
 from models.chat import ChatCreate, Chat, ChatUpdate
 from models.chat_file import ChatFile
 from pathlib import Path
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -17,14 +17,13 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.get("/")
-async def get_all_chats(db_client: Session = Depends(get_db_session),
-    offset: int = 0,
-    limit: Annotated[int, Query(le=3)] = 3):
-    # TODO: fix retrieving chats with query parameters
-    print(offset, limit)
-    chats = []
-    return chats
+@router.get("/", response_model=Page[Chat])
+async def get_all_chats(db_client: Session = Depends(get_db_session)):
+    query = db_client.query(Chat)
+
+    # TODO: get chats by User ID in jwt Redis session
+    # query = query.filter(Chat.user_id == "julia-nguyen")
+    return sqlalchemy_pagination(query)
 
 @router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
@@ -99,7 +98,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_cli
 @router.post("/")
 async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session)):
     try:
-        user_id = str(uuid.uuid4())  # TODO: replace this with session redis
+        user_id = "julia-nguyen"  # TODO: replace this with session redis
         db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
         db_client.add(db_chat)
         db_client.commit()
