@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, JSONResponse
 from routers import route
@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from redis import Redis
 from fastapi_pagination import add_pagination
 from utils import decode_jwt
+from fastapi.middleware.cors import CORSMiddleware
 
 import os
 import uvicorn
@@ -23,11 +24,24 @@ REDIRECT_URI = os.getenv("REDIRECT_URI")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # Default Next.js dev server
+    "http://localhost:4000",  # Make sure this is included
+]
+
 azure_app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, AUTHORITY)
 
 app = FastAPI()
 app.include_router(route.router)
 add_pagination(app)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allow frontend URLs
+    allow_credentials=True,  # Required for cookies/sessions
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 @app.on_event("startup")
 def on_startup():
@@ -53,7 +67,7 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
         # Set session cookie
         response = JSONResponse({"message": "Login successful!"})
         response.set_cookie("session_id", session_id, httponly=True, secure=False)  # Set secure=True in production
-        return response
+        return RedirectResponse(url="http://localhost:3000")
     else:
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
 
@@ -65,6 +79,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
+    print(claims, session_id)
     return claims
 
 if __name__ == "__main__":

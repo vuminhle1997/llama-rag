@@ -1,59 +1,15 @@
-"use client";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import AppProvider from "@/components/provider/AppProvider";
-import { selectAuthorized, useAppSelector } from "@/frontend";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import Logo from "@/static/globalLogo.png";
-import Image from "next/image";
+
+import { Button } from '../ui/button';
 import {
-  EllipsisHorizontalIcon,
-  HeartIcon,
-  MagnifyingGlassIcon,
-  PencilIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/24/solid";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import App from "next/app";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const chats = ["Finanzexperte Niklas", "Jurist Marcel", "People Manager Rabea"];
+} from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
 
 const placeholderForContext = `Your role is to assist with a variety of tasks, including answering general questions, providing summaries, and performing HR-related analyses.
 
@@ -100,20 +56,49 @@ Below is the conversation history, which you should consider when providing resp
 [Include conversation history here]
 `;
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function ChatEntryForm() {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-          <AppProvider>
-            {children}
-          </AppProvider>
-      </body>
-    </html>
+    <DialogContent className="sm:max-w-[425px] md:max-w-[800px]">
+      <DialogHeader>
+        <DialogTitle>Chat erstellen</DialogTitle>
+        <DialogDescription>
+          Erstelle ein neuen Chat mit kontextbezogenen Inhalten.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-4 py-4 md:max-h-[500px] overflow-y-scroll my-4 px-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="name" className="text-right">
+            Titel
+          </Label>
+          <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="username" className="text-right">
+            Beschreibung
+          </Label>
+          <Textarea
+            id="username"
+            defaultValue="@peduarte"
+            className="col-span-3"
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="context" className="text-right">
+            Kontext
+          </Label>
+          <Textarea
+            id="context"
+            className="col-span-3"
+            placeholder={placeholderForContext}
+            rows={10}
+          />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button type="submit" className="bg-primary">
+          Speichern
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
