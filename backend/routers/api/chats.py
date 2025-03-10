@@ -28,22 +28,41 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
 
 @router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
-    db_chat: Chat = db_client.get(Chat, chat_id)
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
     }
 
+@router.get("/{chat_id}/chat")
+async def chat_with_given_chat_id(chat_id: str, text: str, db_client: Session = Depends(get_db_session)):
+    if not text:
+        raise HTTPException(status_code=404, detail="Query: text is required")
+
+    db_chat = db_client.get(Chat, chat_id)
+    if not db_chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+
+    # TODO: Start chatting with LLM
+    return {
+        "chat": db_chat.model_dump(),
+        'text': text,
+    }
+
+
+
 @router.post("/{chat_id}/upload")
 async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_client: Session = Depends(get_db_session)):
     db_chat = db_client.get(Chat, chat_id)
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     # Check if chat exists, if exists, continue
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     # If file is not attached to Upload, raise Error
     if not file.filename:
         raise HTTPException(status_code=404, detail="File not found")
@@ -95,9 +114,10 @@ async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_sess
 @router.put("/{chat_id}")
 async def update_chat(chat_id: str, chat: ChatUpdate, db_client: Session = Depends(get_db_session)):
     db_chat = db_client.get(Chat, chat_id)
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
 
     chat_data = chat.model_dump(exclude_unset=True)
     db_chat.sqlmodel_update(chat_data)
@@ -112,9 +132,9 @@ async def update_chat(chat_id: str, chat: ChatUpdate, db_client: Session = Depen
 @router.delete("/{chat_id}")
 async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
     db_chat = db_client.get(Chat, chat_id)
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
 
     # Get chat folder path and delete all files inside
     chat_folder = BASE_UPLOAD_DIR / str(chat_id)
@@ -135,6 +155,7 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
 
     # If file is not existing or does not belong to Chat, raise Error
     db_file = db_client.get(ChatFile, file_id)

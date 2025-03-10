@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .api import chats, uploads
+from .api import chats
 
 router = APIRouter(
     prefix="/api",
@@ -8,4 +8,3 @@ router = APIRouter(
 )
 
 router.include_router(chats.router, tags=["chats"])
-router.include_router(uploads.router, tags=["uploads"])
