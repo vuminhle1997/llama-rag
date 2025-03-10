@@ -1,10 +1,8 @@
 import uuid
-from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from dependencies import get_db_session
 from fastapi.params import Query
-from sqlalchemy import select
 from sqlmodel import Session
 from models.chat import ChatCreate, Chat, ChatUpdate
 from models.chat_file import ChatFile
@@ -41,25 +39,24 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
 
 @router.post("/{chat_id}/upload")
 async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...), db_client: Session = Depends(get_db_session)):
-    chat_folder = BASE_UPLOAD_DIR / f"{chat_id}"
-    chat_folder.mkdir(parents=True, exist_ok=True)
-
-    if not file.filename:
-        raise HTTPException(status_code=404, detail="File not found")
-
-    file_path = chat_folder / f"{file.filename}"
-    with open(file_path, "wb+") as buffer:
-        buffer.write(file.file.read())
-
     db_chat = db_client.get(Chat, chat_id)
     # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+    # Check if chat exists, if exists, continue
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-
+    # If file is not attached to Upload, raise Error
+    if not file.filename:
+        raise HTTPException(status_code=404, detail="File not found")
+    # If file is already uploaded, raise Error
     for chat_file in db_chat.files:
         if chat_file.file_name == file.filename:
             raise HTTPException(status_code=404, detail="File already exists")
-
+    # Upload file to Folder and persist it
+    chat_folder = BASE_UPLOAD_DIR / f"{chat_id}"
+    chat_folder.mkdir(parents=True, exist_ok=True)
+    file_path = chat_folder / f"{file.filename}"
+    with open(file_path, "wb+") as buffer:
+        buffer.write(file.file.read())
     db_file = ChatFile(
         id=str(uuid.uuid4()),
         chat_id=db_chat.id,
@@ -118,9 +115,41 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
     # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+
+    # Get chat folder path and delete all files inside
+    chat_folder = BASE_UPLOAD_DIR / str(chat_id)
+    if chat_folder.exists():
+        for file in chat_folder.iterdir():
+            file.unlink()  # Delete each file
+        chat_folder.rmdir()  # Remove the folder itself
+
     db_client.delete(db_chat)
     db_client.commit()
     return {
         **db_chat.model_dump(),
     }
 
+@router.delete("/{chat_id}/delete/{file_id}")
+async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = Depends(get_db_session)):
+    # If chat is not existing, raise Error
+    db_chat = db_client.get(Chat, chat_id)
+    if not db_chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    # If file is not existing or does not belong to Chat, raise Error
+    db_file = db_client.get(ChatFile, file_id)
+    if not db_file or db_file.chat_id != chat_id:
+        raise HTTPException(status_code=404, detail="File not found or does not belong to this chat")
+
+    # Construct file path and delete from disk
+    file_path = BASE_UPLOAD_DIR / str(chat_id) / db_file.file_name
+    if file_path.exists():
+        file_path.unlink()  # Delete file from storage
+
+    # Remove file record from the database
+    db_client.delete(db_file)
+    db_client.commit()
+    return {
+        **db_chat.model_dump(),
+        'files': db_chat.files,
+    }
