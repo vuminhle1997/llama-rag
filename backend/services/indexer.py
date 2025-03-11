@@ -1,4 +1,3 @@
-from models import ChatFile
 from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext

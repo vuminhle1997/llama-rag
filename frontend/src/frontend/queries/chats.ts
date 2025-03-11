@@ -1,6 +1,6 @@
 // use react-query to post a new chat to the backend and axios, with credentials
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Chat, Page } from "../types";
 
@@ -105,4 +105,44 @@ export const useDeleteFile = (chatId: string) => {
       return response.data;
     }
   });
+};
+
+// use react-query to chat with a chat from the backend and axios, with credentials, and path chat id and message from search query parameter "text "
+/**
+ * Hook to fetch a chat by ID and submit a search query.
+ * @param {string} chatId - The ID of the chat.
+ */
+export const useChat = (chatId: string) => {
+  const queryClient = useQueryClient();
+
+  // Fetch chat by ID
+  const fetchChat = async () => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  };
+
+  // Query: Fetch chat
+  const chatQuery = useQuery({
+    queryKey: ["chat", chatId],
+    queryFn: fetchChat,
+    enabled: !!chatId, // Only fetch if chatId exists
+  });
+
+  // Mutation: Submit a search query
+  const searchMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`, {
+        params: { text }, // Attach search text as query param
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chat", chatId] }); // Refresh chat data
+    },
+  });
+
+  return { chatQuery, searchMutation };
 };

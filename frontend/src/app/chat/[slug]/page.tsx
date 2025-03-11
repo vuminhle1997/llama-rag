@@ -7,13 +7,18 @@ import React, { useRef, useEffect } from "react";
 import { Upload, Send, FileText, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { useGetChat, useDeleteFile, usePostFile } from "@/frontend/queries/chats";
+import { useGetChat, useDeleteFile, usePostFile, useChat } from "@/frontend/queries/chats";
 import { format } from "date-fns";
 import { File } from "@/frontend/types";
 import { useAuth } from "@/frontend/queries";
 import { useRouter } from "next/navigation";
 import { setChat } from "@/frontend/store/reducer/app_reducer";
 import { useAppDispatch } from "@/frontend/store/hooks/hooks";
+import { useForm } from "react-hook-form";
+
+interface ChatFormData {
+  message: string;
+}
 
 export default function SlugChatPage({
   params
@@ -29,6 +34,21 @@ export default function SlugChatPage({
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
   const deleteFileMutation = useDeleteFile(slug);
   const uploadFileMutation = usePostFile(slug);
+  
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<ChatFormData>({
+    defaultValues: {
+      message: ""
+    }
+  });
+
+  const messageText = watch("message");
+  const { searchMutation } = useChat(slug);
 
   const handleDeleteFile = async (fileId: string) => {
     try {
@@ -56,7 +76,7 @@ export default function SlugChatPage({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload only PDF, CSV, Excel or TXT files');
+      alert('Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch');
       event.target.value = '';
       return;
     }
@@ -64,27 +84,36 @@ export default function SlugChatPage({
     try {
       const formData = new FormData();
       formData.set('file', file);
-      console.log(formData);
+      
       const response = await uploadFileMutation.mutateAsync(formData);
-      console.log(response);
+      
       await refetchChat();
       event.target.value = ''; // Reset the input
-      alert('File uploaded successfully');
+      alert('Datei hochgeladen erfolgreich');
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Error uploading file');
     }
   };
 
+  const handleSubmit = async (data: ChatFormData) => {
+    try {
+      const response = await searchMutation.mutateAsync(data.message);
+      console.log(response);
+      reset(); // Clear the form after sending
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
   useEffect(() => {
-    console.log(chat);
     if (chat) {
       dispatch(setChat(chat));
     }
   }, [chat]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Wird geladen...</div>;
   }
 
   if (error && !isLoading) {
@@ -100,31 +129,31 @@ export default function SlugChatPage({
           {/* System Message */}
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              AI
+              KI
             </div>
             <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
-              <p className="text-gray-800">Hi, I'm your AI assistant. How can I help you today?</p>
+              <p className="text-gray-800">Hallo, ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?</p>
             </div>
           </div>
 
           {/* User Message */}
           <div className="flex items-start space-x-4 justify-end">
             <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
-              <p className="text-white">I need help with my project.</p>
+              <p className="text-white">Ich brauche Hilfe bei meinem Projekt.</p>
             </div>
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              U
+              B
             </div>
           </div>
 
           {/* System Message */}
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              AI
+              KI
             </div>
             <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
-              <p className="text-gray-800">I'd be happy to help! What kind of project are you working on?
-                <p><b>Title:</b> {slug}</p>
+              <p className="text-gray-800">Ich helfe Ihnen gerne! An welcher Art von Projekt arbeiten Sie?
+                <p><b>Titel:</b> {slug}</p>
               </p>
             </div>
           </div>
@@ -134,46 +163,72 @@ export default function SlugChatPage({
       {/* Input Area */}
       <div className="border-t bg-white p-4">
         <div className="max-w-3xl mx-auto">
-          <div className="relative">
-            <Textarea
-              rows={1}
-              className="w-full pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary rounded-lg"
-              placeholder="Type your message here..."
-            />
-            <div className="absolute right-2 bottom-2 flex space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-500 hover:text-gray-700"
-                title="Upload file"
-                onClick={handleUploadClick}
-                disabled={uploadFileMutation.isPending}
-              >
-                {uploadFileMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-gray-500 hover:text-gray-700"
-                title="Manage files"
-                onClick={() => setIsFileDialogOpen(true)}
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-primary hover:text-primary/80"
-                title="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+          <form onSubmit={handleFormSubmit(handleSubmit)} className="relative space-y-2">
+            <div className="relative">
+              <Textarea
+                rows={1}
+                className={`w-full pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-primary rounded-lg ${
+                  errors.message ? 'border-red-500' : ''
+                }`}
+                placeholder="Geben Sie Ihre Nachricht hier ein..."
+                {...register("message", {
+                  required: "Nachricht ist erforderlich",
+                  minLength: {
+                    value: 5,
+                    message: "Nachricht muss mindestens 5 Zeichen lang sein"
+                  }
+                })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+//                    handleFormSubmit(handleSubmit)();
+                  }
+                }}
+              />
+              <div className="absolute right-2 bottom-2 flex space-x-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                  title="Datei hochladen"
+                  onClick={handleUploadClick}
+                  disabled={uploadFileMutation.isPending}
+                >
+                  {uploadFileMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                  title="Dateien verwalten"
+                  onClick={() => setIsFileDialogOpen(true)}
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-primary hover:text-primary/80"
+                  title="Nachricht senden"
+                  disabled={!messageText?.trim()}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </div>
+            {errors.message && (
+              <div className="flex items-center space-x-2 text-red-500 text-sm">
+                <span className="flex-1">{errors.message.message}</span>
+              </div>
+            )}
+          </form>
           <Input 
             type="file" 
             className="hidden" 
@@ -188,15 +243,15 @@ export default function SlugChatPage({
       <Dialog open={isFileDialogOpen} onOpenChange={setIsFileDialogOpen}>
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
-            <DialogTitle>Manage Files</DialogTitle>
+            <DialogTitle>Dateien verwalten</DialogTitle>
           </DialogHeader>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>File Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Uploaded At</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Dateiname</TableHead>
+                <TableHead>Typ</TableHead>
+                <TableHead>Hochgeladen am</TableHead>
+                <TableHead>Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -215,7 +270,7 @@ export default function SlugChatPage({
                     >
                       {deleteFileMutation.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : 'Delete'}
+                      ) : 'Löschen'}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -223,7 +278,7 @@ export default function SlugChatPage({
               {(!chat?.files || chat.files.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No files uploaded yet
+                    Noch keine Dateien hochgeladen
                   </TableCell>
                 </TableRow>
               )}

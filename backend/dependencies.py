@@ -46,20 +46,16 @@ def get_redis_client():
 def get_chroma_vector():
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-2'))
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-    try:
-        yield chroma_vector_store
-    finally:
-        chroma_vector_store.close()
+    yield chroma_vector_store
+
+
 
 def get_chroma_collection():
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-2'))
-    return chroma_collection
+    yield chroma_collection
 
 def get_chat_store():
     chat_store = PostgresChatStore.from_uri(
         uri="postgresql+asyncpg://postgres:password@127.0.0.1:5432/llama-rag",
     )
-    try:
-        yield chat_store
-    finally:
-        chat_store.close()
+    yield chat_store
