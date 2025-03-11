@@ -36,10 +36,12 @@ import { Chat } from '@/frontend/types';
 import ChatEntryForm from '../form/ChatEntryForm';
 import { useState } from 'react';
 import { useDeleteChat } from '@/frontend/queries/chats';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
-  const router = useRouter()
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
@@ -67,7 +69,9 @@ export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
     <SidebarMenu>
       {chats.map((chat, i) => (
         <SidebarMenuItem
-          className="flex flex-row items-start justify-center px-4 py-2 min-h-[50px]"
+          className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
+            chat.id === currentChatId ? 'bg-accent' : ''
+          }`}
           key={`chat-${chat.id}`}
         >
           <Link href={`/chat/${chat.id}`} className="flex-1">

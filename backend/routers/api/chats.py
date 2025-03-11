@@ -139,8 +139,10 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
 
     return {
         **db_chat.model_dump(),
-        "message": response,
-        "role": "assistant"
+        "message": {
+            "response": response,
+            "role": "assistant"
+        },
     }
 
 

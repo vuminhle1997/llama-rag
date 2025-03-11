@@ -10,4 +10,5 @@ export type Chat = {
   files: File[];
   user_id: string;
   messages: Message[];
+  message?: Message;
 };

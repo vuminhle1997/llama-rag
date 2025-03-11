@@ -10,12 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useGetChat, useDeleteFile, usePostFile, useChat } from "@/frontend/queries/chats";
 import { format } from "date-fns";
-import { File } from "@/frontend/types";
+import { File, Message } from "@/frontend/types";
 import { useAuth } from "@/frontend/queries";
 import { useRouter } from "next/navigation";
 import { setChat } from "@/frontend/store/reducer/app_reducer";
 import { useAppDispatch } from "@/frontend/store/hooks/hooks";
 import { useForm } from "react-hook-form";
+import { TypeAnimation } from "react-type-animation";
 
 interface ChatFormData {
   message: string;
@@ -50,6 +51,9 @@ export default function SlugChatPage({
   const uploadFileMutation = usePostFile(slug);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [assistantMessage, setAssistantMessage] = React.useState<Message>();
+  const [isTypeWriting, setIsTypeWriting] = React.useState(false);
   
   const {
     register,
@@ -102,7 +106,7 @@ export default function SlugChatPage({
       const formData = new FormData();
       formData.set('file', file);
       
-      const response = await uploadFileMutation.mutateAsync(formData);
+      await uploadFileMutation.mutateAsync(formData);
       
       await refetchChat();
       event.target.value = ''; // Reset the input
@@ -127,7 +131,23 @@ export default function SlugChatPage({
       setPendingMessage(data.message);
       setIsTyping(true);
       scrollToBottom();
+      const userMessage: Message = {
+        role: 'user',
+        blocks: [
+          {block_type: 'text', text: data.message}
+        ]
+      }
+      setMessages([...messages, userMessage]);
       const response = await searchMutation.mutateAsync(data.message);
+      const newMessage: Message = {
+        role: 'assistant',
+        blocks: [
+          {block_type: 'text', text: response.message!.response}
+
+        ]
+      }
+      //setAssistantMessage(newMessage);
+      
       await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
     } catch (error) {
@@ -150,6 +170,7 @@ export default function SlugChatPage({
   useEffect(() => {
     scrollToBottom();
   }, [chat?.messages, pendingMessage, isTyping]);
+
 
   if (isLoading) {
     return <div>Wird geladen...</div>;
