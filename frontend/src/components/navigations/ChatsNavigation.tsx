@@ -18,6 +18,16 @@ import {
   Dialog,
   DialogTrigger,
 } from '../ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog';
 import EllipsisHorizontalIcon from '@heroicons/react/24/solid/EllipsisHorizontalIcon';
 import HeartIcon from '@heroicons/react/24/solid/HeartIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
@@ -25,10 +35,33 @@ import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 import { Chat } from '@/frontend/types';
 import ChatEntryForm from '../form/ChatEntryForm';
 import { useState } from 'react';
+import { useDeleteChat } from '@/frontend/queries/chats';
+import { useRouter } from 'next/navigation';
 
 export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
+  const router = useRouter()
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const deleteChat = useDeleteChat(chatToDelete || '');
+
+  const handleDelete = (chatId: string) => {
+    setChatToDelete(chatId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    deleteChat.mutate(undefined, {
+      onSuccess: () => {
+        router.push("/")
+        window.location.reload(); 
+      },
+      onError: (error) => {
+        console.error('Failed to delete chat:', error);
+      }
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -72,7 +105,7 @@ export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
                     <PencilIcon className="h-4 w-4" /> Editieren
                   </DropdownMenuItem>
                 </DialogTrigger>
-                <DropdownMenuItem disabled className="text-destructive">
+                <DropdownMenuItem className="text-destructive" onSelect={() => handleDelete(chat.id)}>
                   <TrashIcon className="h-4 w-4" /> Löschen
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -90,6 +123,22 @@ export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
           </Dialog>
         </SidebarMenuItem>
       ))}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Chat löschen</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarMenu>
   );
 }
