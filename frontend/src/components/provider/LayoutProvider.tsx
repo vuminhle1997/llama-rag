@@ -1,5 +1,5 @@
-import React from 'react';
-import { selectAuthorized, useAppSelector } from '@/frontend';
+import React, { useEffect } from 'react';
+import { selectAuthorized, setChats, useAppDispatch, useAppSelector } from '@/frontend';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,15 @@ export default function LayoutProvider({
   children: React.ReactNode;
 }) {
   const { data } = useGetChats(50, 1);
+  const dispatch = useAppDispatch();
   const isAuthorized= useAppSelector(selectAuthorized);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setChats(data.items));
+    }
+  }, [data]);
+
   return isAuthorized ? (
     <SidebarProvider
       style={

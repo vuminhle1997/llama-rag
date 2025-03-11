@@ -4,33 +4,14 @@ import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { SidebarSeparator } from "../ui/sidebar";
 import { Settings2Icon, LogOutIcon } from "lucide-react";
+import { useAppSelector } from "@/frontend/store/hooks/hooks";
+import { selectUser } from "@/frontend/store/reducer/app_reducer";  
 
 export default function FooterNavigation() {
+    const user = useAppSelector(selectUser);
     return (
         <div className="mt-auto">
-            <div className="flex justify-center gap-1 py-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                disabled
-              >
-                <span>1</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <span>2</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <span>3</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <span>...</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <span>12</span>
-              </Button>
-            </div>
-            <SidebarSeparator />
+            <SidebarSeparator className="mx-0" />
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-2">
                 <Avatar>
@@ -38,9 +19,9 @@ export default function FooterNavigation() {
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">John Doe</span>
+                  <span className="text-sm font-medium">{user?.given_name || ''}</span>
                   <span className="text-xs text-muted-foreground">
-                    john.doe@example.com
+                    {user?.unique_name || 'john.doe@example.com'}
                   </span>
                 </div>
               </div>

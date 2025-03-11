@@ -10,12 +10,19 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { useGetChat, useDeleteFile, usePostFile } from "@/frontend/queries/chats";
 import { format } from "date-fns";
 import { File } from "@/frontend/types";
+import { useAuth } from "@/frontend/queries";
+import { useRouter } from "next/navigation";
+import { setChat } from "@/frontend/store/reducer/app_reducer";
+import { useAppDispatch } from "@/frontend/store/hooks/hooks";
 
 export default function SlugChatPage({
   params
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { data: user, isLoading, error } = useAuth();
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +78,19 @@ export default function SlugChatPage({
 
   useEffect(() => {
     console.log(chat);
+    if (chat) {
+      dispatch(setChat(chat));
+    }
   }, [chat]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error && !isLoading) {
+    router.push('/');
+    return;
+  }
 
   return (
     <main className="flex flex-col h-screen w-screen bg-gray-50">

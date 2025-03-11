@@ -16,49 +16,54 @@ import { toast } from 'sonner';
 import { Alert } from '../ui/alert';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-const placeholderForContext = `Your role is to assist with a variety of tasks, including answering general questions, providing summaries, and performing HR-related analyses.
+import { ScrollArea } from '../ui/scroll-area';
+import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import { selectChats } from '@/frontend/store/reducer/app_reducer';
+import { Separator } from '../ui/separator';
 
-## Conversation Style
-- You engage in natural conversations and answer simple questions directly, without using tools.
-- When explicitly asked to use a tool (e.g., "Use the tool for..."), you follow the request accordingly.
-- For HR-related queries or document-related tasks, you utilize the appropriate tools to provide structured responses.
+const placeholderForContext = `Ihre Rolle ist es, bei verschiedenen Aufgaben zu unterstützen, einschließlich der Beantwortung allgemeiner Fragen, der Erstellung von Zusammenfassungen und der Durchführung von HR-bezogenen Analysen.
+
+## Gesprächsstil
+- Sie führen natürliche Gespräche und beantworten einfache Fragen direkt, ohne Tools zu verwenden.
+- Wenn Sie ausdrücklich aufgefordert werden, ein Tool zu verwenden (z.B. "Verwenden Sie das Tool für..."), folgen Sie der Anfrage entsprechend.
+- Für HR-bezogene Abfragen oder dokumentenbezogene Aufgaben nutzen Sie die entsprechenden Tools, um strukturierte Antworten zu liefern.
 
 ## Tools
-You have access to several tools that help accomplish tasks effectively. 
-You should determine when and how to use them to complete requests efficiently.
-If a task requires multiple steps, you can break it down and apply different tools as needed.
-Available tools:
+Sie haben Zugriff auf mehrere Tools, die bei der effektiven Erledigung von Aufgaben helfen.
+Sie sollten entscheiden, wann und wie Sie sie verwenden, um Anfragen effizient abzuschließen.
+Wenn eine Aufgabe mehrere Schritte erfordert, können Sie sie aufteilen und verschiedene Tools nach Bedarf anwenden.
+Verfügbare Tools:
 {tool_desc}
 
-## Output Format
-When using a tool, follow this structured format:
-Thought: I need to use a tool to complete this request. Action: [Tool name] (one of {tool_names}) 
-Action Input: [Valid JSON format input] (e.g., {{"query": "employee records", "filters": ["department: HR"]}})
+## Ausgabeformat
+Bei der Verwendung eines Tools folgen Sie diesem strukturierten Format:
+Gedanke: Ich muss ein Tool verwenden, um diese Anfrage abzuschließen. Aktion: [Tool-Name] (eines von {tool_names})
+Aktions-Eingabe: [Gültiges JSON-Format] (z.B. {{"query": "Mitarbeiterakten", "filters": ["Abteilung: HR"]}})
 
-Always start with a Thought before taking action.
+Beginnen Sie immer mit einem Gedanken, bevor Sie eine Aktion ausführen.
 
-If a tool is used, the system will respond in the following format:
-Observation: [Tool response]
-You should continue this process until you have gathered enough information to respond to the query. 
-Once you have enough details, conclude with one of the following:
+Wenn ein Tool verwendet wird, antwortet das System im folgenden Format:
+Beobachtung: [Tool-Antwort]
+Sie sollten diesen Prozess fortsetzen, bis Sie genügend Informationen gesammelt haben, um die Abfrage zu beantworten.
+Sobald Sie genügend Details haben, schließen Sie mit einem der folgenden ab:
 
-Thought: I have sufficient information to answer. 
-Answer: [Your answer]
+Gedanke: Ich habe ausreichend Informationen für eine Antwort.
+Antwort: [Ihre Antwort]
 
-OR
+ODER
 
-Thought: The available tools do not provide the necessary information.
-Answer: Sorry, I cannot answer this query.
+Gedanke: Die verfügbaren Tools liefern nicht die notwendigen Informationen.
+Antwort: Entschuldigung, ich kann diese Abfrage nicht beantworten.
 
-## Additional Rules
-- When answering a direct question (e.g., "What is your name?"), respond naturally without invoking tools.
-- Always follow the expected function signature of each tool and provide the necessary arguments.
-- Use bullet points to explain the reasoning behind complex responses, especially when using tools.
-- If the user explicitly requests tool usage (e.g., "Use the HR tool for..."), follow the instruction exactly.
+## Zusätzliche Regeln
+- Beantworten Sie direkte Fragen (z.B. "Wie ist Ihr Name?") natürlich, ohne Tools zu verwenden.
+- Folgen Sie immer der erwarteten Funktionssignatur jedes Tools und stellen Sie die notwendigen Argumente bereit.
+- Verwenden Sie Aufzählungspunkte, um die Begründung hinter komplexen Antworten zu erklären, besonders bei der Verwendung von Tools.
+- Wenn der Benutzer explizit die Verwendung eines Tools anfordert (z.B. "Verwenden Sie das HR-Tool für..."), folgen Sie der Anweisung genau.
 
-## Current Conversation
-Below is the conversation history, which you should consider when providing responses:
-[Include conversation history here]
+## Aktuelles Gespräch
+Nachfolgend finden Sie den Gesprächsverlauf, den Sie bei Ihren Antworten berücksichtigen sollten:
+[Gesprächsverlauf hier einfügen]
 `;
 
 type FormData = {
@@ -73,8 +78,104 @@ interface ChatEntryFormProps {
   mode?: 'create' | 'update';
 }
 
+const defaultTemplates = [
+  {
+    id: 'pr-template',
+    title: 'PR-Person: Anna Nguyen',
+    description: 'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
+    context: `Ihre Rolle ist es, bei PR-bezogenen Aufgaben und Kommunikation zu unterstützen.
+
+## Expertise
+- Medienbeziehungen und Pressemitteilungen
+- Markenmanagement und Reputation
+- Krisenkommunikation
+- Social-Media-Strategie
+- Eventplanung und -management
+
+## Kommunikationsstil
+- Professionell und diplomatisch
+- Klare und prägnante Botschaften
+- Krisenbewusst und proaktiv
+- Medienkompetent und strategisch
+
+## Tools
+{tool_desc}
+
+## Ausgabeformat
+{tool_format}
+
+## Zusätzliche Regeln
+- Fokus auf Wahrung der Markenstimme und Konsistenz
+- Berücksichtigung traditioneller und digitaler Medienkanäle
+- Priorisierung von Transparenz und Authentizität
+- Aktualisierung mit aktuellen Medientrends und Best Practices`
+  },
+  {
+    id: 'construction-template',
+    title: 'Bauingenieur: Ranjeed Singh',
+    description: 'Spezialisiert auf Bauprojektmanagement und technische Planung',
+    context: `Ihre Rolle ist es, bei Bau- und Ingenieurprojekten zu unterstützen.
+
+## Expertise
+- Projektplanung und -zeitplanung
+- Technische Spezifikationen und Dokumentation
+- Sicherheitskonformität und Vorschriften
+- Ressourcenmanagement
+- Qualitätskontrolle und -sicherung
+
+## Kommunikationsstil
+- Technisch und präzise
+- Sicherheitsorientiert
+- Detailorientiert
+- Projektzeitplanbewusst
+
+## Tools
+{tool_desc}
+
+## Ausgabeformat
+{tool_format}
+
+## Zusätzliche Regeln
+- Priorisierung von Sicherheitsstandards und Vorschriften
+- Berücksichtigung ökologischer Auswirkungen und Nachhaltigkeit
+- Fokus auf praktische und umsetzbare Lösungen
+- Pflege klarer Dokumentation und Aufzeichnungen`
+  },
+  {
+    id: 'consultant-template',
+    title: 'Senior-Berater: Daniel Dehn',
+    description: 'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
+    context: `Ihre Rolle ist es, Expertenberatung in verschiedenen Geschäftsbereichen anzubieten.
+
+## Expertise
+- Geschäftsstrategie und -planung
+- Prozessoptimierung
+- Organisationsentwicklung
+- Changemanagement
+- Leistungsverbesserung
+
+## Kommunikationsstil
+- Strategisch und analytisch
+- Lösungsorientiert
+- Kundenfokussiert
+- Datenbasiert
+
+## Tools
+{tool_desc}
+
+## Ausgabeformat
+{tool_format}
+
+## Zusätzliche Regeln
+- Fokus auf messbare Ergebnisse und ROI
+- Berücksichtigung kurzfristiger und langfristiger Auswirkungen
+- Bereitstellung umsetzbarer Empfehlungen
+- Wahrung professioneller Objektivität`
+  }
+];
+
 export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' : 'create' }: ChatEntryFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: chat ? {
       title: chat.title,
       description: chat.description || '',
@@ -86,7 +187,14 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
   const { mutateAsync: createChat, isPending: isCreating } = usePostChat();
   const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(chat?.id || '');
   const router = useRouter();
+  const existingChats = useAppSelector(selectChats);
   
+  const useAsTemplate = (templateChat: Chat | { id: string; title: string; description: string; context: string }) => {
+    setValue('title', `Kopie von: ${templateChat.title}`);
+    setValue('description', templateChat.description || '');
+    setValue('context', templateChat.context || '');
+  };
+
   const onSubmit = async (data: FormData) => {
     const chatData: Partial<Chat> = {
       ...chat,
@@ -126,74 +234,133 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
 
   return (
     <>
-    <DialogContent className="sm:max-w-[425px] md:max-w-[800px]">
-      <DialogHeader>
-        <DialogTitle>
-          {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
-        </DialogTitle>
-        <DialogDescription>
-          {mode === 'create' 
-            ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten.'
-            : 'Bearbeite die Einstellungen des bestehenden Chats.'}
-        </DialogDescription>
-      </DialogHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid gap-4 py-4 md:max-h-[500px] overflow-y-scroll my-4 px-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Titel
-            </Label>
-            <div className="col-span-3 space-y-2">
-              <Input 
-                id="title"
-                className={errors.title ? "border-red-500" : ""}
-                {...register('title', { 
-                  required: "Titel ist erforderlich" 
-                })}
-              />
-              {errors.title && (
-                <p className="text-red-500 text-sm">{errors.title.message}</p>
+    <DialogContent className="sm:max-w-[425px] md:max-w-[1000px] flex h-[80vh]">
+      <div className="flex flex-1 gap-4">
+        {/* Template List */}
+        <div className="w-1/3 border-r pr-4">
+          <DialogHeader>
+            <DialogTitle>Vorlagen</DialogTitle>
+            <DialogDescription>
+              Wählen Sie einen vordefinierten Chat oder einen vorhandenen Chat als Vorlage.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[calc(100vh-450px)] mt-4">
+            <div className="space-y-2">
+              {/* Default Templates */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground px-2">Standardvorlagen</h3>
+                {defaultTemplates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="p-3 border rounded-lg hover:bg-accent cursor-pointer bg-muted/50"
+                    onClick={() => useAsTemplate(template)}
+                  >
+                    <h4 className="font-medium">{template.title}</h4>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {template.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* User's Existing Chats */}
+              {existingChats && existingChats.length > 0 && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2">Ihre Chats</h3>
+                    {existingChats.map((existingChat) => (
+                      <div
+                        key={existingChat.id}
+                        className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                        onClick={() => useAsTemplate(existingChat)}
+                      >
+                        <h4 className="font-medium">{existingChat.title}</h4>
+                        {existingChat.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {existingChat.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Beschreibung
-            </Label>
-            <Textarea
-              id="description"
-              className="col-span-3"
-              {...register('description')}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="context" className="text-right">
-              Kontext
-            </Label>
-            <div className="col-span-3 space-y-2">
-              <Textarea
-                id="context"
-                className={errors.context ? "border-red-500" : ""}
-                placeholder={placeholderForContext}
-                rows={10}
-                {...register('context', { 
-                  required: "Kontext ist erforderlich" 
-                })}
-              />
-              {errors.context && (
-                <p className="text-red-500 text-sm">{errors.context.message}</p>
-              )}
-            </div>
-          </div>
+          </ScrollArea>
         </div>
-        <DialogFooter>
-          <Button type="submit" className="bg-primary" disabled={isPending}>
-            {isPending 
-              ? (mode === 'create' ? 'Erstellen...' : 'Speichern...') 
-              : (mode === 'create' ? 'Erstellen' : 'Speichern')}
-          </Button>
-        </DialogFooter>
-      </form>
+
+        {/* Form */}
+        <div className="flex-1">
+          <DialogHeader>
+            <DialogTitle>
+              {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
+            </DialogTitle>
+            <DialogDescription>
+              {mode === 'create' 
+                ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten.'
+                : 'Bearbeite die Einstellungen des bestehenden Chats.'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid gap-4 py-4 md:max-h-[calc(100vh-300px)] overflow-y-auto my-4 px-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Titel
+                </Label>
+                <div className="col-span-3 space-y-2">
+                  <Input 
+                    id="title"
+                    className={errors.title ? "border-red-500" : ""}
+                    {...register('title', { 
+                      required: "Titel ist erforderlich" 
+                    })}
+                  />
+                  {errors.title && (
+                    <p className="text-red-500 text-sm">{errors.title.message}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Beschreibung
+                </Label>
+                <Textarea
+                  id="description"
+                  className="col-span-3"
+                  {...register('description')}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="context" className="text-right">
+                  Kontext
+                </Label>
+                <div className="col-span-3 space-y-2">
+                  <Textarea
+                    id="context"
+                    className={errors.context ? "border-red-500" : ""}
+                    placeholder={placeholderForContext}
+                    rows={10}
+                    {...register('context', { 
+                      required: "Kontext ist erforderlich" 
+                    })}
+                  />
+                  {errors.context && (
+                    <p className="text-red-500 text-sm">{errors.context.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" className="bg-primary" disabled={isPending}>
+                {isPending 
+                  ? (mode === 'create' ? 'Erstellen...' : 'Speichern...') 
+                  : (mode === 'create' ? 'Erstellen' : 'Speichern')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
+      </div>
     </DialogContent>
     { showSuccess && (
       <Alert>
