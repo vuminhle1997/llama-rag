@@ -14,7 +14,20 @@ import os
 import uvicorn
 import uuid
 
+# LLM
+from llama_index.core.settings import Settings
+from llama_index.llms.ollama import Ollama
+from llama_index.embeddings.ollama import OllamaEmbedding
+
 load_dotenv()
+
+# LLM
+llm = Ollama(model="llama3.1")
+embed_model = OllamaEmbedding(model_name="nomic-embed-text")
+Settings.llm = llm
+Settings.embed_model = embed_model
+Settings.chunk_size = 512
+Settings.chunk_overlap = 50
 
 CLIENT_ID=os.getenv("CLIENT_ID")
 CLIENT_SECRET=os.getenv("CLIENT_SECRET")
@@ -79,9 +92,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
-    print(claims, session_id)
     return claims
 
 if __name__ == "__main__":
-    print(PORT)
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
