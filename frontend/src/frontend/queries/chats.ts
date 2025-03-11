@@ -43,7 +43,7 @@ export const useGetChat = (id: string) => {
   return useQuery({
     queryKey: ["chats", id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
+      const response = await axios.get<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
         withCredentials: true       
       });
       return response.data;
@@ -133,7 +133,7 @@ export const useChat = (chatId: string) => {
   // Mutation: Submit a search query
   const searchMutation = useMutation({
     mutationFn: async (text: string) => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`, {
+      const response = await axios.get<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`, {
         params: { text }, // Attach search text as query param
         withCredentials: true,
       });

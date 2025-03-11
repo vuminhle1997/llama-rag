@@ -1,5 +1,6 @@
 "use client";
 
+import { marked} from "marked";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +21,16 @@ interface ChatFormData {
   message: string;
 }
 
+// Add LoadingOverlay component at the top level
+const LoadingOverlay = ({ message }: { message: string }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-lg flex items-center space-x-3">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <span className="text-gray-800">{message}</span>
+    </div>
+  </div>
+);
+
 export default function SlugChatPage({
   params
 }: {
@@ -30,10 +41,15 @@ export default function SlugChatPage({
   const { data: user, isLoading, error } = useAuth();
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
+  const [isTyping, setIsTyping] = React.useState(false);
+  const [pendingMessage, setPendingMessage] = React.useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
   const deleteFileMutation = useDeleteFile(slug);
   const uploadFileMutation = usePostFile(slug);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
   
   const {
     register,
@@ -82,6 +98,7 @@ export default function SlugChatPage({
     }
 
     try {
+      setIsUploading(true);
       const formData = new FormData();
       formData.set('file', file);
       
@@ -93,16 +110,33 @@ export default function SlugChatPage({
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Error uploading file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   };
 
   const handleSubmit = async (data: ChatFormData) => {
     try {
+      setIsSubmitting(true);
+      setPendingMessage(data.message);
+      setIsTyping(true);
+      scrollToBottom();
       const response = await searchMutation.mutateAsync(data.message);
-      console.log(response);
+      await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
     } catch (error) {
       console.error('Error sending message:', error);
+    } finally {
+      setIsSubmitting(false);
+      setIsTyping(false);
+      setPendingMessage(null);
+      scrollToBottom();
     }
   };
 
@@ -111,6 +145,11 @@ export default function SlugChatPage({
       dispatch(setChat(chat));
     }
   }, [chat]);
+
+  // Add effect to scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [chat?.messages, pendingMessage, isTyping]);
 
   if (isLoading) {
     return <div>Wird geladen...</div>;
@@ -123,40 +162,73 @@ export default function SlugChatPage({
 
   return (
     <main className="flex flex-col h-screen w-screen bg-gray-50">
+      {(isUploading || deleteFileMutation.isPending) && (
+        <LoadingOverlay message={isUploading ? "Datei wird hochgeladen..." : "Datei wird gelöscht..."} />
+      )}
       {/* Chat Messages Container */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-          {/* System Message */}
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              KI
-            </div>
-            <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
-              <p className="text-gray-800">Hallo, ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?</p>
-            </div>
-          </div>
+          {chat?.messages?.map((message, index) => (
+            <div
+              key={index}
+              className={`flex items-start space-x-4 ${
+                message.role === 'user' ? 'justify-end' : ''
+              }`}
+            >
+              {message.role !== 'user' && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                  {message.role === 'assistant' ? 'KI' : 'S'}
+                </div>
+              )}
+              <div className={`flex-1 rounded-lg shadow-sm p-4 ${
+                message.role === 'user' ? 'bg-primary' : 'bg-white'
+              }`}>
+                {message.blocks.map((block, blockIndex) => (
+                  <div
+                    key={blockIndex}
+                    className={message.role === 'user' ? 'text-white' : 'text-gray-800'}
+                  >
+                    <div dangerouslySetInnerHTML={{ __html: marked(block.text) }}>
 
-          {/* User Message */}
-          <div className="flex items-start space-x-4 justify-end">
-            <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
-              <p className="text-white">Ich brauche Hilfe bei meinem Projekt.</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {message.role === 'user' && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                  B
+                </div>
+              )}
             </div>
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              B
-            </div>
-          </div>
+          ))}
 
-          {/* System Message */}
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-              KI
+          {/* Pending Message */}
+          {pendingMessage && (
+            <div className="flex items-start space-x-4 justify-end">
+              <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
+                <p className="text-white">{pendingMessage}</p>
+              </div>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                B
+              </div>
             </div>
-            <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
-              <p className="text-gray-800">Ich helfe Ihnen gerne! An welcher Art von Projekt arbeiten Sie?
-                <p><b>Titel:</b> {slug}</p>
-              </p>
+          )}
+
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                KI
+              </div>
+              <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -171,6 +243,7 @@ export default function SlugChatPage({
                   errors.message ? 'border-red-500' : ''
                 }`}
                 placeholder="Geben Sie Ihre Nachricht hier ein..."
+                disabled={isSubmitting || isTyping}
                 {...register("message", {
                   required: "Nachricht ist erforderlich",
                   minLength: {
@@ -179,9 +252,9 @@ export default function SlugChatPage({
                   }
                 })}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === 'Enter' && !e.shiftKey && !isSubmitting && !isTyping) {
                     e.preventDefault();
-//                    handleFormSubmit(handleSubmit)();
+                    handleFormSubmit(handleSubmit)();
                   }
                 }}
               />
@@ -193,9 +266,9 @@ export default function SlugChatPage({
                   className="h-8 w-8 text-gray-500 hover:text-gray-700"
                   title="Datei hochladen"
                   onClick={handleUploadClick}
-                  disabled={uploadFileMutation.isPending}
+                  disabled={isUploading || uploadFileMutation.isPending || isSubmitting || isTyping}
                 >
-                  {uploadFileMutation.isPending ? (
+                  {(isUploading || uploadFileMutation.isPending) ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Upload className="h-4 w-4" />
@@ -208,6 +281,7 @@ export default function SlugChatPage({
                   className="h-8 w-8 text-gray-500 hover:text-gray-700"
                   title="Dateien verwalten"
                   onClick={() => setIsFileDialogOpen(true)}
+                  disabled={isUploading || deleteFileMutation.isPending || isSubmitting || isTyping}
                 >
                   <FileText className="h-4 w-4" />
                 </Button>
@@ -217,9 +291,13 @@ export default function SlugChatPage({
                   size="icon"
                   className="h-8 w-8 text-primary hover:text-primary/80"
                   title="Nachricht senden"
-                  disabled={!messageText?.trim()}
+                  disabled={!messageText?.trim() || isSubmitting || isTyping}
                 >
-                  <Send className="h-4 w-4" />
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>

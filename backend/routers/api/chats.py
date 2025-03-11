@@ -2,6 +2,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from llama_index.core import PromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.storage.chat_store.postgres import PostgresChatStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
@@ -18,7 +19,7 @@ from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt
-from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection
+from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
                       )
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
@@ -61,18 +62,25 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
 @router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
                    request: Request = Request,
-                   redis_client: Redis = Depends(get_redis_client)):
+                   redis_client: Redis = Depends(get_redis_client),
+                   chat_store: PostgresChatStore = Depends(get_chat_store)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+    chat_memory = ChatMemoryBuffer(
+        chat_store=chat_store,
+        chat_store_key=db_chat.id,
+        token_limit=5000,
+    )
 
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat not found")
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
+        'messages': chat_memory.get(),
     }
 
 
@@ -95,7 +103,7 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     # Now the fun is getting started
-    chat_memory = ChatMemoryBuffer(
+    chat_memory = ChatMemoryBuffer.from_defaults(
         chat_store_key=db_chat.id,
         token_limit=3000,
         chat_store=chat_store,
@@ -103,10 +111,20 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
 
     files = db_chat.files
     filters = create_filters_for_files(files)
+    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
+    tools = [
+        QueryEngineTool(
+            query_engine=query_engine,
+            metadata=ToolMetadata(
+                name=f"query_engine",
+                description=f"Query engine for"
+            )
+        ) for query_engine in query_engines
+    ]
+    print(tools, db_chat.context)
 
     # query engines
-    # query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store,
-    #                                                   settings=get_llm_settings)
+
     # pd_query_engines = create_pandas_engines_from_files(files)
     #
     # # tools_collection
@@ -116,13 +134,12 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     # agent = LLMService(settings=Settings, tools=tools,
     #                    system_prompt=PromptTemplate(db_chat.context), memory=chat_memory)
 
-    # response = await agent.achat(query=text)
-
-    print(chat_memory, filters)
+    agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools)
+    response = await agent.achat(text)
 
     return {
-        # "response": response
-        "text": text,
+        **db_chat.model_dump(),
+        "message": response,
         "role": "assistant"
     }
 

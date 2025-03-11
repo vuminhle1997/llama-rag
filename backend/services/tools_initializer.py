@@ -53,6 +53,8 @@ from llama_index.core.tools import QueryEngineTool, FunctionTool, ToolMetadata
 #         return tools
 
 def create_filters_for_files(files: List[ChatFile]):
+    if len(files) == 0:
+        return []
     filters = [
         MetadataFilters(
             filters=[
