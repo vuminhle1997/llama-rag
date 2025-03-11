@@ -109,7 +109,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
         onSuccess();
       } else {
         setTimeout(() => {
-          router.push(`/chats/${response.id}`);
+          router.push(`/chat/${response.id}`);
           window.location.reload();
         }, 3000);
       }

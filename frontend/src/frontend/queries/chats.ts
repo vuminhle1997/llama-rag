@@ -81,14 +81,12 @@ export const useUpdateChat = (id: string) => {
   });
 };
 
-// use react-query to post a new file with form "file" to the backend and axios, with credentials, and query id
+// use react-query to post a new file with form "file", with formData to the backend and axios, with credentials, and query id
 
 export const usePostFile = (id: string) => {
   return useMutation({
-    mutationFn: async (file: File) => {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}/upload`, {
-        file
-      }, {
+    mutationFn: async (formData: FormData) => {
+      const response = await axios.post<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}/upload`, formData, {
         withCredentials: true
       });
       return response.data;
@@ -98,9 +96,9 @@ export const usePostFile = (id: string) => {
 
 // use react-query to delete a file by its id and chat id (bot path params), with credentials and axios
 
-export const useDeleteFile = (id: string, chatId: string) => {
+export const useDeleteFile = (chatId: string) => {
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (id: string) => {
       const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/delete/${id}`, {
         withCredentials: true
       });

@@ -1,4 +1,6 @@
 import uuid
+from urllib import request
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from redis import Redis
 
@@ -21,6 +23,19 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
+def check_property_belongs_to_user(request_from_route: Request, redis_client: Redis, chat: "Chat"):
+    session_id = request_from_route.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=404, detail="Session ID not found")
+    token = redis_client.get(f"session:{session_id}")
+    claims = decode_jwt(token)
+    user_id = claims["oid"]
+    if chat.user_id != user_id:
+        return False
+    else:
+        return True
+
 @router.get("/", response_model=Page[Chat])
 async def get_all_chats(db_client: Session = Depends(get_db_session),
                         request: Request = Request,
@@ -35,16 +50,24 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
     query = query.filter(Chat.user_id == user_id)
     return sqlalchemy_pagination(query)
 
+
 @router.get("/{chat_id}")
-async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
+async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
+                   request: Request = Request,
+                   redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+
+    belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+
+    if not belongs_to_user:
+        raise HTTPException(status_code=404, detail="Chat not found")
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
     }
+
 
 @router.get("/{chat_id}/chat")
 async def chat_with_given_chat_id(chat_id: str, text: str, db_client: Session = Depends(get_db_session)):
@@ -64,16 +87,20 @@ async def chat_with_given_chat_id(chat_id: str, text: str, db_client: Session = 
     }
 
 
-
 @router.post("/{chat_id}/upload")
 async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               db_client: Session = Depends(get_db_session),
+                              request: Request = Request,
                               redis_session: Redis = Depends(get_redis_client)):
+    print(file)
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+
+    belongs_to_user = check_property_belongs_to_user(request, redis_session, db_chat)
+    if not belongs_to_user:
+        raise HTTPException(status_code=404, detail="Chat does not belong to user")
     # If file is not attached to Upload, raise Error
     if not file.filename:
         raise HTTPException(status_code=404, detail="File not found")
@@ -107,6 +134,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_client.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/")
 async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session),
                       request: Request = Request,
@@ -131,6 +159,7 @@ async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_sess
     except Exception as e:
         raise e
 
+
 @router.put("/{chat_id}")
 async def update_chat(chat_id: str, chat: ChatUpdate,
                       request: Request = Request,
@@ -140,15 +169,9 @@ async def update_chat(chat_id: str, chat: ChatUpdate,
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    session_id = request.cookies.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=404, detail="Session not found")
-    token = redis_client.get(f"session:{session_id}")
-    claims = decode_jwt(token)
-    user_id = claims["oid"]
-
-    if db_chat.user_id != user_id:
-        raise HTTPException(status_code=404, detail="Chat does not belong to you")
+    belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+    if not belongs_to_user:
+        raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     # Update the entry
     chat_data = chat.model_dump(exclude_unset=True)
@@ -161,12 +184,18 @@ async def update_chat(chat_id: str, chat: ChatUpdate,
         'files': db_chat.files,
     }
 
+
 @router.delete("/{chat_id}")
-async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)):
+async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session),
+                      request: Request = Request,
+                      redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+
+    belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+    if not belongs_to_user:
+        raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     # Get chat folder path and delete all files inside
     chat_folder = BASE_UPLOAD_DIR / str(chat_id)
@@ -181,13 +210,19 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
         **db_chat.model_dump(),
     }
 
+
 @router.delete("/{chat_id}/delete/{file_id}")
-async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = Depends(get_db_session)):
+async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = Depends(get_db_session),
+                              request: Request = Request,
+                              redis_client: Redis = Depends(get_redis_client)):
     # If chat is not existing, raise Error
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    # TODO: check user_id == session.jwt.oid, if equals, continue. Otherwise, error
+
+    belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+    if not belongs_to_user:
+        raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     # If file is not existing or does not belong to Chat, raise Error
     db_file = db_client.get(ChatFile, file_id)
