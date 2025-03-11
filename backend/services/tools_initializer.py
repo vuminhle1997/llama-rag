@@ -68,6 +68,18 @@ def create_filters_for_files(files: List[ChatFile]):
     ]
     return filters
 
+class PandasTool:
+    def __init__(self, query_engine: PandasQueryEngine):
+        self.query_engine = query_engine
+
+    async def aquery_pd(self, query: str):
+        """Executes a query with Pandas and return the string result"""
+        try:
+            result = await self.query_engine.aquery(query)
+            return str(result.response)  # Ensures only the output is returned
+        except Exception as e:
+            return f"Error: {str(e)}"
+
 def create_query_engines_from_filters(filters: List[MetadataFilter], chroma_vector_store: ChromaVectorStore) -> List[BaseQueryEngine]:
     storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
     vector_index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store, storage_context=storage_context,
@@ -77,18 +89,36 @@ def create_query_engines_from_filters(filters: List[MetadataFilter], chroma_vect
     ]
     return query_engines
 
-# def create_pandas_engines_from_files(files: List[ChatFile]):
-#     pd_tools: List[PandasTool] = []
-#     for file in files:
-#         if file.mime_type == "application/csv":
-#             pd_tool = PandasTool(pandas_query_engine=PandasQueryEngine(df=pd.read_csv(file.path, verbose=True)),
-#                                  file_name=file.file_name)
-#             pd_tools.append(pd_tool)
-#         if file.mime_type == "application/excel":
-#             pd_tool = PandasTool(pandas_query_engine=PandasQueryEngine(df=pd.read_excel(file.path, verbose=True)),
-#                                  file_name=file.file_name)
-#             pd_tools.append(pd_tool)
-#     return pd_tools
+def create_pandas_engines_tools_from_files(files: List[ChatFile]):
+    pd_tools = []
+    for file in files:
+        print(file.mime_type)
+        if "csv" in file.mime_type.lower():
+            pd_query = PandasQueryEngine(
+                df=pd.read_csv(file.path_name),
+                verbose=True,
+            )
+            pd_tool = PandasTool(query_engine=pd_query)
+            pd_tools.append(pd_tool)
+        if "excel" in file.mime_type.lower():
+            pd_query = PandasQueryEngine(
+                df=pd.read_excel(file.path_name),
+                verbose=True,
+            )
+            pd_tool = PandasTool(query_engine=pd_query)
+            pd_tools.append(pd_tool)
+
+    pd_tools = [
+        FunctionTool(
+            async_fn=pd_tool.aquery_pd,
+            metadata=ToolMetadata(
+                name=f"pandas_tool_{files[i].file_name}",
+                description=f"Tool for evaluating spreadsheet of file: {files[i].file_name}",
+            )
+        ) for i, pd_tool in enumerate(pd_tools)
+    ]
+    print(pd_tools)
+    return pd_tools
 
 
 

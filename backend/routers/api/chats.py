@@ -20,7 +20,7 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
-                      )
+                      , create_pandas_engines_tools_from_files)
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -116,13 +116,15 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
         QueryEngineTool(
             query_engine=query_engine,
             metadata=ToolMetadata(
-                name=f"query_engine",
-                description=f"Query engine for"
+                name=f"query_engine_for_{files[i].file_name}",
+                description=f"Simple query engine for going through the file: {files[i].file_name}",
             )
-        ) for query_engine in query_engines
+        ) for i, query_engine in enumerate(query_engines)
     ]
-    print(tools, db_chat.context)
 
+    pd_tools = create_pandas_engines_tools_from_files(files=files)
+
+    tools = tools + pd_tools
     # query engines
 
     # pd_query_engines = create_pandas_engines_from_files(files)
@@ -133,6 +135,7 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     #
     # agent = LLMService(settings=Settings, tools=tools,
     #                    system_prompt=PromptTemplate(db_chat.context), memory=chat_memory)
+    print(tools, len(tools))
 
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools)
     response = await agent.achat(text)

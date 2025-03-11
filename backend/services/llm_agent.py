@@ -1,5 +1,5 @@
 from llama_index.core import PromptTemplate
-from llama_index.core.agent import ReActAgent
+from llama_index.core.agent import ReActAgent, AgentRunner, FunctionCallingAgent
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.settings import Settings
 from typing import List
