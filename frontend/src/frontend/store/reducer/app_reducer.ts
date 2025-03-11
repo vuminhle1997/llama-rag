@@ -8,6 +8,7 @@ interface AppState {
   user: AzureClaims | null;
   chat: Chat | null;
   chats: Chat[] | null;
+  profilePicture: string | null;
 }
 
 // Define the initial state using that type
@@ -16,6 +17,7 @@ const initialState: AppState = {
   user: null,
   chat: null,
   chats: null,
+  profilePicture: null,
 };
 
 export const appSlice = createSlice({
@@ -35,15 +37,19 @@ export const appSlice = createSlice({
     setChats: (state, action: PayloadAction<Chat[]>) => {
       state.chats = action.payload;
     },
+    setProfilePicture: (state, action: PayloadAction<string>) => {
+      state.profilePicture = action.payload;
+    },
   },
 });
 
-export const { setIsAuthorized, setUser, setChat, setChats } = appSlice.actions;
+export const { setIsAuthorized, setUser, setChat, setChats, setProfilePicture } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectAuthorized = (state: RootState) => state.app.isAuthorized;
 export const selectUser = (state: RootState) => state.app.user;
 export const selectChat = (state: RootState) => state.app.chat;
 export const selectChats = (state: RootState) => state.app.chats;
+export const selectProfilePicture = (state: RootState) => state.app.profilePicture;
 
 export default appSlice.reducer;

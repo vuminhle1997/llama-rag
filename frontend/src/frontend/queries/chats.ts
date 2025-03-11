@@ -6,13 +6,12 @@ import { Chat, Page } from "../types";
 
 export const usePostChat = () => {
   return useMutation({
-    mutationFn: async (chat: Chat) => {
-      const response = await axios.post<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
-        title: chat.title,
-        description: chat.description,
-        context: chat.context
-      }, {
-        withCredentials: true
+    mutationFn: async (formData: FormData) => {
+      const response = await axios.post<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       return response.data;
     },
@@ -68,13 +67,12 @@ export const useDeleteChat = (id: string) => {
 
 export const useUpdateChat = (id: string) => {
   return useMutation({
-    mutationFn: async (chat: Chat) => {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
-        title: chat.title,
-        description: chat.description,
-        context: chat.context
-      }, {
-        withCredentials: true
+    mutationFn: async (formData: FormData) => {
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       return response.data;
     }

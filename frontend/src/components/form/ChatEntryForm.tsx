@@ -14,7 +14,7 @@ import { useForm } from 'react-hook-form';
 import { Chat } from '@/frontend/types';
 import { toast } from 'sonner';
 import { Alert } from '../ui/alert';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '../ui/scroll-area';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
@@ -70,6 +70,7 @@ type FormData = {
   title: string;
   description: string;
   context: string;
+  avatar?: FileList;
 };
 
 interface ChatEntryFormProps {
@@ -216,7 +217,7 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 ];
 
 export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' : 'create' }: ChatEntryFormProps) {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: chat ? {
       title: chat.title,
       description: chat.description || '',
@@ -225,6 +226,8 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
   });
   const [ showSuccess, setShowSuccess ] = useState(false);
   const [ showError, setShowError ] = useState(false);
+  const [ avatarPreview, setAvatarPreview ] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: createChat, isPending: isCreating } = usePostChat();
   const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(chat?.id || '');
   const router = useRouter();
@@ -236,20 +239,42 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
     setValue('context', templateChat.context || '');
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Watch for avatar changes to update preview
+  const avatarFile = watch('avatar');
+  useEffect(() => {
+    if (avatarFile?.[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(avatarFile[0]);
+    }
+  }, [avatarFile]);
+
   const onSubmit = async (data: FormData) => {
-    const chatData: Partial<Chat> = {
-      ...chat,
+    const formData = new FormData();
+
+    formData.append('chat', JSON.stringify({
       title: data.title,
-      description: data.description,
+      description: data.description || '',
       context: data.context,
-    };
+    }));
+    
+    if (data.avatar?.[0]) {
+      formData.append('file', data.avatar[0]);
+    }
     
     try {
       let response;
+      console.log(formData);
       if (mode === 'create') {
-        response = await createChat(chatData as Chat);
+        response = await createChat(formData);
       } else {
-        response = await updateChat(chatData as Chat);
+        response = await updateChat(formData);
       }
       
       setShowSuccess(true);
@@ -345,6 +370,60 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-4 py-4 md:max-h-[calc(100vh-300px)] overflow-y-auto my-4 px-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="avatar" className="text-right">
+                  Avatar
+                </Label>
+                <div className="col-span-3">
+                  <div className="flex flex-col items-center gap-4">
+                    <div 
+                      onClick={handleAvatarClick}
+                      className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${!avatarPreview ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50' : ''}`}
+                    >
+                      {avatarPreview ? (
+                        <>
+                          <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-sm">Ändern</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full p-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          <span className="text-sm text-gray-500 text-center mt-2">Avatar hochladen</span>
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      {...register('avatar')}
+                      id="avatar"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      ref={(e) => {
+                        register('avatar').ref(e);
+                        fileInputRef.current = e;
+                      }}
+                    />
+                    {avatarPreview && (
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={() => {
+                          setAvatarPreview(null);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                      >
+                        Avatar entfernen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="title" className="text-right">
                   Titel

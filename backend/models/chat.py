@@ -1,7 +1,11 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy.ext.declarative import declarative_base
+from pydantic import BaseModel
 import uuid
+
+Base = declarative_base()
 
 if TYPE_CHECKING:
     from models.chat_file import ChatFile
@@ -11,11 +15,12 @@ class ChatBase(SQLModel):
     description: str = Field(nullable=True, index=True)
     context: str = Field(nullable=False)
 
-class Chat(ChatBase, table=True):
+class Chat(ChatBase, Base, table=True):
     id: str = Field(primary_key=True, default=str(uuid.uuid4()))
     created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     updated_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     user_id: str = Field(nullable=False, index=True)
+    avatar_path: str = Field(nullable=False)
     files: List["ChatFile"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
 
 class ChatPublic(ChatBase):
@@ -25,8 +30,12 @@ class ChatPublic(ChatBase):
     updated_at: datetime
     files: list["ChatFile"]
 
-class ChatCreate(ChatBase):
-    pass
+class ChatCreate(BaseModel):
+    title: str
+    description: Optional[str]
+    context: str
 
-class ChatUpdate(ChatBase):
-    pass
+class ChatUpdate(BaseModel):
+    title: str
+    description: Optional[str]
+    context: str

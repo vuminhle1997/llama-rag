@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, JSONResponse
+from starlette.responses import RedirectResponse, JSONResponse, Response
 from routers import route
 from dependencies import create_db_and_tables, get_redis_client
 from msal import ConfidentialClientApplication
@@ -13,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import uvicorn
 import uuid
+import requests
 
 # LLM
 from llama_index.core.settings import Settings
@@ -93,6 +95,29 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
     return claims
+
+@app.get("/profile-picture")
+async def get_profile_picture(request: Request,
+                              redis_client: Redis = Depends(get_redis_client)):
+    GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me/photo/$value"
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID not found")
+
+    token = redis_client.get(f"session:{session_id}")
+    if not token:
+        raise HTTPException(status_code=401, detail="Token not found in Redis")
+
+    response = requests.get(GRAPH_API_URL, headers={"Authorization": f"Bearer {token}"})
+
+    if response.status_code == 200:
+        return Response(content=response.content, media_type="image/jpeg")
+    elif response.status_code == 401:
+        raise HTTPException(status_code=401, detail="Unauthorized. Invalid or expired token")
+    elif response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Profile picture not found")
+    else:
+        raise HTTPException(status_code=500, detail="Error fetching profile picture")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)

@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING, Optional
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy.ext.declarative import declarative_base
 import uuid
+
+Base = declarative_base()
 
 if TYPE_CHECKING:
     from models.chat import Chat
@@ -12,7 +15,7 @@ class BaseChatFile(SQLModel):
     mime_type: str = Field(index=True, nullable=False)
     chat_id: Optional[str] = Field(default=None, foreign_key="chat.id")
 
-class ChatFile(BaseChatFile, table=True):
+class ChatFile(BaseChatFile, Base, table=True):
     id: str = Field(primary_key=True, nullable=False, default=str(uuid.uuid4()))
     created_at: datetime = Field(default = datetime.now())
     updated_at: datetime = Field(default = datetime.now())

@@ -1,5 +1,6 @@
+import json
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
@@ -8,7 +9,7 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
 from chromadb import Collection
-
+from typing import Optional
 from llama_index.core.settings import Settings
 from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
@@ -199,34 +200,58 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_client.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.post("/")
-async def create_chat(chat: ChatCreate, db_client: Session = Depends(get_db_session),
-                      request: Request = Request,
-                      redis_client: Redis = Depends(get_redis_client)):
-    try:
-        session_id = request.cookies.get("session_id")
-        if not session_id:
-            raise HTTPException(status_code=404, detail="Session not found")
+async def create_chat(
+    chat: str = Form(...),
+    file: Optional[UploadFile] = None,
+    db_client: Session = Depends(get_db_session),
+    request: Request = Request,
+    redis_client: Redis = Depends(get_redis_client)
+):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=404, detail="Session not found")
 
-        token = redis_client.get(f"session:{session_id}")
-        claims = decode_jwt(token)
+    token = redis_client.get(f"session:{session_id}")
+    claims = decode_jwt(token)
+    user_id = claims["oid"]
 
-        user_id = claims["oid"]
-        db_chat = Chat(**chat.model_dump(), user_id=user_id, id=str(uuid.uuid4()))
-        db_client.add(db_chat)
-        db_client.commit()
-        db_client.refresh(db_chat)
-        return {
-            **db_chat.model_dump(),
-            'files': db_chat.files,
-        }
-    except Exception as e:
-        raise e
+    chat_id = str(uuid.uuid4())
+    avatar_path = None
 
+    if file and file.filename:
+        # Get file extension
+        ext = file.filename.split('.')[-1].lower()
+        if ext not in ['jpg', 'jpeg', 'png', 'gif']:
+            raise HTTPException(status_code=400, detail="Invalid image format")
+
+        # Create avatars directory if it doesn't exist
+        avatar_dir = BASE_UPLOAD_DIR / 'avatars'
+        avatar_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save file
+        avatar_path = avatar_dir / f"{chat_id}.{ext}"
+        with open(avatar_path, "wb+") as buffer:
+            buffer.write(file.file.read())
+
+    chat_data = json.loads(chat)
+    db_chat = Chat(
+        **chat_data,
+        user_id=user_id,
+        id=chat_id,
+        avatar_path=str(avatar_path)
+    )
+    db_client.add(db_chat)
+    db_client.commit()
+    db_client.refresh(db_chat)
+
+    return {
+        **db_chat.model_dump(),
+        'files': db_chat.files,
+    }
 
 @router.put("/{chat_id}")
-async def update_chat(chat_id: str, chat: ChatUpdate,
+async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = File(None),
                       request: Request = Request,
                       db_client: Session = Depends(get_db_session),
                       redis_client: Redis = Depends(get_redis_client)):
@@ -238,16 +263,42 @@ async def update_chat(chat_id: str, chat: ChatUpdate,
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
+    avatar_path = db_chat.avatar_path
+    old_avatar_path = avatar_path
+
+    if file and file.filename:
+        # Get file extension
+        ext = file.filename.split('.')[-1].lower()
+        if ext not in ['jpg', 'jpeg', 'png', 'gif']:
+            raise HTTPException(status_code=400, detail="Invalid image format")
+
+        # Create avatars directory if it doesn't exist
+        avatar_dir = BASE_UPLOAD_DIR / 'avatars'
+        avatar_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save new file
+        avatar_path = avatar_dir /  f"{chat_id}.{ext}"
+        with open(avatar_path, "wb+") as buffer:
+            buffer.write(file.file.read())
+
+        # Delete old avatar if it exists
+        if old_avatar_path and Path(old_avatar_path).exists():
+            Path(old_avatar_path).unlink()
+
     # Update the entry
-    chat_data = chat.model_dump(exclude_unset=True)
+    chat_data = json.loads(chat)
     db_chat.sqlmodel_update(chat_data)
+    if avatar_path:
+        db_chat.avatar_path = avatar_path
     db_client.add(db_chat)
     db_client.commit()
     db_client.refresh(db_chat)
+
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
     }
+
 
 
 @router.delete("/{chat_id}")
@@ -273,6 +324,10 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
         for file in chat_folder.iterdir():
             file.unlink()  # Delete each file
         chat_folder.rmdir()  # Remove the folder itself
+
+    # Delete avatar file if it exists
+    if db_chat.avatar_path and Path(db_chat.avatar_path).exists():
+        Path(db_chat.avatar_path).unlink()
 
     db_client.delete(db_chat)
     db_client.commit()

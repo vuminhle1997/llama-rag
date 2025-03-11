@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { selectAuthorized, setChats, useAppDispatch, useAppSelector } from '@/frontend';
+import { selectAuthorized, setChats, setProfilePicture, useAppDispatch, useAppSelector } from '@/frontend';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -23,12 +23,13 @@ import FooterNavigation from '../navigations/FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from '../navigations/ChatsNavigation';
 import { useGetChats } from '@/frontend/queries/chats';
-
+import { useGetProfilePicture } from '@/frontend/queries/avatar';
 export default function LayoutProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { profilePicture } = useGetProfilePicture();
   const { data } = useGetChats(50, 1);
   const dispatch = useAppDispatch();
   const isAuthorized= useAppSelector(selectAuthorized);
@@ -37,7 +38,10 @@ export default function LayoutProvider({
     if (data) {
       dispatch(setChats(data.items));
     }
-  }, [data]);
+    if (profilePicture) {
+      dispatch(setProfilePicture(profilePicture));
+    }
+  }, [data, profilePicture]);
 
   return isAuthorized ? (
     <SidebarProvider

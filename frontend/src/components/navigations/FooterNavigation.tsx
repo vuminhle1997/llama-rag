@@ -5,17 +5,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { SidebarSeparator } from "../ui/sidebar";
 import { Settings2Icon, LogOutIcon } from "lucide-react";
 import { useAppSelector } from "@/frontend/store/hooks/hooks";
-import { selectUser } from "@/frontend/store/reducer/app_reducer";  
+import { selectUser, selectProfilePicture } from "@/frontend/store/reducer/app_reducer";  
 
 export default function FooterNavigation() {
     const user = useAppSelector(selectUser);
+    const profilePicture = useAppSelector(selectProfilePicture);
     return (
         <div className="mt-auto">
             <SidebarSeparator className="mx-0" />
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-2">
                 <Avatar>
-                  <AvatarImage src="https://ui.shadcn.com/avatars/01.png" />
+                  <AvatarImage src={profilePicture ? profilePicture : ''} />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
