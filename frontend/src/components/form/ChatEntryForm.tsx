@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '../ui/button';
 import {
   DialogContent,
@@ -30,6 +32,14 @@ import { Check, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { Slider } from '../ui/slider';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+
 const placeholderForContext = `Ihre Rolle ist es, bei verschiedenen Aufgaben zu unterstützen, einschließlich der Beantwortung allgemeiner Fragen, der Erstellung von Zusammenfassungen und der Durchführung von HR-bezogenen Analysen.
 
 ## Gesprächsstil
@@ -81,6 +91,7 @@ type FormData = {
   context: string;
   avatar?: FileList;
   temperature: number;
+  model: string;
 };
 
 interface ChatEntryFormProps {
@@ -140,6 +151,7 @@ Nachfolgend findest du den Gesprächsverlauf, den du bei deinen Antworten berüc
     description: 'Spezialisiert auf Softwareentwicklung und Systemarchitektur mit Spring Boot',
     avatar_path: softwareEngineerImage,
     temperature: 0.75,
+    model: 'llama3.1',
     context: `
     Denis Kunz – Computer-Ingenieur
 
@@ -174,6 +186,7 @@ Nachfolgend findest du den Gesprächsverlauf, den du bei deinen Antworten berüc
     title: 'PR-Person: Anna Pham',
     description: 'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
     avatar_path: hrImage,
+    model: 'llama3.1',
     temperature: 0.75,
     context: `
 Anna Pham – HR-Verantwortliche
@@ -246,6 +259,7 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
     description: 'Spezialisiert auf Bauprojektmanagement und technische Planung',
     avatar_path: engineerImage,
     temperature: 0.75,
+    model: 'llama3.1',
     context: `Ihre Rolle ist es, bei Bau- und Ingenieurprojekten zu unterstützen.
 
 ## Expertise
@@ -278,6 +292,7 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
     description: 'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
     avatar_path: consultantImage,
     temperature: 0.75,
+    model: 'llama3.1',
     context: `Ihre Rolle ist es, Expertenberatung in verschiedenen Geschäftsbereichen anzubieten.
 
 ## Expertise
@@ -307,6 +322,27 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
   }
 ];
 
+const defaultModels = [
+  {
+    id: 'llama3.1',
+    name: 'LLama 3.1',
+    description: 'Ausgewogenes Sprachmodell mit guter Balance zwischen Leistung und Effizienz. Ideal für allgemeine Anwendungen.',
+    isDefault: true
+  },
+  {
+    id: 'deepseek-r1',
+    name: 'Deepseek-r1',
+    description: 'Spezialisiert auf technische und wissenschaftliche Aufgaben mit verbesserter Präzision.',
+    isDefault: false
+  },
+  {
+    id: 'llama3.3',
+    name: 'Llama 3.3',
+    description: 'Neueste Version mit verbesserter Kontextverarbeitung und erweitertem Wissen.',
+    isDefault: false
+  }
+];
+
 export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' : 'create' }: ChatEntryFormProps) {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     defaultValues: chat ? {
@@ -315,7 +351,10 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       context: chat.context || '',
       avatar: undefined,
       temperature: chat.temperature || 0.75,
-    } : {}
+      model: chat.model || 'llama3.1',
+    } : {
+      model: 'llama3.1'
+    }
   });
   const [ showSuccess, setShowSuccess ] = useState(false);
   const [ showError, setShowError ] = useState(false);
@@ -327,11 +366,13 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
   const existingChats = useAppSelector(selectChats);
   const { avatar } = useGetAvatar(chat?.id || '');
   
-  const useAsTemplate = async (templateChat: Chat | { id?: string; temperature?: number; title: string; description: string; context: string; avatar_path?: StaticImageData }) => {
+  const useAsTemplate = async (templateChat: Chat | { id?: string; temperature?: number; title: string;
+     description: string; context: string; avatar_path?: StaticImageData; model?: string }) => {
     setValue('title', `Kopie von: ${templateChat.title}`);
     setValue('description', templateChat.description || '');
     setValue('context', templateChat.context || '');
     setValue('temperature', templateChat.temperature || 0.75);
+    setValue('model', templateChat.model || 'llama3.1');
 
     // Handle avatar based on template type
     if ('id' in templateChat) {
@@ -401,6 +442,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       description: data.description || '',
       context: data.context,
       temperature: data.temperature,
+      model: data.model,
     }));
     
     if (data.avatar?.[0]) {
@@ -617,6 +659,38 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
                   {errors.context && (
                     <p className="text-red-500 text-sm">{errors.context.message}</p>
                   )}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="model" className="text-right">
+                  Sprachmodell
+                </Label>
+                <div className="col-span-3 space-y-2">
+                  <Select 
+                    defaultValue={watch('model')} 
+                    onValueChange={(value) => setValue('model', value)}
+                  >
+                    <SelectTrigger className="w-full h-[60px]">
+                      <SelectValue placeholder="Wählen Sie ein Sprachmodell" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {defaultModels.map((model) => (
+                        <SelectItem 
+                          key={model.id} 
+                          value={model.id}
+                          className="flex flex-col items-start py-4 h-[80px]"
+                        >
+                          <div className="flex flex-col justify-start items-start">
+                            <div className="font-medium text-base text-left">{model.name}</div>
+                            <div className="text-sm text-muted-foreground leading-snug text-left">{model.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Das ausgewählte Sprachmodell bestimmt die Fähigkeiten und Charakteristiken des Chats.
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4 mt-8">

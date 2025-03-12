@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Input } from '../ui/input';
+import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import {
   DropdownMenu,
@@ -37,11 +38,14 @@ import ChatEntryForm from '../form/ChatEntryForm';
 import { useState } from 'react';
 import { useDeleteChat } from '@/frontend/queries/chats';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import { selectChats } from '@/frontend/store/reducer/app_reducer';
 
-export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
+export default function ChatsNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
+  const chats = useAppSelector(selectChats);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
@@ -65,67 +69,94 @@ export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
     });
   };
 
+  const sortedChats = chats ? [...chats].sort((a, b) => new Date(b.last_interacted_at).getTime() - new Date(a.last_interacted_at).getTime()) : [];
+
+  const groupChatsByDate = (chats: Chat[]): Record<string, Chat[]> => {
+    return chats.reduce((acc: Record<string, Chat[]>, chat: Chat) => {
+      const date = format(new Date(chat.last_interacted_at), 'MM.dd.yyyy');
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(chat);
+      return acc;
+    }, {});
+  };
+
+  const groupedChats = groupChatsByDate(sortedChats as Chat[]);
+
+  const getRelativeDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (isToday(date)) return 'heute';
+    if (isYesterday(date)) return 'gestern';
+    return formatDistanceToNow(date, { addSuffix: true, locale: de });
+  };
+
   return (
     <SidebarMenu>
-      {chats.map((chat, i) => (
-        <SidebarMenuItem
-          className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
-            chat.id === currentChatId ? 'bg-primary/20' : ''
-          }`}
-          key={`chat-${chat.id}`}
-        >
-          <Link href={`/chat/${chat.id}`} className="flex-1">
-            <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
-              {chat.title}
-            </SidebarMenuButton>
-          </Link>
-          <Dialog open={isDialogOpen && selectedChat?.id === chat.id} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) setSelectedChat(null);
-          }}>
-            <DropdownMenu>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <DropdownMenuTrigger className="hover:bg-accent ml-2 w-[30px] h-[30px] flex justify-center items-center rounded-md cursor-pointer mt-1">
-                      <EllipsisHorizontalIcon className="h-4 w-4" />
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Chat editieren</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <DropdownMenuContent>
-                <DropdownMenuItem disabled>
-                  <HeartIcon className="h-4 w-4" /> Favorisieren
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DialogTrigger asChild>
-                  <DropdownMenuItem onSelect={() => {
-                    setSelectedChat(chat);
-                    setIsDialogOpen(true);
-                  }}>
-                    <PencilIcon className="h-4 w-4" /> Editieren
-                  </DropdownMenuItem>
-                </DialogTrigger>
-                <DropdownMenuItem className="text-destructive" onSelect={() => handleDelete(chat.id)}>
-                  <TrashIcon className="h-4 w-4" /> Löschen
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {selectedChat && (
-              <ChatEntryForm 
-                chat={selectedChat}
-                onSuccess={() => {
-                  setIsDialogOpen(false);
-                  setSelectedChat(null);
-                  window.location.reload();
-                }}
-              />
-            )}
-          </Dialog>
-        </SidebarMenuItem>
+      {Object.entries(groupedChats).map(([date, chats]) => (
+        <div key={date}>
+          <div className="date-separator font-bold text-center py-2">
+            {getRelativeDate(date)}
+          </div>
+          {chats.map((chat) => (
+            <SidebarMenuItem
+              className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
+                chat.id === currentChatId ? 'bg-primary/20' : ''
+              }`}
+              key={`chat-${chat.id}`}
+            >
+              <Link href={`/chat/${chat.id}`} className="flex-1">
+                <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
+                  {chat.title}
+                </SidebarMenuButton>
+              </Link>
+              <Dialog open={isDialogOpen && selectedChat?.id === chat.id} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setSelectedChat(null);
+              }}>
+                <DropdownMenu>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <DropdownMenuTrigger className="hover:bg-accent ml-2 w-[30px] h-[30px] flex justify-center items-center rounded-md cursor-pointer mt-1">
+                          <EllipsisHorizontalIcon className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Chat editieren</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem disabled>
+                      <HeartIcon className="h-4 w-4" /> Favorisieren
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DialogTrigger asChild>
+                      <DropdownMenuItem onSelect={() => {
+                        setSelectedChat(chat);
+                        setIsDialogOpen(true);
+                      }}>
+                        <PencilIcon className="h-4 w-4" /> Editieren
+                      </DropdownMenuItem>
+                    </DialogTrigger>
+                    <DropdownMenuItem className="text-destructive" onSelect={() => handleDelete(chat.id)}>
+                      <TrashIcon className="h-4 w-4" /> Löschen
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {selectedChat && (
+                  <ChatEntryForm 
+                    chat={selectedChat}
+                    onSuccess={() => {
+                      setIsDialogOpen(false);
+                      setSelectedChat(null);
+                      window.location.reload();
+                    }}
+                  />
+                )}
+              </Dialog>
+            </SidebarMenuItem>
+          ))}
+        </div>
       ))}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

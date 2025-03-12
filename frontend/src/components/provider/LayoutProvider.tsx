@@ -34,14 +34,17 @@ export default function LayoutProvider({
   const dispatch = useAppDispatch();
   const isAuthorized= useAppSelector(selectAuthorized);
 
+  useEffect(() => {   
+    if (profilePicture) {
+      dispatch(setProfilePicture(profilePicture));
+    }
+  }, [profilePicture]);
+
   useEffect(() => {
     if (data) {
       dispatch(setChats(data.items));
     }
-    if (profilePicture) {
-      dispatch(setProfilePicture(profilePicture));
-    }
-  }, [data, profilePicture]);
+  }, [data]);
 
   return isAuthorized ? (
     <SidebarProvider
@@ -86,7 +89,7 @@ export default function LayoutProvider({
               <ChatEntryForm />
             </Dialog>
 
-            <ChatsNavigation chats={data?.items ?? []} />
+            <ChatsNavigation />
           </SidebarContent>
 
           <FooterNavigation />

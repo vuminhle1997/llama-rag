@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
+
+from sqlalchemy import Column
 from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
 import uuid
+from enum import Enum
 
 Base = declarative_base()
 
@@ -24,6 +27,7 @@ class Chat(ChatBase, Base, table=True):
     user_id: str = Field(nullable=False, index=True)
     avatar_path: str = Field(nullable=False)
     temperature: float = Field(nullable=False, index=True, default=0.75)
+    model: str = Field(nullable=False, index=True, default="llama3.1")
     files: List["ChatFile"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
     favourite: "Favourite" = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
 

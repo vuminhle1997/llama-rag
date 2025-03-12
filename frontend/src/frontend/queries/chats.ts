@@ -36,6 +36,17 @@ export const useGetChats = (size: number, page: number) => {
   });
 };
 
+export const getChats = async (size: number, page: number) => {
+  const response = await axios.get<Page<Chat>>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
+    withCredentials: true,
+    params: {
+      size,
+      page
+    }
+  });
+  return response.data;
+};
+
 // use react-query to get a chat from the backend and axios, with credentials, and path params id
 
 export const useGetChat = (id: string) => {

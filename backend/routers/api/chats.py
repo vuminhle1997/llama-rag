@@ -59,8 +59,9 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
     user_id = claims["oid"]
-    query = query.filter(Chat.user_id == user_id)
-    return sqlalchemy_pagination(query)
+    query = query.filter(Chat.user_id == user_id).order_by(Chat.last_interacted_at.desc())
+    page = sqlalchemy_pagination(query)
+    return page
 
 
 @router.get("/{chat_id}")
@@ -76,7 +77,7 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
     chat_memory = ChatMemoryBuffer(
         chat_store=chat_store,
         chat_store_key=db_chat.id,
-        token_limit=5000,
+        token_limit=42069,
     )
 
     if not belongs_to_user:
@@ -129,7 +130,13 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     pd_tools = create_pandas_engines_tools_from_files(files=files)
     tools = tools + pd_tools
 
-    llm = Ollama(model='llama3.1', temperature=db_chat.temperature)
+    model_from_chat = None
+    if db_chat.model:
+        model_from_chat = db_chat.model
+    else:
+        model_from_chat = "llama3.1"
+
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     response = await agent.achat(text)
 
@@ -185,6 +192,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
 
     try:
         # indexes file
+        db_chat.last_interacted_at = datetime.now()
         db_client.commit()
         db_client.refresh(db_chat)
         index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
@@ -286,6 +294,8 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
     db_chat.sqlmodel_update(chat_data)
     if avatar_path:
         db_chat.avatar_path = avatar_path
+
+    db_chat.last_interacted_at = datetime.now()
     db_client.add(db_chat)
     db_client.commit()
     db_client.refresh(db_chat)
@@ -360,7 +370,9 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
     deletes_file_index_from_collection(chroma_collection=chroma_collection, file_id=db_file.id)
     # Remove file record from the database
     db_client.delete(db_file)
+    db_chat.last_interacted_at = datetime.now()
     db_client.commit()
+    db_client.refresh(db_chat)
 
     return {
         **db_chat.model_dump(),

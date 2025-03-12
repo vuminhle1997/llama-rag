@@ -2,46 +2,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppProvider from "@/components/provider/AppProvider";
-import { selectAuthorized, useAppSelector } from "@/frontend";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import Logo from "@/static/globalLogo.png";
-import Image from "next/image";
-import {
-  EllipsisHorizontalIcon,
-  HeartIcon,
-  MagnifyingGlassIcon,
-  PencilIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/24/solid";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import App from "next/app";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,53 +12,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const chats = ["Finanzexperte Niklas", "Jurist Marcel", "People Manager Rabea"];
-
-const placeholderForContext = `Your role is to assist with a variety of tasks, including answering general questions, providing summaries, and performing HR-related analyses.
-
-## Conversation Style
-- You engage in natural conversations and answer simple questions directly, without using tools.
-- When explicitly asked to use a tool (e.g., "Use the tool for..."), you follow the request accordingly.
-- For HR-related queries or document-related tasks, you utilize the appropriate tools to provide structured responses.
-
-## Tools
-You have access to several tools that help accomplish tasks effectively. 
-You should determine when and how to use them to complete requests efficiently.
-If a task requires multiple steps, you can break it down and apply different tools as needed.
-Available tools:
-{tool_desc}
-
-## Output Format
-When using a tool, follow this structured format:
-Thought: I need to use a tool to complete this request. Action: [Tool name] (one of {tool_names}) 
-Action Input: [Valid JSON format input] (e.g., {{"query": "employee records", "filters": ["department: HR"]}})
-
-Always start with a Thought before taking action.
-
-If a tool is used, the system will respond in the following format:
-Observation: [Tool response]
-You should continue this process until you have gathered enough information to respond to the query. 
-Once you have enough details, conclude with one of the following:
-
-Thought: I have sufficient information to answer. 
-Answer: [Your answer]
-
-OR
-
-Thought: The available tools do not provide the necessary information.
-Answer: Sorry, I cannot answer this query.
-
-## Additional Rules
-- When answering a direct question (e.g., "What is your name?"), respond naturally without invoking tools.
-- Always follow the expected function signature of each tool and provide the necessary arguments.
-- Use bullet points to explain the reasoning behind complex responses, especially when using tools.
-- If the user explicitly requests tool usage (e.g., "Use the HR tool for..."), follow the instruction exactly.
-
-## Current Conversation
-Below is the conversation history, which you should consider when providing responses:
-[Include conversation history here]
-`;
 
 export default function RootLayout({
   children,

@@ -2,6 +2,7 @@ import { File } from "./files";
 import { Message } from "./message";
 
 export type LLMResponse = {
+  id?: string;
   response: string;
   sources: any[];
   source_nodes: any[];
@@ -16,6 +17,7 @@ export type Chat = {
   description: string;
   context: string;
   temperature: number;
+  model: string;
   created_at: string;
   updated_at: string;
   last_interacted_at: string;

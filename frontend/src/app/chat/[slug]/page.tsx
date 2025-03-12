@@ -1,12 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { marked } from 'marked';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import React, { useRef, useEffect } from 'react';
-import { Upload, Send, FileText, Loader2, Terminal, Check, AlertCircle } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Upload, Send, FileText, Loader2, Check, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +25,7 @@ import {
   useDeleteFile,
   usePostFile,
   useChat,
+  getChats,
 } from '@/frontend/queries/chats';
 import { format } from 'date-fns';
 import { File, Message } from '@/frontend/types';
@@ -37,13 +37,40 @@ import {
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
-import { TypeAnimation } from 'react-type-animation';
-import { useGetAvatar, useGetProfilePicture } from '@/frontend/queries/avatar';
+import { useGetAvatar } from '@/frontend/queries/avatar';
+import { setChats } from '@/frontend/store/reducer/app_reducer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ChatFormData {
   message: string;
 }
+
+// Add TypewriterEffect component before the LoadingOverlay component
+const TypewriterEffect = ({ text, onLoad: onLoadEnd }: { text: string, onLoad: () => void }) => {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 10); // Adjust speed here (lower number = faster)
+
+      return () => clearTimeout(timeout);
+    } else if (currentIndex === text.length) {
+      onLoadEnd();
+    }
+  }, [currentIndex, text, onLoadEnd]);
+
+  return (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: marked(displayText + (currentIndex < text.length ? '▋' : '')),
+      }}
+    ></div>
+  );
+};
 
 // Add LoadingOverlay component at the top level
 const LoadingOverlay = ({ message }: { message: string }) => (
@@ -62,7 +89,7 @@ export default function SlugChatPage({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { data: user, isLoading, error } = useAuth();
+  const { isLoading, error } = useAuth();
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
@@ -81,8 +108,7 @@ export default function SlugChatPage({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [messages, setMessages] = React.useState<Message[]>([]);
-  const [assistantMessage, setAssistantMessage] = React.useState<Message>();
-  const [isTypeWriting, setIsTypeWriting] = React.useState(false);
+  const [lastMessageIsTyping, setLastMessageIsTyping] = React.useState(false);
   const { avatar } = useGetAvatar(slug);
   const profilePicture = useAppSelector(selectProfilePicture);
 
@@ -207,7 +233,8 @@ export default function SlugChatPage({
         role: 'assistant',
         blocks: [{ block_type: 'text', text: response.message!.response }],
       };
-      //setAssistantMessage(newMessage);
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      setLastMessageIsTyping(true);
 
       await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
@@ -221,8 +248,19 @@ export default function SlugChatPage({
     }
   };
 
+  const handleMessageLoad = () => {
+    setLastMessageIsTyping(false);
+  };
+
+  useEffect(() => {     
+    getChats(50, 1).then((chats) => {
+      dispatch(setChats(chats.items));
+    });
+  }, [handleFormSubmit]);
+
   useEffect(() => {
     if (chat) {
+      console.log(chat.messages);
       dispatch(setChat(chat));
     }
   }, [chat]);
@@ -322,59 +360,67 @@ export default function SlugChatPage({
             </div>
           ) : (
             <>
-              {chat?.messages?.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start space-x-4 ${
-                    message.role === 'user' ? 'justify-end' : ''
-                  }`}
-                >
-                  {message.role !== 'user' && (
-                    <>
-                      {message.role === 'assistant' ? (
-                        <img
-                          src={avatar ? avatar : ''}
-                          alt="AI Avatar"
-                          className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
-                        />
-                      ) : (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
-                          S
-                        </div>
-                      )}
-                    </>
-                  )}
+              {chat?.messages?.map((message, index) => {
+                const isLastAssistantMessage = index === chat.messages.length - 1 && message.role === 'assistant';
+                
+                return (
                   <div
-                    className={`flex-1 rounded-lg shadow-sm p-4 ${
-                      message.role === 'user' ? 'bg-primary' : 'bg-white'
+                    key={index}
+                    className={`flex items-start space-x-4 ${
+                      message.role === 'user' ? 'justify-end' : ''
                     }`}
                   >
-                    {message.blocks.map((block, blockIndex) => (
-                      <div
-                        key={blockIndex}
-                        className={
-                          message.role === 'user'
-                            ? 'text-white'
-                            : 'text-gray-800'
-                        }
-                      >
+                    {message.role !== 'user' && (
+                      <>
+                        {message.role === 'assistant' ? (
+                          <img
+                            src={avatar ? avatar : ''}
+                            alt="AI Avatar"
+                            className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                          />
+                        ) : (
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                            S
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div
+                      className={`flex-1 rounded-lg shadow-sm p-4 ${
+                        message.role === 'user' ? 'bg-primary' : 'bg-white prose py-0'
+                      }`}
+                    >
+                      {message.blocks.map((block, blockIndex) => (
                         <div
-                          dangerouslySetInnerHTML={{
-                            __html: marked(block.text),
-                          }}
-                        ></div>
-                      </div>
-                    ))}
+                          key={blockIndex}
+                          className={
+                            message.role === 'user'
+                              ? 'text-white'
+                              : 'text-gray-800'
+                          }
+                        >
+                          {isLastAssistantMessage && lastMessageIsTyping ? (
+                            <TypewriterEffect text={block.text} onLoad={handleMessageLoad} />
+                          ) : (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(block.text),
+                              }}
+                            ></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {message.role === 'user' && (
+                      <img
+                        src={profilePicture ? profilePicture : ''}
+                        alt="User Profile Picture"
+                        className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                      />
+                    )}
                   </div>
-                  {message.role === 'user' && (
-                    <img
-                      src={profilePicture ? profilePicture : ''}
-                      alt="User Profile Picture"
-                      className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
-                    />
-                  )}
-                </div>
-              ))}
+                );
+              })}
 
               {/* Pending Message */}
               {pendingMessage && (
