@@ -18,7 +18,6 @@ export const useAuth = () => {
                     },
                 });
 
-                console.log(response.data);
                 const azureClaimKeys: (keyof AzureClaims)[] = ['exp', 'iat', 'nbf', 'sub', 'given_name', 'unique_name', 'oid'];
                 const user = Object.fromEntries(
                     Object.entries(response.data).filter(([key]) => 

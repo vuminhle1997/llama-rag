@@ -12,15 +12,24 @@ import { Textarea } from '../ui/textarea';
 import { usePostChat, useUpdateChat } from '@/frontend/queries/chats';
 import { useForm } from 'react-hook-form';
 import { Chat } from '@/frontend/types';
-import { toast } from 'sonner';
-import { Alert } from '../ui/alert';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '../ui/scroll-area';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
 import { selectChats } from '@/frontend/store/reducer/app_reducer';
 import { Separator } from '../ui/separator';
-
+import hrImage from '@/static/templates/hr.jpeg';
+import engineerImage from '@/static/templates/engineer.webp';
+import softwareEngineerImage from '@/static/templates/software_engineer.webp';
+import consultantImage from '@/static/templates/consultant.jpeg';
+import aiImage from '@/static/templates/ai.jpeg';
+import { StaticImageData } from 'next/image';
+import { useGetAvatar } from '@/frontend/queries/avatar';
+import { Check, AlertCircle } from 'lucide-react';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { Slider } from '../ui/slider';
 const placeholderForContext = `Ihre Rolle ist es, bei verschiedenen Aufgaben zu unterstützen, einschließlich der Beantwortung allgemeiner Fragen, der Erstellung von Zusammenfassungen und der Durchführung von HR-bezogenen Analysen.
 
 ## Gesprächsstil
@@ -71,6 +80,7 @@ type FormData = {
   description: string;
   context: string;
   avatar?: FileList;
+  temperature: number;
 };
 
 interface ChatEntryFormProps {
@@ -81,9 +91,90 @@ interface ChatEntryFormProps {
 
 const defaultTemplates = [
   {
-    id: 'pr-template',
+    title: 'KI-Assistent',
+    description: 'Ein hilfreicher KI-Begleiter für all Ihre Anfragen und Aufgaben',
+    avatar_path: aiImage,
+    temperature: 0.75,
+    context: `Du bist ein hilfreicher KI-Assistent, der den Benutzer bei verschiedenen Aufgaben unterstützt.
+
+## Persönlichkeit
+- Freundlich und zuvorkommend
+- Geduldig und verständnisvoll
+- Professionell und kompetent
+- Hilfsbereit und lösungsorientiert
+
+## Kommunikationsstil
+- Natürlich und gesprächig
+- Klar und präzise
+- Anpassungsfähig an den Kontext
+- Empathisch und verständnisvoll
+
+## Fähigkeiten
+- Beantwortung von Fragen
+- Erklärung komplexer Themen
+- Hilfestellung bei Aufgaben
+- Recherche und Informationsbeschaffung
+- Analyse und Problemlösung
+- Kreative Vorschläge und Ideen
+
+## Tools
+{tool_desc}
+
+## Ausgabeformat
+{tool_format}
+
+## Zusätzliche Regeln
+- Antworte in natürlicher, verständlicher Sprache
+- Strukturiere komplexe Antworten übersichtlich
+- Gib bei Unsicherheiten ehrlich zu, wenn du etwas nicht weißt
+- Biete alternative Lösungen an, wenn möglich
+- Berücksichtige den Kontext und die Bedürfnisse des Benutzers
+
+## Aktuelles Gespräch
+Nachfolgend findest du den Gesprächsverlauf, den du bei deinen Antworten berücksichtigen solltest:
+[Gesprächsverlauf hier einfügen]`
+  },
+  {
+    // TODO: Add template, computer engineer Denis Kunz, specialising in software development and system architecture SPRING BOOT
+    title: 'Computer-Ingenieur: Denis Kunz',
+    description: 'Spezialisiert auf Softwareentwicklung und Systemarchitektur mit Spring Boot',
+    avatar_path: softwareEngineerImage,
+    temperature: 0.75,
+    context: `
+    Denis Kunz – Computer-Ingenieur
+
+    Du bist Denis Kunz, ein Computer-Ingenieur mit Schwerpunkt auf Softwareentwicklung und Systemarchitektur mit Spring Boot.
+
+    ## Expertise
+    - Softwareentwicklung mit Spring Boot
+    - Systemarchitektur und -design
+
+    ## Kommunikationsstil
+    - Technisch und präzise
+    - Detailorientiert
+    - Klar und verständlich
+
+    ## Tools
+    - Spring Boot
+
+    ## Ausgabeformat
+    - Markdown-Format für klare Strukturierung
+    - Verwende Aufzählungspunkte für komplexe Antworten
+    - Beantworte Fragen in natürlicher Sprache
+    - Stelle alternative Lösungen vor, wenn möglich
+
+    ## Zusätzliche Regeln
+    - Beantworte Fragen in natürlicher Sprache
+    
+    ## Aktuelles Gespräch
+    [Gesprächsverlauf hier einfügen]
+    `
+  },
+  {
     title: 'PR-Person: Anna Pham',
     description: 'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
+    avatar_path: hrImage,
+    temperature: 0.75,
     context: `
 Anna Pham – HR-Verantwortliche
 
@@ -148,14 +239,13 @@ Falls der Nutzer explizit die Nutzung eines Tools verlangt (z. B. "Nutze das HR-
 Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten berücksichtigen solltest:
 
 [Gesprächsverlauf hier einfügen]
-
-
     `
   },
   {
-    id: 'construction-template',
     title: 'Bauingenieur: Ranjeed Singh',
     description: 'Spezialisiert auf Bauprojektmanagement und technische Planung',
+    avatar_path: engineerImage,
+    temperature: 0.75,
     context: `Ihre Rolle ist es, bei Bau- und Ingenieurprojekten zu unterstützen.
 
 ## Expertise
@@ -184,9 +274,10 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 - Pflege klarer Dokumentation und Aufzeichnungen`
   },
   {
-    id: 'consultant-template',
     title: 'Senior-Berater: Daniel Dehn',
     description: 'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
+    avatar_path: consultantImage,
+    temperature: 0.75,
     context: `Ihre Rolle ist es, Expertenberatung in verschiedenen Geschäftsbereichen anzubieten.
 
 ## Expertise
@@ -222,6 +313,8 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       title: chat.title,
       description: chat.description || '',
       context: chat.context || '',
+      avatar: undefined,
+      temperature: chat.temperature || 0.75,
     } : {}
   });
   const [ showSuccess, setShowSuccess ] = useState(false);
@@ -232,11 +325,49 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
   const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(chat?.id || '');
   const router = useRouter();
   const existingChats = useAppSelector(selectChats);
+  const { avatar } = useGetAvatar(chat?.id || '');
   
-  const useAsTemplate = (templateChat: Chat | { id: string; title: string; description: string; context: string }) => {
+  const useAsTemplate = async (templateChat: Chat | { id?: string; temperature?: number; title: string; description: string; context: string; avatar_path?: StaticImageData }) => {
     setValue('title', `Kopie von: ${templateChat.title}`);
     setValue('description', templateChat.description || '');
     setValue('context', templateChat.context || '');
+    setValue('temperature', templateChat.temperature || 0.75);
+
+    // Handle avatar based on template type
+    if ('id' in templateChat) {
+      // Handle existing chat avatar by fetching directly
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/avatar/${templateChat.id}`, {
+          withCredentials: true,
+          responseType: 'blob',
+        });
+        const blob = response.data;
+        const file = new File([blob], 'avatar.jpg', { type: blob.type });
+        
+        // Create a DataTransfer object to get a FileList
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        setValue('avatar', dataTransfer.files);
+        setAvatarPreview(URL.createObjectURL(blob));
+      } catch (error) {
+        console.error('Error loading existing chat avatar:', error);
+      }
+    } else if ('avatar_path' in templateChat && templateChat.avatar_path) {
+      // Handle default template with static avatar
+      try {
+        const response = await fetch(templateChat.avatar_path.src);
+        const blob = await response.blob();
+        const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        
+        // Create a DataTransfer object to get a FileList
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        setValue('avatar', dataTransfer.files);
+        setAvatarPreview(URL.createObjectURL(blob));
+      } catch (error) {
+        console.error('Error loading template avatar:', error);
+      }
+    } 
   };
 
   const handleAvatarClick = () => {
@@ -255,6 +386,13 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
     }
   }, [avatarFile]);
 
+  // Load existing avatar when editing
+  useEffect(() => {
+    if (mode === 'update' && chat?.id && avatar) {
+      setAvatarPreview(avatar);
+    }
+  }, [mode, chat?.id, avatar]);
+
   const onSubmit = async (data: FormData) => {
     const formData = new FormData();
 
@@ -262,6 +400,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       title: data.title,
       description: data.description || '',
       context: data.context,
+      temperature: data.temperature,
     }));
     
     if (data.avatar?.[0]) {
@@ -270,7 +409,6 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
     
     try {
       let response;
-      console.log(formData);
       if (mode === 'create') {
         response = await createChat(formData);
       } else {
@@ -317,14 +455,25 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
                 <h3 className="text-sm font-medium text-muted-foreground px-2">Standardvorlagen</h3>
                 {defaultTemplates.map((template) => (
                   <div
-                    key={template.id}
+                    key={uuidv4()}
                     className="p-3 border rounded-lg hover:bg-accent cursor-pointer bg-muted/50"
                     onClick={() => useAsTemplate(template)}
                   >
-                    <h4 className="font-medium">{template.title}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {template.description}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      {template.avatar_path && (
+                        <img 
+                          src={template.avatar_path.src} 
+                          alt={template.title}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-medium">{template.title}</h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.description}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -357,15 +506,15 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
         </div>
 
         {/* Form */}
-        <div className="flex-1">
+        <ScrollArea className="flex-1">
           <DialogHeader>
             <DialogTitle>
               {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
             </DialogTitle>
             <DialogDescription>
               {mode === 'create' 
-                ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten.'
-                : 'Bearbeite die Einstellungen des bestehenden Chats.'}
+                ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
+                : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -470,31 +619,84 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
                   )}
                 </div>
               </div>
+              <div className="grid grid-cols-4 items-center gap-4 mt-8">
+                <Label htmlFor="temperature" className="text-right">
+                  Temperatur
+                </Label>
+                <div className="col-span-3 space-y-2">
+                  <Slider
+                    id="temperature"
+                    className={errors.temperature ? "border-red-500" : ""}
+                    defaultValue={chat?.temperature ? [chat.temperature] : [0.75]}
+
+                    // @ts-ignore
+                    min={0}
+                    // @ts-ignore
+                    max={1}
+                    step={0.01}
+                    {...register('temperature')}
+                  />
+                  <div className="flex flex-col justify-center items-center">
+                  <p className="text-center">{watch('temperature')}</p>
+                  <span className="text-sm text-muted-foreground">0 = keine Kreativität, 1 = sehr kreativ</span>
+                  <span className="text-sm text-muted-foreground">0.75 = Standard</span>
+                  <span className="text-sm text-muted-foreground">Die Temperatur beeinflusst die Kreativität der Antworten. Ein höherer Wert führt zu kreativeren, aber weniger vorhersehbaren Antworten, während ein niedrigerer Wert zu präziseren und fokussierteren Antworten führt.</span>
+                  </div>
+                  {errors.context && (
+                    <p className="text-red-500 text-sm">{errors.context.message}</p>
+                  )}
+                </div>
+              </div>
             </div>
             <DialogFooter>
+            <div className="grid grid-cols-2 gap-4">
+            <Button type="reset" className="bg-gray-400" disabled={isPending}>
+                Zurücksetzen
+              </Button>
+              {/* TODO: Add cancel button */}
+            {/* <Button type="submit" className="bg-red-500" disabled={isPending}>
+                Abbrechen
+              </Button> */}
               <Button type="submit" className="bg-primary" disabled={isPending}>
                 {isPending 
                   ? (mode === 'create' ? 'Erstellen...' : 'Speichern...') 
                   : (mode === 'create' ? 'Erstellen' : 'Speichern')}
               </Button>
+            </div>
             </DialogFooter>
           </form>
-        </div>
+        </ScrollArea>
       </div>
     </DialogContent>
-    { showSuccess && (
-      <Alert>
-        {mode === 'create' 
-          ? 'Chat erfolgreich erstellt.' 
-          : 'Chat erfolgreich aktualisiert.'}
-      </Alert>
+    {showSuccess && (
+      <div className="fixed top-4 right-4 z-50 w-96">
+        <Alert variant="default" className="relative">
+          <Check className="h-4 w-4" />
+          <AlertTitle>
+            {mode === 'create' ? 'Chat erstellt' : 'Chat aktualisiert'}
+          </AlertTitle>
+          <AlertDescription>
+            {mode === 'create'
+              ? 'Der Chat wurde erfolgreich erstellt.'
+              : 'Der Chat wurde erfolgreich aktualisiert.'}
+          </AlertDescription>
+        </Alert>
+      </div>
     )}
-    { showError && (
-      <Alert variant="destructive">
-        {mode === 'create'
-          ? 'Fehler beim Erstellen des Chats. Bitte versuchen Sie es erneut.'
-          : 'Fehler beim Aktualisieren des Chats. Bitte versuchen Sie es erneut.'}
-      </Alert>
+    {showError && (
+      <div className="fixed top-4 right-4 z-50 w-96">
+        <Alert variant="destructive" className="relative">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>
+            {mode === 'create' ? 'Fehler beim Erstellen' : 'Fehler beim Aktualisieren'}
+          </AlertTitle>
+          <AlertDescription>
+            {mode === 'create'
+              ? 'Der Chat konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
+              : 'Der Chat konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.'}
+          </AlertDescription>
+        </Alert>
+      </div>
     )}
     </>
   );

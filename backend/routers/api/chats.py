@@ -1,9 +1,12 @@
 import json
 import uuid
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.llms.ollama import Ollama
 from llama_index.storage.chat_store.postgres import PostgresChatStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
@@ -117,29 +120,23 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
         QueryEngineTool(
             query_engine=query_engine,
             metadata=ToolMetadata(
-                name=f"query_engine_for_{files[i].file_name}",
+                name=f"query_engine_for_{i}",
                 description=f"Simple query engine for going through the file: {files[i].file_name}",
             )
         ) for i, query_engine in enumerate(query_engines)
     ]
 
     pd_tools = create_pandas_engines_tools_from_files(files=files)
-
     tools = tools + pd_tools
-    # query engines
 
-    # pd_query_engines = create_pandas_engines_from_files(files)
-    #
-    # # tools_collection
-    # tools_collection = ToolsCollection(pd_tools=pd_query_engines, query_engines=query_engines, files=files)
-    # tools = tools_collection.aggregate_tools_from_collection()
-    #
-    # agent = LLMService(settings=Settings, tools=tools,
-    #                    system_prompt=PromptTemplate(db_chat.context), memory=chat_memory)
-    print(tools, len(tools))
-
-    agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools)
+    llm = Ollama(model='llama3.1', temperature=db_chat.temperature)
+    agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     response = await agent.achat(text)
+
+    db_chat.last_interacted_at = datetime.now()
+    db_client.add(db_chat)
+    db_client.commit()
+    db_client.refresh(db_chat)
 
     return {
         **db_chat.model_dump(),
@@ -156,7 +153,6 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
                               redis_session: Redis = Depends(get_redis_client)):
-    print(file)
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:

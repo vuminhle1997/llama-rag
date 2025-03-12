@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import React, { useRef, useEffect } from 'react';
-import { Upload, Send, FileText, Loader2 } from 'lucide-react';
+import { Upload, Send, FileText, Loader2, Terminal, Check, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,11 +31,15 @@ import { format } from 'date-fns';
 import { File, Message } from '@/frontend/types';
 import { useAuth } from '@/frontend/queries';
 import { useRouter } from 'next/navigation';
-import { setChat, selectProfilePicture } from '@/frontend/store/reducer/app_reducer';
+import {
+  setChat,
+  selectProfilePicture,
+} from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
 import { TypeAnimation } from 'react-type-animation';
 import { useGetAvatar, useGetProfilePicture } from '@/frontend/queries/avatar';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ChatFormData {
   message: string;
@@ -62,9 +66,13 @@ export default function SlugChatPage({
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
-  const [pendingMessage, setPendingMessage] = React.useState<string | null>(
-    null
-  );
+  const [pendingMessage, setPendingMessage] = React.useState<string | null>(null);
+  const [alert, setAlert] = React.useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
@@ -97,8 +105,22 @@ export default function SlugChatPage({
     try {
       await deleteFileMutation.mutateAsync(fileId);
       await refetchChat();
+      setAlert({
+        show: true,
+        type: 'success',
+        title: 'Erfolgreich gelöscht',
+        description: 'Die Datei wurde erfolgreich gelöscht',
+      });
+      setTimeout(() => setAlert(null), 5000);
     } catch (error) {
       console.error('Error deleting file:', error);
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Fehler beim Löschen',
+        description: 'Die Datei konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
+      });
+      setTimeout(() => setAlert(null), 5000);
     }
   };
 
@@ -121,7 +143,13 @@ export default function SlugChatPage({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert('Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch');
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Ungültiger Dateityp',
+        description: 'Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch',
+      });
+      setTimeout(() => setAlert(null), 5000);
       event.target.value = '';
       return;
     }
@@ -134,11 +162,23 @@ export default function SlugChatPage({
       await uploadFileMutation.mutateAsync(formData);
 
       await refetchChat();
-      event.target.value = ''; // Reset the input
-      alert('Datei hochgeladen erfolgreich');
+      event.target.value = '';
+      setAlert({
+        show: true,
+        type: 'success',
+        title: 'Erfolgreich hochgeladen',
+        description: 'Die Datei wurde erfolgreich hochgeladen',
+      });
+      setTimeout(() => setAlert(null), 5000);
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Error uploading file');
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Fehler beim Hochladen',
+        description: 'Die Datei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.',
+      });
+      setTimeout(() => setAlert(null), 5000);
     } finally {
       setIsUploading(false);
     }
@@ -203,6 +243,20 @@ export default function SlugChatPage({
 
   return (
     <main className="flex flex-col h-screen w-screen bg-gray-50">
+      {alert && (
+        <div className="fixed top-4 right-4 z-50 w-96">
+          <Alert variant={alert.type === 'success' ? 'default' : 'destructive'} className="relative">
+            {alert.type === 'success' ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            <AlertTitle>{alert.title}</AlertTitle>
+            <AlertDescription>{alert.description}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {(isUploading || deleteFileMutation.isPending) && (
         <LoadingOverlay
           message={
@@ -313,12 +367,11 @@ export default function SlugChatPage({
                     ))}
                   </div>
                   {message.role === 'user' && (
-                      <img
-                        src={profilePicture ? profilePicture : ''}
-                        alt="User Profile Picture"
-                        className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
-                      />
-                    
+                    <img
+                      src={profilePicture ? profilePicture : ''}
+                      alt="User Profile Picture"
+                      className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                    />
                   )}
                 </div>
               ))}
@@ -329,13 +382,12 @@ export default function SlugChatPage({
                   <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
                     <p className="text-white">{pendingMessage}</p>
                   </div>
-                  
-                    <img
-                      src={profilePicture ? profilePicture : ''}
-                      alt="User Profile Picture"
-                      className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
-                    />
-                  
+
+                  <img
+                    src={profilePicture ? profilePicture : ''}
+                    alt="User Profile Picture"
+                    className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                  />
                 </div>
               )}
 

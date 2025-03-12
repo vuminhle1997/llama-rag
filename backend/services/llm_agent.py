@@ -6,12 +6,13 @@ from typing import List
 from llama_index.core.tools import BaseTool
 
 
-def create_agent(memory: ChatMemoryBuffer, system_prompt: PromptTemplate, tools: List[BaseTool]):
+def create_agent(memory: ChatMemoryBuffer, system_prompt: PromptTemplate, tools: List[BaseTool],
+                 **kwargs) -> ReActAgent:
     agent = ReActAgent.from_llm(
         system_prompt=system_prompt,
         memory=memory,
         max_iterations=20,
-        llm=Settings.llm,
+        **kwargs,
         verbose=True,
         tools=tools,
     )

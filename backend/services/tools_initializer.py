@@ -72,7 +72,7 @@ class PandasTool:
     def __init__(self, query_engine: PandasQueryEngine):
         self.query_engine = query_engine
 
-    async def aquery_pd(self, query: str):
+    async def apandas_tool(self, query: str):
         """Executes a query with Pandas and return the string result"""
         try:
             result = await self.query_engine.aquery(query)
@@ -109,15 +109,12 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
             pd_tools.append(pd_tool)
 
     pd_tools = [
-        FunctionTool(
-            async_fn=pd_tool.aquery_pd,
-            metadata=ToolMetadata(
-                name=f"pandas_tool_{files[i].file_name}",
-                description=f"Tool for evaluating spreadsheet of file: {files[i].file_name}",
-            )
+        FunctionTool.from_defaults(
+            async_fn=pd_tool.apandas_tool,
+            name=f"pandas_tool_{i}",
+            description=f"Tool for evaluating spreadsheet of file: {files[i].file_name}",
         ) for i, pd_tool in enumerate(pd_tools)
     ]
-    print(pd_tools)
     return pd_tools
 
 

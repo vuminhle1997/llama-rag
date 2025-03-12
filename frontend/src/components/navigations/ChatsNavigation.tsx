@@ -70,7 +70,7 @@ export default function ChatsNavigation({ chats }: { chats: Chat[] }) {
       {chats.map((chat, i) => (
         <SidebarMenuItem
           className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
-            chat.id === currentChatId ? 'bg-accent' : ''
+            chat.id === currentChatId ? 'bg-primary/20' : ''
           }`}
           key={`chat-${chat.id}`}
         >

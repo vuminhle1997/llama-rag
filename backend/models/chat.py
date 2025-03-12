@@ -9,6 +9,7 @@ Base = declarative_base()
 
 if TYPE_CHECKING:
     from models.chat_file import ChatFile
+    from models.favourite import Favourite
 
 class ChatBase(SQLModel):
     title: str = Field(nullable=False, index=True)
@@ -19,9 +20,12 @@ class Chat(ChatBase, Base, table=True):
     id: str = Field(primary_key=True, default=str(uuid.uuid4()))
     created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     updated_at: datetime = Field(nullable=False, index=True, default=datetime.now())
+    last_interacted_at: datetime = Field(nullable=False, index=True, default=datetime.now())
     user_id: str = Field(nullable=False, index=True)
     avatar_path: str = Field(nullable=False)
+    temperature: float = Field(nullable=False, index=True, default=0.75)
     files: List["ChatFile"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
+    favourite: "Favourite" = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
 
 class ChatPublic(ChatBase):
     id: str
@@ -32,10 +36,12 @@ class ChatPublic(ChatBase):
 
 class ChatCreate(BaseModel):
     title: str
+    temperature: float
     description: Optional[str]
     context: str
 
 class ChatUpdate(BaseModel):
     title: str
+    temperature: float
     description: Optional[str]
     context: str

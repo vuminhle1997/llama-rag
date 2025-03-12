@@ -15,8 +15,10 @@ export type Chat = {
   title: string;
   description: string;
   context: string;
-  createdAt: string;
-  updatedAt: string;
+  temperature: number;
+  created_at: string;
+  updated_at: string;
+  last_interacted_at: string;
   files: File[];
   user_id: string;
   messages: Message[];
