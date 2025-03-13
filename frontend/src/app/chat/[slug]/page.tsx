@@ -259,8 +259,9 @@ export default function SlugChatPage({
   }, [handleFormSubmit]);
 
   useEffect(() => {
+
     if (chat) {
-      console.log(chat.messages);
+      window.document.title = `global CT InsightChat - ${chat?.title}`
       dispatch(setChat(chat));
     }
   }, [chat]);

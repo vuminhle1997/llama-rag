@@ -6,6 +6,7 @@ import { SidebarSeparator } from "../ui/sidebar";
 import { Settings2Icon, LogOutIcon } from "lucide-react";
 import { useAppSelector } from "@/frontend/store/hooks/hooks";
 import { selectUser, selectProfilePicture } from "@/frontend/store/reducer/app_reducer";  
+import Link from "next/link";
 
 export default function FooterNavigation() {
     const user = useAppSelector(selectUser);
@@ -43,8 +44,12 @@ export default function FooterNavigation() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive">
-                    <LogOutIcon className="mr-2 h-4 w-4" />
-                    Logout
+                    <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
+                      <div className="flex flex-row">
+                        <LogOutIcon className="mr-2 h-4 w-4" />
+                        <span>Ausloggen</span>
+                      </div>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

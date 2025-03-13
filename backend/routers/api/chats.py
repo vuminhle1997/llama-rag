@@ -22,7 +22,7 @@ from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
-from utils import decode_jwt
+from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
                       , create_pandas_engines_tools_from_files)
 
@@ -34,19 +34,6 @@ router = APIRouter(
     tags=["chats"],
     responses={404: {"description": "Not found"}},
 )
-
-
-def check_property_belongs_to_user(request_from_route: Request, redis_client: Redis, chat: "Chat"):
-    session_id = request_from_route.cookies.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=404, detail="Session ID not found")
-    token = redis_client.get(f"session:{session_id}")
-    claims = decode_jwt(token)
-    user_id = claims["oid"]
-    if chat.user_id != user_id:
-        return False
-    else:
-        return True
 
 @router.get("/", response_model=Page[Chat])
 async def get_all_chats(db_client: Session = Depends(get_db_session),

@@ -10,12 +10,12 @@ if TYPE_CHECKING:
 Base = declarative_base()
 
 class BaseFavourites(SQLModel):
-    chat_id: Optional[str] = Field(index=True, default=None, foreign_key="chat.id")
     pass
 
 class Favourite(BaseFavourites, Base, table=True):
     id: str = Field(nullable=False, primary_key=True, default=str(uuid.uuid4()))
     created_at: datetime = Field(nullable=False, index=True, default=datetime.now())
+    chat_id: Optional[str] = Field(index=True, default=None, foreign_key="chat.id")
     user_id: str = Field(nullable=False, index=True)
     chat: "Chat" = Relationship(back_populates="favourite")
 

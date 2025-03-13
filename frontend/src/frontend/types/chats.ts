@@ -1,3 +1,4 @@
+import { Favourite } from "./favourites";
 import { File } from "./files";
 import { Message } from "./message";
 
@@ -25,4 +26,5 @@ export type Chat = {
   user_id: string;
   messages: Message[];
   message?: LLMResponse;
+  favourite?: Favourite;
 };

@@ -67,6 +67,14 @@ async def azure_signin():
     auth_url = azure_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
     return RedirectResponse(url=auth_url)
 
+@app.get("/logout")
+def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Request = Request):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=401, detail="Not logged in")
+    redis_client.delete(f"session:{session_id}")
+    return RedirectResponse(url="http://localhost:3000")
+
 @app.get("/redirect")
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
     code = request.query_params.get("code")

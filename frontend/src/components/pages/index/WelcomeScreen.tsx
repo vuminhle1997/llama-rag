@@ -31,15 +31,15 @@ export default function WelcomeScreen() {
   return (
     <main className="flex-1 overflow-hidden flex items-center justify-center">
       <div className="w-full max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-6 text-center">
+        <h1 className="text-4xl font-bold mb-6 text-center animate-fade-in delay-200">
           Global CT InsightChat
         </h1>
-        <p className="text-lg text-muted-foreground mb-8 text-center">
+        <p className="text-lg text-muted-foreground mb-8 text-center animate-fade-in delay-200">
           Willkommen bei Ihrem KI-Assistenten. Starten Sie einen neuen Chat oder
           stellen Sie eine Frage, um zu beginnen.
         </p>
 
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 animate-fade-in delay-300">
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -54,13 +54,14 @@ export default function WelcomeScreen() {
           </Dialog>
         </div>
 
-        <div className="space-y-4">
+        {/* <div className="space-y-4 animate-fade-in delay-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {suggestions.map((suggestion, index) => (
               <Button
                 key={index}
                 variant="outline"
-                className="h-auto p-4 text-left justify-start"
+                className="h-auto p-4 text-left justify-start animate-fade-in-up"
+                style={{ animationDelay: `${(index + 4) * 100}ms` }}
                 onClick={() => setInput(suggestion)}
               >
                 {suggestion}
@@ -68,7 +69,7 @@ export default function WelcomeScreen() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2 animate-fade-in delay-800">
             <Input
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -79,7 +80,7 @@ export default function WelcomeScreen() {
               <Send className="h-4 w-4" />
             </Button>
           </form>
-        </div>
+        </div> */}
       </div>
     </main>
   );

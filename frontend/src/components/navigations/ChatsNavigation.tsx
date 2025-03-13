@@ -37,6 +37,7 @@ import { Chat } from '@/frontend/types';
 import ChatEntryForm from '../form/ChatEntryForm';
 import { useState } from 'react';
 import { useDeleteChat } from '@/frontend/queries/chats';
+import { usePostFavourite } from '@/frontend/queries/favourites';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
 import { selectChats } from '@/frontend/store/reducer/app_reducer';
@@ -51,6 +52,7 @@ export default function ChatsNavigation() {
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteChat = useDeleteChat(chatToDelete || '');
+  const postFavourite = usePostFavourite();
 
   const handleDelete = (chatId: string) => {
     setChatToDelete(chatId);
@@ -126,7 +128,16 @@ export default function ChatsNavigation() {
                     </Tooltip>
                   </TooltipProvider>
                   <DropdownMenuContent>
-                    <DropdownMenuItem disabled>
+                    <DropdownMenuItem onSelect={() => {
+                      postFavourite.mutate(chat.id, {
+                        onSuccess: () => {
+                          window.location.reload();
+                        },
+                        onError: (error) => {
+                          console.error('Failed to favourite chat:', error);
+                        }
+                      });
+                    }}>
                       <HeartIcon className="h-4 w-4" /> Favorisieren
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
