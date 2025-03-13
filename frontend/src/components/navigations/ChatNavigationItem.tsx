@@ -95,7 +95,7 @@ export const ChatNavigationItem = ({
               </Tooltip>
             </TooltipProvider>
             <DropdownMenuContent>
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 onSelect={() => {
                   postFavourite.mutate(chat.id, {
                     onSuccess: () => {
@@ -113,7 +113,7 @@ export const ChatNavigationItem = ({
               >
                 <HeartIcon className="h-4 w-4" /> Favorisieren
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator /> */}
               <DialogTrigger asChild>
                 <DropdownMenuItem
                   onSelect={() => {

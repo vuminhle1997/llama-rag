@@ -128,7 +128,7 @@ export default function ChatsNavigation() {
                     </Tooltip>
                   </TooltipProvider>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onSelect={() => {
+                    {/* <DropdownMenuItem onSelect={() => {
                       postFavourite.mutate(chat.id, {
                         onSuccess: () => {
                           window.location.reload();
@@ -140,7 +140,7 @@ export default function ChatsNavigation() {
                     }}>
                       <HeartIcon className="h-4 w-4" /> Favorisieren
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator /> */}
                     <DialogTrigger asChild>
                       <DropdownMenuItem onSelect={() => {
                         setSelectedChat(chat);

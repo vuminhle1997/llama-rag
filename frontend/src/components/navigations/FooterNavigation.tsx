@@ -34,15 +34,15 @@ export default function FooterNavigation() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
+                  {/* <DropdownMenuItem>
                     <UserIcon className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings2Icon className="mr-2 h-4 w-4" />
                     Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  </DropdownMenuItem> */}
+                  {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem className="text-destructive">
                     <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
                       <div className="flex flex-row">

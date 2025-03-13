@@ -332,20 +332,44 @@ const defaultModels = [
   {
     id: 'llama3.1',
     name: 'LLama 3.1',
-    description: 'Ausgewogenes Sprachmodell mit guter Balance zwischen Leistung und Effizienz. Ideal für allgemeine Anwendungen.',
+    description: 'LLama 3.1 von Meta ist ein ausgewogenes Sprachmodell, das eine hervorragende Balance zwischen Leistung und Effizienz bietet. Es ist ideal für allgemeine Anwendungen wie Textgenerierung, Übersetzungen und einfache Konversationsaufgaben. Benutzer können es für die Erstellung präziser und effizienter Kommunikation nutzen.',
     isDefault: true
   },
   {
-    id: 'deepseek-r1',
+    id: 'deepseek-r1', 
     name: 'Deepseek-r1',
-    description: 'Spezialisiert auf technische und wissenschaftliche Aufgaben mit verbesserter Präzision.',
+    description: 'Deepseek-r1 von Deepseek ist ein spezialisiertes Modell für technische und wissenschaftliche Aufgaben. Es bietet verbesserte Präzision und ist besonders nützlich für Benutzer, die in der Forschung, Datenanalyse und technischen Dokumentation tätig sind.',
     isDefault: false
   },
   {
-    id: 'llama3.3',
-    name: 'Llama 3.3',
-    description: 'Neueste Version mit verbesserter Kontextverarbeitung und erweitertem Wissen.',
-    isDefault: false
+    id: 'phi4',
+    name: 'Phi 4',
+    description: 'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
+    isDefault: false,
+  },
+  {
+    id: 'qwen2.5-coder:32b',
+    name: 'Qwen 2.5 Coder 32B', 
+    description: 'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
+    isDefault: false,
+  },
+  {
+    id: 'qwq',
+    name: 'QwQ',
+    description: 'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
+    isDefault: false,
+  },
+  {
+    id: 'gemma3:27b',
+    name: 'Gemma 3 27B',
+    description: 'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
+    isDefault: false,
+  },
+  {
+    id: 'codellama:34b',
+    name: 'CodeLLama 34B',
+    description: 'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
+    isDefault: false,
   }
 ];
 
@@ -563,6 +587,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
               {mode === 'create' 
                 ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
                 : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
+                <p className="text-gray-400 mt-4">Markierte Felder mit * sind verpflichtend.</p>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -623,7 +648,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="title" className="text-right">
-                  Titel
+                  Titel *
                 </Label>
                 <div className="col-span-3 space-y-2">
                   <Input 
@@ -650,7 +675,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="context" className="text-right">
-                  Kontext
+                  Kontext *
                 </Label>
                 <div className="col-span-3 space-y-2">
                   <Textarea
@@ -665,11 +690,19 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
                   {errors.context && (
                     <p className="text-red-500 text-sm">{errors.context.message}</p>
                   )}
+                  <p className="text-sm text-muted-foreground">
+                    Der Kontext muss die folgenden Elemente enthalten:
+                    <br />- Persönlichkeit und Rolle des KI-Assistenten
+                    <br />- Kommunikationsstil und Verhaltensmuster
+                    <br />- Spezifische Fähigkeiten und Expertise
+                    <br />- Umgang mit verfügbaren Tools
+                    <br />- Ausgabeformat und zusätzliche Regeln
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="model" className="text-right">
-                  Sprachmodell
+                  Sprachmodell *
                 </Label>
                 <div className="col-span-3 space-y-2">
                   <Select 
@@ -679,16 +712,16 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
                     <SelectTrigger className="w-full h-[60px]">
                       <SelectValue placeholder="Wählen Sie ein Sprachmodell" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent className="w-[var(--radix-select-trigger-width)] max-h-[300px]">
                       {defaultModels.map((model) => (
                         <SelectItem 
                           key={model.id} 
                           value={model.id}
-                          className="flex flex-col items-start py-4 h-[80px]"
+                          className="flex flex-col items-start py-3"
                         >
                           <div className="flex flex-col justify-start items-start">
                             <div className="font-medium text-base text-left">{model.name}</div>
-                            <div className="text-sm text-muted-foreground leading-snug text-left">{model.description}</div>
+                            <div className="text-sm text-muted-foreground leading-snug text-left mt-1">{model.description}</div>
                           </div>
                         </SelectItem>
                       ))}

@@ -69,10 +69,15 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
 
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat not found")
+    
+    # Get favorite status
+    favorite = db_chat.favourite if db_chat.favourite else None
+    
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
         'messages': chat_memory.get(),
+        'favourite': favorite.model_dump() if favorite else None
     }
 
 
@@ -123,7 +128,7 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     else:
         model_from_chat = "llama3.1"
 
-    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature)
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     response = await agent.achat(text)
 
@@ -254,8 +259,7 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
-    avatar_path = db_chat.avatar_path
-    old_avatar_path = avatar_path
+    avatar_path = None
 
     if file and file.filename:
         # Get file extension
@@ -272,15 +276,11 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
         with open(avatar_path, "wb+") as buffer:
             buffer.write(file.file.read())
 
-        # Delete old avatar if it exists
-        if old_avatar_path and Path(old_avatar_path).exists():
-            Path(old_avatar_path).unlink()
-
     # Update the entry
     chat_data = json.loads(chat)
     db_chat.sqlmodel_update(chat_data)
     if avatar_path:
-        db_chat.avatar_path = avatar_path
+        db_chat.avatar_path = str(avatar_path)
 
     db_chat.last_interacted_at = datetime.now()
     db_client.add(db_chat)
