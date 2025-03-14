@@ -1,8 +1,13 @@
+'use client'
+
 import React, { useEffect } from 'react';
 import {
   selectAuthorized,
+  setAppState,
   setChats,
+  setFavouriteChats,
   setProfilePicture,
+  setUser,
   useAppDispatch,
   useAppSelector,
 } from '@/frontend';
@@ -44,12 +49,14 @@ import { useGetProfilePicture } from '@/frontend/queries/avatar';
 import { useGetFavourites } from '@/frontend/queries/favourites';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { useAuth } from '@/frontend/queries';
 
 export default function LayoutProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data: authData, isLoading, error} = useAuth();
   const { profilePicture } = useGetProfilePicture();
   const { data } = useGetChats(50, 1);
   const { data: favoritesData } = useGetFavourites(50, 1);
@@ -67,6 +74,22 @@ export default function LayoutProvider({
       dispatch(setChats(data.items));
     }
   }, [data]);
+
+  useEffect(() => {
+    if (favoritesData) {
+      dispatch(setFavouriteChats(favoritesData.items.map(favorite => favorite.chat)));
+    }
+  }, [favoritesData]);
+
+  useEffect(() => {
+    if (authData && !isLoading && !error) {
+      dispatch(setUser(authData));
+      dispatch(setAppState('idle'));
+    } else if (error) {
+      dispatch(setAppState('failed'));
+    }
+  }
+  , [authData, isLoading, error]);
 
   return isAuthorized ? (
     <SidebarProvider

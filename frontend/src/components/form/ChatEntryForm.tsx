@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Button } from '../ui/button';
 import {
   DialogContent,
@@ -19,7 +20,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '../ui/scroll-area';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
-import { selectChats } from '@/frontend/store/reducer/app_reducer';
+import {
+  selectChats,
+  selectFavouriteChats,
+} from '@/frontend/store/reducer/app_reducer';
 import { Separator } from '../ui/separator';
 import hrImage from '@/static/templates/hr.jpeg';
 import engineerImage from '@/static/templates/engineer.webp';
@@ -39,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { ArchiveBoxIcon, ChatBubbleOvalLeftIcon, HeartIcon } from '@heroicons/react/24/solid';
 
 const placeholderForContext = `Ihre Rolle ist es, bei verschiedenen Aufgaben zu unterstützen, einschließlich der Beantwortung allgemeiner Fragen, der Erstellung von Zusammenfassungen und der Durchführung von HR-bezogenen Analysen.
 
@@ -420,6 +425,7 @@ export default function ChatEntryForm({
   );
   const router = useRouter();
   const existingChats = useAppSelector(selectChats);
+  const favouriteChats = useAppSelector(selectFavouriteChats);
   const { avatar } = useGetAvatar(chat?.id || '');
 
   const useAsTemplate = async (
@@ -519,7 +525,6 @@ export default function ChatEntryForm({
     );
 
     if (data.avatar?.[0]) {
-      console.log(data.avatar[0]);
       formData.append('file', data.avatar[0]);
     }
 
@@ -570,7 +575,10 @@ export default function ChatEntryForm({
                 {/* Default Templates */}
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground px-2">
-                    Standardvorlagen
+                    <div className="flex flex-row gap-2">
+                      <ArchiveBoxIcon className="h-5 w-5" />
+                      <span>Standardvorlagen</span>
+                    </div>
                   </h3>
                   {defaultTemplates.map(template => (
                     <div
@@ -597,13 +605,45 @@ export default function ChatEntryForm({
                   ))}
                 </div>
 
+                {/* User's Favourite Chats */}
+                {favouriteChats && favouriteChats.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-muted-foreground px-2">
+                        <div className="flex flex-row gap-2">
+                          <HeartIcon className="text-sm h-5 w-5" />
+                          <span>Ihre favorisierten Chats </span>
+                        </div>
+                      </h3>
+                      {favouriteChats.map(existingChat => (
+                        <div
+                          key={existingChat.id}
+                          className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                          onClick={() => useAsTemplate(existingChat)}
+                        >
+                          <h4 className="font-medium">{existingChat.title}</h4>
+                          {existingChat.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {existingChat.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
                 {/* User's Existing Chats */}
                 {existingChats && existingChats.length > 0 && (
                   <>
                     <Separator className="my-4" />
                     <div className="space-y-2">
                       <h3 className="text-sm font-medium text-muted-foreground px-2">
-                        Ihre Chats
+                        <div className="flex flex-row gap-2">
+                          <ChatBubbleOvalLeftIcon className="h-5 w-5" />
+                          <span>Ihre Chats</span>
+                        </div>
                       </h3>
                       {existingChats.map(existingChat => (
                         <div
@@ -651,7 +691,11 @@ export default function ChatEntryForm({
                     <div className="flex flex-col items-center gap-4">
                       <div
                         onClick={handleAvatarClick}
-                        className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${!avatarPreview ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50' : ''}`}
+                        className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${
+                          !avatarPreview
+                            ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50'
+                            : ''
+                        }`}
                       >
                         {avatarPreview ? (
                           <>
@@ -769,6 +813,14 @@ export default function ChatEntryForm({
                       <br />- Spezifische Fähigkeiten und Expertise
                       <br />- Umgang mit verfügbaren Tools
                       <br />- Ausgabeformat und zusätzliche Regeln
+                      <p className="text-black mt-2">
+                        Wenn Sie sich unsicher sind, besuchen Sie bitte{' '}
+                        <a href="/faq" className="text-blue-500 underline">
+                          unsere FAQ-Seite
+                        </a>
+                        , um mehr darüber zu erfahren, wie Sie gute
+                        Eingabeaufforderungen schreiben können.
+                      </p>
                     </p>
                   </div>
                 </div>
@@ -869,8 +921,8 @@ export default function ChatEntryForm({
                         ? 'Erstellen...'
                         : 'Speichern...'
                       : mode === 'create'
-                        ? 'Erstellen'
-                        : 'Speichern'}
+                      ? 'Erstellen'
+                      : 'Speichern'}
                   </Button>
                 </div>
               </DialogFooter>

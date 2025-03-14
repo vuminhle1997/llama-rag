@@ -12,66 +12,164 @@ const faqData = [
   {
     title: 'Was ist ein LLM?',
     description: `
-        LLM steht für Large Language Model und bezieht sich auf hochleistungsfähige künstliche Intelligenz-Modelle, die auf großen Mengen von Textdaten trainiert wurden. Diese Modelle können komplexe sprachliche Aufgaben wie Textgenerierung, Übersetzung, Fragen-Antwort-Systeme und mehr ausführen. Beispiele für LLMs sind OpenAI's GPT-3 oder GPT-4.
-      `,
+## Large Language Model (LLM)
+
+Ein LLM ist ein hochleistungsfähiges KI-Modell, das auf großen Mengen von Textdaten trainiert wurde.
+
+**Hauptmerkmale:**
+- Textgenerierung
+- Übersetzung
+- Fragen-Antwort-Systeme
+
+*Bekannte Beispiele:* OpenAI's GPT-3, GPT-4
+    `,
   },
   {
     title: 'Was ist RAG?',
     description: `
-        RAG steht für Retrieval-Augmented Generation. Es ist ein Ansatz zur Verbesserung der Antworten von großen Sprachmodellen, indem sie nicht nur generieren, sondern auch relevante Informationen aus einem Index abrufen. Der Prozess besteht in zwei Schritten:
-        1. Abruf (Retrieval): Das System ruft relevante Dokumentabschnitte oder Informationen aus einem vorbereiteten Index ab.
-        2. Generierung (Generation): Das LLM nutzt die abgerufenen Informationen, um eine präzisere und kontextbezogene Antwort zu generieren.
-      `,
+## Retrieval-Augmented Generation (RAG)
+
+RAG verbessert LLM-Antworten durch einen zweistufigen Prozess:
+
+1. **Abruf (Retrieval)**
+   - Relevante Dokumentabschnitte werden aus einem Index abgerufen
+   
+2. **Generierung (Generation)**
+   - Das LLM generiert präzise Antworten basierend auf:
+     - Abgerufenen Informationen
+     - Kontextuellem Wissen
+    `,
   },
   {
     title: 'Was ist Indexierung?',
     description: `
-        Indexierung bezieht sich auf den Prozess des Vorbereitens und Organisierens von Daten in einer Struktur (Index), die es ermöglicht, diese effizient abzurufen. In der Kontext von LLMs und KI-Anwendungen dient die Indexierung dazu, große Mengen von Dokumenten oder Informationen zu strukturieren, sodass sie schnell und präzise durchsucht werden können.
-      `,
+## Indexierung im KI-Kontext
+
+Indexierung ist der Prozess der **strukturierten Datenorganisation** für effiziente Abrufe.
+
+**Hauptzwecke:**
+- Schnelle Suche
+- Präzise Informationsgewinnung
+- Optimierte Datenzugriffe
+    `,
   },
   {
     title: 'Was sind Prompts?',
     description: `
-        Prompts sind Eingaben oder Anweisungen, die an ein Sprachmodell gesendet werden, um eine bestimmte Antwort oder Aktion zu erhalten. Ein Prompt kann eine Frage, einen Befehl oder einen Kontext sein, der das Modell darauf hinweist, welche Art von Informationen oder Aktionen erwartet wird.
-      `,
+## Prompts für KI-Modelle
+
+Prompts sind **gezielte Eingaben** an ein Sprachmodell, die bestehen können aus:
+
+- 📝 Fragen
+- ⚡ Befehlen
+- 🔍 Kontextinformationen
+
+> Sie dienen als Leitfaden für die erwartete Ausgabe des Modells.
+    `,
   },
   {
     title: 'Was sind Parameter für LLMs?',
     description: `
-        Parameter sind die internen Werte oder Gewichte, die ein LLM während seines Trainings lernt und anhand derer es Texte generiert oder Aufgaben ausführt. Ein großer Teil des Trainings eines LLMs besteht darin, diese Parameter so zu optimieren, dass das Modell präzise auf verschiedene sprachliche Aufgaben antworten kann.
-      `,
+## Parameter in Language Models
+
+Parameter sind die **grundlegenden Bausteine** eines LLMs:
+
+\`\`\`
+📊 Parameter = Gewichte + Einstellungen
+\`\`\`
+
+**Eigenschaften:**
+- Werden während des Trainings optimiert
+- Bestimmen die Modellleistung
+- Ermöglichen präzise Sprachverarbeitung
+    `,
   },
   {
     title: 'Wie schreibt man gute System-Prompts und Kontext?',
     description: `
-        Das Schreiben guter System-Prompts und Kontext ist entscheidend für die Effektivität und Genauigkeit der Antworten eines LLMs. Hier sind einige Tipps:
-        - **Klare Anweisungen**: Stellen Sie sicher, dass Ihre Prompts klar und präzise sind.
-        - **Kontext bereitstellen**: Bereiten Sie genügend Kontext vor, damit das Modell die Frage oder Aufgabe verstehen kann.
-        - **Spezifische Anforderungen**: Geben Sie spezifische Anforderungen oder Formate an, in denen die Antwort erwartet wird.
-        - **Kürze und Prägnanz**: Halten Sie Ihre Prompts kurz und prägnant.
-      `,
+## Leitfaden für effektive Prompts
+
+### 1. Klare Anweisungen
+- Präzise Formulierungen
+- Eindeutige Anforderungen
+
+### 2. Kontext bereitstellen
+- Relevante Hintergrundinformationen
+- Notwendige Rahmenbedingungen
+
+### 3. Spezifische Anforderungen
+- Gewünschtes Ausgabeformat
+- Erwartete Detailtiefe
+
+### 4. Best Practices
+- Kurz und prägnant bleiben
+- Wichtige Punkte hervorheben
+- Beispiele wenn nötig
+    `,
+  },
+  {
+    title: 'Beispiel für einen exzellenten Agenten-Prompt',
+    description: `
+## Beispiel: Natürlicher KI-Assistent mit LlamaIndex
+
+\`\`\`markdown
+Du bist ein hilfsbereiter KI-Assistent namens Luna, der auf Deutsch kommuniziert.
+
+VERHALTEN:
+- Antworte freundlich und natürlich
+- Bleibe stets höflich und professionell
+- Verwende umgangssprachliche, aber präzise Formulierungen
+- Gib zu, wenn du etwas nicht weißt
+
+FÄHIGKEITEN:
+- Nutze LlamaIndex Tools zur Dokumentensuche
+- Verarbeite und analysiere Suchergebnisse
+- Fasse Informationen klar zusammen
+- Stelle Rückfragen bei Unklarheiten
+
+KONTEXT:
+- Du hast Zugriff auf eine Wissensdatenbank über [THEMA]
+- Du kannst Dokumente durchsuchen und relevante Stellen zitieren
+- Bei technischen Fragen verweise auf offizielle Dokumentationen
+
+BEISPIEL-DIALOG:
+Nutzer: "Kannst du mir erklären, wie Knowledge Graphs funktionieren?"
+Luna: "Gerne! Lass mich kurz in der Dokumentation nachsehen, um dir eine fundierte Antwort geben zu können.
+[Verwendet LlamaIndex VectorStoreIndex zur Suche...]"
+\`\`\`
+
+**Wichtige Komponenten:**
+- Klare Persönlichkeit & Rolle
+- Definierte Verhaltensmuster
+- Konkrete Tool-Verwendung
+- Spezifischer Kontext
+- Realistische Dialogbeispiele
+`,
   },
 ];
-
 export default function FAQPage() {
   return (
-    <main className="flex-1 overflow-hidden flex items-center justify-center">
+    <main className="overflow-hidden overflow-y-auto container mx-auto items-center justify-center grid grid-cols-1 gap-4">
       <div className="w-full max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-6 text-center animate-fade-in delay-200">
-          FAQ
+          FAQ - Frequently Asked Questions
         </h1>
-        {/* <p className="text-lg text-muted-foreground mb-8 text-center animate-fade-in delay-200">
-          Willkommen bei Ihrem KI-Assistenten. Starten Sie einen neuen Chat oder
-          stellen Sie eine Frage, um zu beginnen.
-        </p> */}
+        <p className="text-lg text-muted-foreground mb-8 text-center animate-fade-in delay-200">
+          Willkommen bei den häufig gestellten Fragen (FAQ) zu Large Language Models (LLMs) und Retrieval-Augmented Generation (RAG). Hier finden Sie Antworten auf die häufigsten Fragen zu diesen Technologien und deren Anwendung.
+        </p>
 
         <div className="flex flex-col justify-center mb-8 animate-fade-in delay-300">
           {faqData.map((faq, i) => (
             <Accordion key={`faq-${i}`} type="single" collapsible>
               <AccordionItem value={`item-${i}`}>
-                <AccordionTrigger className="">{faq.title}</AccordionTrigger>
+                <AccordionTrigger className="text-2xl font-bold uppercase">{faq.title}</AccordionTrigger>
                 <AccordionContent>
-                  <div className="prose">{faq.description}</div>
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: marked(faq.description)
+                    }}
+                  />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

@@ -46,6 +46,8 @@ import { useRouter } from 'next/navigation';
 import {
   setChat,
   selectProfilePicture,
+  selectAuthorized,
+  selectAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -128,7 +130,8 @@ export default function SlugChatPage({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { isLoading, error } = useAuth();
+  const isAuthorized = useAppSelector(selectAuthorized);
+  const appState = useAppSelector(selectAppState);
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
@@ -343,7 +346,7 @@ export default function SlugChatPage({
     });
   };
 
-  if (isLoading) {
+  if (appState === 'loading') {
     return (
       <div className="flex h-screen w-screen">
         <div className="w-[20rem] border-r animate-pulse">
@@ -378,7 +381,7 @@ export default function SlugChatPage({
     );
   }
 
-  if (error && !isLoading) {
+  if (!isAuthorized || appState === 'failed') {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h1 className="text-4xl font-bold mb-4">Chat nicht gefunden</h1>
