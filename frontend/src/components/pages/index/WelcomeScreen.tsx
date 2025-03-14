@@ -3,10 +3,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { PencilSquareIcon } from '@heroicons/react/24/solid';
 import ChatEntryForm from '@/components/form/ChatEntryForm';
-import { Send } from 'lucide-react';
 
 const suggestions = [
   'Was sind die wichtigsten Funktionen unseres Produkts?',

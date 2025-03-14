@@ -1,11 +1,11 @@
-import { UserIcon } from '@heroicons/react/24/solid';
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { SidebarSeparator } from '../ui/sidebar';
@@ -20,6 +20,7 @@ import Link from 'next/link';
 export default function FooterNavigation() {
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);
+  
   return (
     <div className="mt-auto">
       <SidebarSeparator className="mx-0" />
@@ -45,15 +46,6 @@ export default function FooterNavigation() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings2Icon className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem> */}
-            {/* <DropdownMenuSeparator /> */}
             <DropdownMenuItem className="text-destructive">
               <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
                 <div className="flex flex-row">
