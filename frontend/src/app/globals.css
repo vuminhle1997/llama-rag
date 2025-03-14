@@ -2,6 +2,78 @@
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-Thin.eot');
+  src: url('@/static/fonts/AmpleSoftPro-Thin.eot?#iefix') format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-Thin.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-Thin.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-ExtraLight.eot');
+  src: url('@/static/fonts/AmpleSoftPro-ExtraLight.eot?#iefix')
+      format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-ExtraLight.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-ExtraLight.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-Light.eot');
+  src: url('@/static/fonts/AmpleSoftPro-Light.eot?#iefix') format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-Light.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-Light.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-Regular.eot');
+  src: url('@/static/fonts/AmpleSoftPro-Regular.eot?#iefix')
+      format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-Regular.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-Regular.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-Medium.eot');
+  src: url('@/static/fonts/AmpleSoftPro-Medium.eot?#iefix') format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-Medium.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-Medium.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'AmpleSoftPro';
+  src: url('@/static/fonts/AmpleSoftPro-Bold.eot');
+  src: url('@/static/fonts/AmpleSoftPro-Bold.eot?#iefix') format('embedded-opentype'),
+    url('@/static/fonts/AmpleSoftPro-Bold.woff2') format('woff2'),
+    url('@/static/fonts/AmpleSoftPro-Bold.woff') format('woff'),
+    url('@/static/fonts/AmpleSoftPro-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+body {
+  font-family: 'AmpleSoftPro' !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

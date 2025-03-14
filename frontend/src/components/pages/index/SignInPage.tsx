@@ -65,7 +65,7 @@ export default function SignInPage() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex flex-col items-center justify-between space-y-4 sm:flex-row sm:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} LlamaRAG. Alle Rechte vorbehalten.
+              © 2014 - {new Date().getFullYear()} global CT Services & Consulting GmbH. Alle Rechte vorbehalten.
             </div>
             <div className="flex space-x-6">
               <a
