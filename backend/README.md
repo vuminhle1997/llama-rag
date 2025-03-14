@@ -17,22 +17,29 @@ python -m venv $PWD/venv
 source ./venv/bin/activate
 ```
 
-2. Create `.env` file with required environment variables:
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Create `.env` file with required environment variables:
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 # Example .env configuration:
 ```
 # Azure AD authentication
+```
 CLIENT_ID=your_client_id
 CLIENT_SECRET=your_client_secret
 TENANT_ID=your_tenant_id
 REDIRECT_URI=http://localhost:4000/redirect
+```
 
 # Redis configuration
+```
 REDIS_HOST=localhost
 REDIS_PORT=6379
-```
 ```
 
 Required services:
