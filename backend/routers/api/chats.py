@@ -264,7 +264,7 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
     if file and file.filename:
         # Get file extension
         ext = file.filename.split('.')[-1].lower()
-        if ext not in ['jpg', 'jpeg', 'png', 'gif']:
+        if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
             raise HTTPException(status_code=400, detail="Invalid image format")
 
         # Create avatars directory if it doesn't exist

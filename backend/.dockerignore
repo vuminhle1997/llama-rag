@@ -1,0 +1,7 @@
+__pycache__
+.idea
+.git
+.gitignore
+uploads
+notebooks
+alembic

@@ -31,7 +31,7 @@ async def get_favourites_of_user(request: Request = Request,
     user_id = claims["oid"]
     query = query.filter(Favourite.user_id == user_id)
     page = sqlalchemy_pagination(query)
-    items = page.items
+    items: List[Favourite] = page.items
 
     items = [
         {
