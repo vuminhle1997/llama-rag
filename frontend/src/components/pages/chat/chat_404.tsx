@@ -4,6 +4,23 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
+/**
+ * A React functional component that displays a "Chat not found" screen.
+ * This component is used when a user tries to access a chat that does not exist.
+ *
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @component
+ * @example
+ * return (
+ *   <UserChatNotFoundScreen />
+ * )
+ *
+ * @remarks
+ * This component uses Tailwind CSS for styling and Next.js router for navigation.
+ *
+ * @see {@link https://nextjs.org/docs/api-reference/next/router} for more information about Next.js router.
+ */
 export const UserChatNotFoundScreen = () => {
   const router = useRouter();
   return (
@@ -28,6 +45,13 @@ export const UserChatNotFoundScreen = () => {
   );
 };
 
+/**
+ * ChatNotFoundScreen component renders a 404 error screen for a chat page.
+ * It displays a message indicating that the requested chat could not be found
+ * and provides a button to navigate back to the homepage.
+ *
+ * @returns {JSX.Element} The rendered 404 error screen for the chat page.
+ */
 export default function ChatNotFoundScreen() {
   const router = useRouter();
   return (

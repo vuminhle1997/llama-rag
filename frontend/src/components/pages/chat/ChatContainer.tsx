@@ -18,6 +18,23 @@ export interface ChatContainerProps {
   handleMessageLoad: () => void;
 }
 
+/**
+ * ChatContainer component renders the chat interface.
+ * 
+ * @param {Object} props - The properties object.
+ * @param {React.RefObject<HTMLDivElement>} props.chatContainerRef - Reference to the chat container div.
+ * @param {Object} props.chat - The chat object containing messages.
+ * @param {string} props.messageText - The current message text.
+ * @param {Function} props.reset - Function to reset the chat input.
+ * @param {string} props.avatar - URL of the assistant's avatar image.
+ * @param {string} props.profilePicture - URL of the user's profile picture.
+ * @param {string} props.pendingMessage - The pending message text.
+ * @param {boolean} props.isTyping - Indicates if the assistant is typing.
+ * @param {Function} props.handleMessageLoad - Function to handle message load.
+ * @param {boolean} props.lastMessageIsTyping - Indicates if the last message is being typed.
+ * 
+ * @returns {JSX.Element} The rendered chat container component.
+ */
 export default function ChatContainer({
   chatContainerRef,
   chat,

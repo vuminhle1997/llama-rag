@@ -3,6 +3,14 @@
 import { Loader2 } from 'lucide-react';
 import React from 'react';
 
+/**
+ * A functional component that displays a pending message loader overlay.
+ * 
+ * @param {Object} props - The component props.
+ * @param {string} props.message - The message to display while loading.
+ * 
+ * @returns {JSX.Element} The JSX element representing the pending message loader.
+ */
 const PendingMessageLoader = ({ message }: { message: string }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white p-4 rounded-lg flex items-center space-x-3">

@@ -2,6 +2,12 @@
 
 import React from 'react';
 
+/**
+ * ChatLoadingScreen component renders a loading screen for the chat interface.
+ * It displays a skeleton UI with animated placeholders to indicate loading state.
+ *
+ * @returns {JSX.Element} The loading screen component.
+ */
 export default function ChatLoadingScreen() {
   return (
     <div className="flex h-screen w-screen">

@@ -23,6 +23,18 @@ export interface ChatFavouriteAlertDialogProps {
   >;
 }
 
+/**
+ * ChatFavouriteAlertDialog component displays an alert dialog to inform the user
+ * about the success or failure of adding a chat to their favourites.
+ *
+ * @param {Object} props - The properties object.
+ * @param {Object} props.favouriteAlert - The state object containing the alert visibility and success status.
+ * @param {boolean} props.favouriteAlert.show - Indicates whether the alert dialog should be shown.
+ * @param {boolean} props.favouriteAlert.success - Indicates whether the favourite action was successful.
+ * @param {Function} props.setFavouriteAlert - Function to update the favourite alert state.
+ *
+ * @returns {JSX.Element} The rendered ChatFavouriteAlertDialog component.
+ */
 export default function ChatFavouriteAlertDialog({
   favouriteAlert,
   setFavouriteAlert,

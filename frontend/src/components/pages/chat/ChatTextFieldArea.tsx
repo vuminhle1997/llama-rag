@@ -33,6 +33,27 @@ export interface ChatTextFieldAreaProps {
   ) => Promise<void>;
 }
 
+/**
+ * ChatTextFieldArea component renders a text field area for chat messages with options to upload and manage files.
+ *
+ * @param {Object} props - The properties object.
+ * @param {Function} props.deleteFileMutation - Mutation function to delete a file.
+ * @param {Object} props.errors - Object containing form errors.
+ * @param {React.RefObject<HTMLInputElement>} props.fileInputRef - Reference to the file input element.
+ * @param {Function} props.handleFileChange - Function to handle file input change.
+ * @param {Function} props.handleFormSubmit - Function to handle form submission.
+ * @param {Function} props.handleSubmit - Function to handle form submit event.
+ * @param {Function} props.handleUploadClick - Function to handle upload button click.
+ * @param {boolean} props.isSubmitting - Flag indicating if the form is submitting.
+ * @param {boolean} props.isTyping - Flag indicating if the user is typing.
+ * @param {boolean} props.isUploading - Flag indicating if a file is being uploaded.
+ * @param {string} props.messageText - The current message text.
+ * @param {Function} props.register - Function to register form fields.
+ * @param {Function} props.setIsFileDialogOpen - Function to set the file dialog open state.
+ * @param {Object} props.uploadFileMutation - Mutation function to upload a file.
+ *
+ * @returns {JSX.Element} The rendered ChatTextFieldArea component.
+ */
 export default function ChatTextFieldArea({
   deleteFileMutation,
   errors,

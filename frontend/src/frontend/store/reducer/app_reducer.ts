@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
 import { AzureClaims } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
-import { set } from 'date-fns';
+
 // Define a type for the slice state
 interface AppState {
   isAuthorized: boolean;
@@ -25,6 +25,26 @@ const initialState: AppState = {
   appState: 'loading',
 };
 
+/**
+ * A slice for the app state management.
+ * 
+ * @remarks
+ * This slice contains reducers to manage the state of the application, including authorization status, user information, chat data, profile picture, favourite chats, and the overall app state.
+ * 
+ * @public
+ * 
+ * @param {string} name - The name of the slice.
+ * @param {object} initialState - The initial state of the slice.
+ * @param {object} reducers - The reducers to handle state changes.
+ * 
+ * @property {function} setIsAuthorized - Sets the authorization status of the user.
+ * @property {function} setUser - Sets the user information.
+ * @property {function} setChat - Sets the current chat.
+ * @property {function} setChats - Sets the list of chats.
+ * @property {function} setProfilePicture - Sets the profile picture URL.
+ * @property {function} setFavouriteChats - Sets the list of favourite chats.
+ * @property {function} setAppState - Sets the overall app state.
+ */
 export const appSlice = createSlice({
   name: 'app',
   // `createSlice` will infer the state type from the `initialState` argument

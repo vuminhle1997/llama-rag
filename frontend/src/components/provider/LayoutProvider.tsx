@@ -21,6 +21,33 @@ import { useAuth } from '@/frontend/queries';
 import FavouritesDialog from '../navigations/FavouritesDialog';
 import SideBarNavigation from '../navigations/SideBarNavigation';
 
+/**
+ * LayoutProvider component is responsible for providing layout context and managing
+ * application state based on user authorization and fetched data.
+ *
+ * @param {Object} props - The component props.
+ * @param {React.ReactNode} props.children - The child components to be rendered within the layout.
+ *
+ * @returns {JSX.Element} The rendered layout component.
+ *
+ * @remarks
+ * This component uses several hooks to fetch data and update the application state:
+ * - `useAppDispatch` to dispatch actions to the Redux store.
+ * - `useAppSelector` to select the authorization state from the Redux store.
+ * - `useAuth` to fetch authentication data.
+ * - `useGetProfilePicture` to fetch the user's profile picture.
+ * - `useGetChats` to fetch chat data.
+ * - `useGetFavourites` to fetch favourite chats data.
+ *
+ * The component uses `useEffect` hooks to dispatch actions when the fetched data changes:
+ * - Sets the profile picture when `profilePicture` changes.
+ * - Sets the chat data when `data` changes.
+ * - Sets the favourite chats when `favouriteChats` changes.
+ * - Sets the user data and application state based on authentication data.
+ *
+ * If the user is authorized, the component renders the `SidebarProvider` with a sidebar
+ * and the child components. Otherwise, it only renders the child components.
+ */
 export default function LayoutProvider({
   children,
 }: {

@@ -20,6 +20,13 @@ import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 
+/**
+ * SideBarNavigation component renders the sidebar navigation for the application.
+ * It includes a header with a logo and a search bar, content with a button to create a new chat,
+ * and a footer navigation.
+ *
+ * @returns {JSX.Element} The rendered sidebar navigation component.
+ */
 export default function SideBarNavigation() {
   return (
     <Sidebar>

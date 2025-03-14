@@ -4,6 +4,19 @@ import React from 'react';
 import Logo from '@/static/globalLogo.png';
 import Image from 'next/image';
 
+/**
+ * SignInPage component renders a sign-in page with two sections:
+ * - Left Section: Displays a logo and a brief description.
+ * - Right Section: Provides a sign-in button for Microsoft account authentication.
+ * 
+ * The page is divided into two halves:
+ * - The left half contains an illustration, a title, and a description.
+ * - The right half contains a sign-in prompt and a button to sign in with a Microsoft account.
+ * 
+ * The footer includes links to the privacy policy, terms of service, and contact information.
+ * 
+ * @returns {JSX.Element} The rendered sign-in page component.
+ */
 export default function SignInPage() {
   return (
     <div className="relative flex min-h-screen flex-col">

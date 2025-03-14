@@ -11,6 +11,17 @@ export interface ChatAlertDialogProps {
   show: boolean;
 }
 
+/**
+ * ChatAlertDialog component displays an alert dialog with a title, description, and an icon
+ * indicating the type of alert (success or destructive).
+ *
+ * @param {ChatAlertDialogProps} alert - The properties for the alert dialog.
+ * @param {string} alert.type - The type of the alert, either 'success' or 'destructive'.
+ * @param {string} alert.title - The title of the alert.
+ * @param {string} alert.description - The description of the alert.
+ *
+ * @returns {JSX.Element} The rendered alert dialog component.
+ */
 export default function ChatAlertDialog(alert: ChatAlertDialogProps) {
   return (
     <div className="fixed top-4 right-4 z-50 w-96">

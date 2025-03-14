@@ -24,6 +24,20 @@ export interface ChatFileManagerProps {
   deleteFileMutation: UseMutationResult<any, Error, string, unknown>;
 }
 
+/**
+ * ChatFileManager component is responsible for managing and displaying the list of files
+ * associated with a chat. It provides functionalities to delete files and shows a dialog
+ * with a table listing the files.
+ *
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.isFileDialogOpen - A boolean indicating whether the file dialog is open.
+ * @param {function} props.setIsFileDialogOpen - A function to set the state of the file dialog.
+ * @param {Object} props.chat - The chat object containing the files.
+ * @param {function} props.handleDeleteFile - A function to handle the deletion of a file.
+ * @param {Object} props.deleteFileMutation - An object representing the state of the delete file mutation.
+ *
+ * @returns {JSX.Element} The ChatFileManager component.
+ */
 export default function ChatFileManager({
   isFileDialogOpen,
   setIsFileDialogOpen,

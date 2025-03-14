@@ -17,6 +17,38 @@ import {
 } from '@/frontend/store/reducer/app_reducer';
 import Link from 'next/link';
 
+/**
+ * FooterNavigation component renders the footer section of the application.
+ * It displays the user's profile picture, name, and email, along with a settings dropdown menu.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered footer navigation component.
+ *
+ * @example
+ * // Usage example:
+ * <FooterNavigation />
+ *
+ * @remarks
+ * This component uses the `useAppSelector` hook to retrieve the user and profile picture from the Redux store.
+ * It also includes a logout link that redirects to the backend logout URL.
+ *
+ * @dependencies
+ * - Avatar
+ * - AvatarImage
+ * - AvatarFallback
+ * - SidebarSeparator
+ * - DropdownMenu
+ * - DropdownMenuTrigger
+ * - DropdownMenuContent
+ * - DropdownMenuItem
+ * - Button
+ * - Link
+ * - Settings2Icon
+ * - LogOutIcon
+ *
+ * @hooks
+ * - useAppSelector
+ */
 export default function FooterNavigation() {
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);

@@ -1,6 +1,6 @@
 import { DialogTrigger } from '../ui/dialog';
 
-import { HeartIcon, Link, TrashIcon } from 'lucide-react';
+import { Link, TrashIcon } from 'lucide-react';
 import { Dialog } from '../ui/dialog';
 import { SidebarMenuButton } from '../ui/sidebar';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
@@ -14,8 +14,6 @@ import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { DropdownMenuContent } from '../ui/dropdown-menu';
 import { DropdownMenuItem } from '../ui/dropdown-menu';
-import { DropdownMenuSeparator } from '../ui/dropdown-menu';
-import { usePostFavourite } from '@/frontend/queries/favourites';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import ChatEntryForm from '../form/ChatEntryForm';
 import { useState } from 'react';
@@ -30,6 +28,20 @@ import {
 } from '../ui/alert-dialog';
 import { AlertDialog } from '../ui/alert-dialog';
 
+/**
+ * ChatNavigationItem component renders a navigation item for a chat.
+ * It includes functionality for editing and deleting the chat, as well as displaying alerts.
+ *
+ * @param {Object} props - The properties object.
+ * @param {Chat} props.chat - The chat object.
+ * @param {string} props.currentChatId - The ID of the current chat.
+ * @param {boolean} props.isDialogOpen - Indicates if the dialog is open.
+ * @param {Function} props.setIsDialogOpen - Function to set the dialog open state.
+ * @param {Chat | null} props.selectedChat - The currently selected chat.
+ * @param {Function} props.setSelectedChat - Function to set the selected chat.
+ *
+ * @returns {JSX.Element} The rendered ChatNavigationItem component.
+ */
 export const ChatNavigationItem = ({
   chat,
   currentChatId,
@@ -45,7 +57,6 @@ export const ChatNavigationItem = ({
   selectedChat: Chat | null;
   setSelectedChat: (chat: Chat | null) => void;
 }) => {
-  const postFavourite = usePostFavourite();
   const [favouriteAlert, setFavouriteAlert] = useState<{
     show: boolean;
     success: boolean;
@@ -95,25 +106,6 @@ export const ChatNavigationItem = ({
               </Tooltip>
             </TooltipProvider>
             <DropdownMenuContent>
-              {/* <DropdownMenuItem
-                onSelect={() => {
-                  postFavourite.mutate(chat.id, {
-                    onSuccess: () => {
-                      setFavouriteAlert({ show: true, success: true });
-                      setTimeout(() => {
-                        window.location.reload();
-                      }, 1500);
-                    },
-                    onError: error => {
-                      console.error('Failed to favourite chat:', error);
-                      setFavouriteAlert({ show: true, success: false });
-                    },
-                  });
-                }}
-              >
-                <HeartIcon className="h-4 w-4" /> Favorisieren
-              </DropdownMenuItem>
-              <DropdownMenuSeparator /> */}
               <DialogTrigger asChild>
                 <DropdownMenuItem
                   onSelect={() => {

@@ -25,6 +25,23 @@ export interface ChatSettingsDialogProps {
     handleDelete: () => void;
 }
 
+/**
+ * ChatSettingsDialog component provides a dialog for chat settings, including options to 
+ * add/remove the chat from favourites, edit the chat, and delete the chat.
+ *
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.isSettingsDialogOpen - Indicates if the settings dialog is open.
+ * @param {Function} props.setIsSettingsDialogOpen - Function to set the state of the settings dialog.
+ * @param {Object} props.chat - The chat object containing chat details.
+ * @param {string} props.slug - The unique identifier for the chat.
+ * @param {Function} props.setFavouriteAlert - Function to set the favourite alert state.
+ * @param {Object} props.postFavourite - Mutation function to add the chat to favourites.
+ * @param {Object} props.deleteFavourite - Mutation function to remove the chat from favourites.
+ * @param {Function} props.setSelectedChat - Function to set the selected chat for editing.
+ * @param {Function} props.setIsDialogOpen - Function to set the state of the edit dialog.
+ * @param {Function} props.handleDelete - Function to handle the deletion of the chat.
+ * @returns {JSX.Element} The rendered ChatSettingsDialog component.
+ */
 export default function ChatSettingsDialog({
     isSettingsDialogOpen,
     setIsSettingsDialogOpen,

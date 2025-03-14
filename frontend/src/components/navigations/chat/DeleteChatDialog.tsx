@@ -18,6 +18,15 @@ export interface ChatsNavigationProps {
   confirmDelete: () => void;
 }
 
+/**
+ * DeleteChatDialog component renders a dialog to confirm the deletion of a chat.
+ *
+ * @param {boolean} isDeleteDialogOpen - Indicates whether the delete dialog is open.
+ * @param {function} setIsDeleteDialogOpen - Function to set the state of the delete dialog.
+ * @param {function} confirmDelete - Function to confirm the deletion of the chat.
+ *
+ * @returns {JSX.Element} The rendered DeleteChatDialog component.
+ */
 export default function DeleteChatDialog({
   isDeleteDialogOpen,
   setIsDeleteDialogOpen,

@@ -30,6 +30,18 @@ export interface ChatsCollectionElementProps {
   handleDelete: (chatId: string) => void;
 }
 
+/**
+ * ChatsCollectionElement component renders a collection of chat items grouped by date.
+ * Each chat item includes options to edit or delete the chat.
+ *
+ * @param {ChatsCollectionElementProps} props - The properties for the component.
+ * @param {string} props.date - The date for the chat collection.
+ * @param {Chat[]} props.chats - The list of chat items.
+ * @param {string} props.currentChatId - The ID of the currently active chat.
+ * @param {function} props.handleDelete - The function to handle the deletion of a chat.
+ *
+ * @returns {JSX.Element} The rendered ChatsCollectionElement component.
+ */
 export default function ChatsCollectionElement({
   date,
   chats,

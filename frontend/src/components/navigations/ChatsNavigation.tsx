@@ -12,6 +12,25 @@ import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import ChatsCollectionElement from './chat/ChatsCollectionElement';
 
+/**
+ * ChatsNavigation component handles the display and management of chat navigation.
+ * It allows users to view, sort, and delete chats.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered ChatsNavigation component.
+ *
+ * @remarks
+ * - Uses `useRouter` to navigate between routes.
+ * - Uses `usePathname` to get the current URL path.
+ * - Uses `useAppSelector` to select chats from the Redux store.
+ * - Uses `useState` to manage the state of the chat to be deleted and the delete dialog.
+ * - Uses `useDeleteChat` to handle chat deletion.
+ *
+ * @example
+ * ```tsx
+ * <ChatsNavigation />
+ * ```
+ */
 export default function ChatsNavigation() {
   const router = useRouter();
   const pathname = usePathname();

@@ -6,6 +6,12 @@ import { useAppSelector } from '@/frontend/store/hooks/hooks';
 import { selectAuthorized } from '@/frontend/store/reducer/app_reducer';
 import WelcomeScreen from './WelcomeScreen';
 
+/**
+ * A functional component that renders a loading skeleton for the dashboard.
+ * It displays different skeletons based on the authentication status.
+ *
+ * @returns {JSX.Element} The loading skeleton for the dashboard.
+ */
 export default function DashboardLoadingSkeleton() {
   const isAuthenticated = useAppSelector(selectAuthorized);
 

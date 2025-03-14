@@ -52,6 +52,66 @@ import ChatFavouriteAlertDialog, { ChatFavouriteAlertDialogProps } from '@/compo
 import ChatDeleteAlertDialog, { ChatDeleteAlertDialogProps } from '@/components/pages/chat/components/ChatDeleteAlertDialog';
 import ChatEditAlertDialog, { ChatEditAlertDialogProps } from '@/components/pages/chat/components/ChatEditAlertDialog';
 
+/**
+ * SlugChatPage component renders the chat page for a specific chat identified by the slug.
+ * 
+ * @param {Object} props - The component props.
+ * @param {Promise<{ slug: string }>} props.params - The parameters containing the slug.
+ * 
+ * @returns {JSX.Element} The rendered chat page component.
+ * 
+ * @component
+ * 
+ * @example
+ * // Usage example:
+ * <SlugChatPage params={params} />
+ * 
+ * @remarks
+ * This component handles various states and actions related to chat functionality, including:
+ * - Fetching and displaying chat messages.
+ * - Handling file uploads and deletions.
+ * - Managing chat settings and alerts.
+ * - Submitting new messages and handling typing indicators.
+ * 
+ * @requires useRouter - Next.js router hook for navigation.
+ * @requires useAppDispatch - Redux dispatch hook for dispatching actions.
+ * @requires useAppSelector - Redux selector hook for selecting state.
+ * @requires useRef - React hook for creating references.
+ * @requires useEffect - React hook for side effects.
+ * @requires useForm - React Hook Form hook for managing form state.
+ * @requires useGetChat - Custom hook for fetching chat data.
+ * @requires useGetAvatar - Custom hook for fetching avatar data.
+ * @requires useChat - Custom hook for chat-related mutations.
+ * @requires useDeleteFile - Custom hook for deleting files.
+ * @requires usePostFile - Custom hook for uploading files.
+ * @requires useDeleteChat - Custom hook for deleting chat.
+ * @requires usePostFavourite - Custom hook for posting favourite.
+ * @requires useDeleteFavourite - Custom hook for deleting favourite.
+ * 
+ * @state {Chat | null} selectedChat - The currently selected chat.
+ * @state {Message[]} messages - The list of chat messages.
+ * @state {boolean} isDialogOpen - State for managing dialog visibility.
+ * @state {boolean} isDeleteDialogOpen - State for managing delete dialog visibility.
+ * @state {boolean} isCreateChatDialogOpen - State for managing create chat dialog visibility.
+ * @state {boolean} isSubmitting - State for managing form submission.
+ * @state {boolean} isFileDialogOpen - State for managing file dialog visibility.
+ * @state {boolean} lastMessageIsTyping - State for managing typing indicator for the last message.
+ * @state {boolean} isSettingsDialogOpen - State for managing settings dialog visibility.
+ * @state {boolean} isTyping - State for managing typing indicator.
+ * @state {boolean} isUploading - State for managing file upload status.
+ * @state {string | null} pendingMessage - The pending message being typed.
+ * @state {Object | null} alert - The alert state for displaying notifications.
+ * @state {Object} favouriteAlert - The alert state for displaying favourite notifications.
+ * 
+ * @function handleDeleteFile - Handles file deletion.
+ * @function handleUploadClick - Handles file upload click.
+ * @function handleFileChange - Handles file input change.
+ * @function scrollToBottom - Scrolls the chat container to the bottom.
+ * @function handleSubmit - Handles form submission for sending messages.
+ * @function handleMessageLoad - Handles message load event.
+ * @function handleDelete - Handles delete action.
+ * @function confirmDelete - Confirms chat deletion.
+ */
 export default function SlugChatPage({
   params,
 }: {
@@ -119,6 +179,23 @@ export default function SlugChatPage({
   });
 
   const messageText = watch('message');
+
+  useEffect(() => {
+    getChats(50, 1).then(chats => {
+      dispatch(setChats(chats.items));
+    });
+  }, [handleFormSubmit]);
+
+  useEffect(() => {
+    if (chat) {
+      window.document.title = `global CT InsightChat - ${chat?.title}`;
+      dispatch(setChat(chat));
+    }
+  }, [chat]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chat?.messages, pendingMessage, isTyping]);
 
   const handleDeleteFile = async (fileId: string) => {
     try {
@@ -247,23 +324,6 @@ export default function SlugChatPage({
   const handleMessageLoad = () => {
     setLastMessageIsTyping(false);
   };
-
-  useEffect(() => {
-    getChats(50, 1).then(chats => {
-      dispatch(setChats(chats.items));
-    });
-  }, [handleFormSubmit]);
-
-  useEffect(() => {
-    if (chat) {
-      window.document.title = `global CT InsightChat - ${chat?.title}`;
-      dispatch(setChat(chat));
-    }
-  }, [chat]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [chat?.messages, pendingMessage, isTyping]);
 
   const handleDelete = () => {
     setIsDeleteDialogOpen(true);

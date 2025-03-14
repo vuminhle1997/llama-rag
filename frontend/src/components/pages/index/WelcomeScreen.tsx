@@ -13,6 +13,25 @@ const suggestions = [
   'Helfen Sie mir bei der Fehlerbehebung',
 ];
 
+/**
+ * The `WelcomeScreen` component renders the welcome screen for the Global CT InsightChat application.
+ * It includes a title, a welcome message, and a button to create a new chat.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered welcome screen component.
+ * 
+ * @example
+ * // Usage example:
+ * <WelcomeScreen />
+ * 
+ * @remarks
+ * - The component uses Tailwind CSS classes for styling.
+ * - The chat entry form and suggestions section are currently commented out.
+ * 
+ * @todo
+ * - Implement the chat submission handling in the `handleSubmit` function.
+ * - Uncomment and implement the suggestions section and chat entry form.
+ */
 export default function WelcomeScreen() {
   const [input, setInput] = useState('');
 

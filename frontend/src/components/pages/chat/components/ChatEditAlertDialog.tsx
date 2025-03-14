@@ -13,6 +13,16 @@ export interface ChatEditAlertDialogProps {
   refetchChat: () => void;
 }
 
+/**
+ * ChatEditAlertDialog component renders a dialog for editing a chat entry.
+ *
+ * @param {boolean} isDialogOpen - Indicates whether the dialog is open.
+ * @param {() => void} refetchChat - Function to refetch the chat data after a successful update.
+ * @param {Chat} selectedChat - The chat entry that is being edited.
+ * @param {(isOpen: boolean) => void} setIsDialogOpen - Function to set the dialog open state.
+ *
+ * @returns {JSX.Element} The rendered ChatEditAlertDialog component.
+ */
 export default function ChatEditAlertDialog({
   isDialogOpen,
   refetchChat,

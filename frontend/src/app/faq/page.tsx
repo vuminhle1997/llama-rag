@@ -147,6 +147,7 @@ Luna: "Gerne! Lass mich kurz in der Dokumentation nachsehen, um dir eine fundier
 `,
   },
 ];
+
 export default function FAQPage() {
   return (
     <main className="overflow-hidden overflow-y-auto container mx-auto items-center justify-center grid grid-cols-1 gap-4">
@@ -155,19 +156,24 @@ export default function FAQPage() {
           FAQ - Frequently Asked Questions
         </h1>
         <p className="text-lg text-muted-foreground mb-8 text-center animate-fade-in delay-200">
-          Willkommen bei den häufig gestellten Fragen (FAQ) zu Large Language Models (LLMs) und Retrieval-Augmented Generation (RAG). Hier finden Sie Antworten auf die häufigsten Fragen zu diesen Technologien und deren Anwendung.
+          Willkommen bei den häufig gestellten Fragen (FAQ) zu Large Language
+          Models (LLMs) und Retrieval-Augmented Generation (RAG). Hier finden
+          Sie Antworten auf die häufigsten Fragen zu diesen Technologien und
+          deren Anwendung.
         </p>
 
         <div className="flex flex-col justify-center mb-8 animate-fade-in delay-300">
           {faqData.map((faq, i) => (
             <Accordion key={`faq-${i}`} type="single" collapsible>
               <AccordionItem value={`item-${i}`}>
-                <AccordionTrigger className="text-2xl font-bold uppercase">{faq.title}</AccordionTrigger>
+                <AccordionTrigger className="text-2xl font-bold uppercase">
+                  {faq.title}
+                </AccordionTrigger>
                 <AccordionContent>
                   <div
                     className="prose prose-sm dark:prose-invert max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: marked(faq.description)
+                      __html: marked(faq.description),
                     }}
                   />
                 </AccordionContent>
