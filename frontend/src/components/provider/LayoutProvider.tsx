@@ -108,7 +108,9 @@ export default function LayoutProvider({
                               <HeartIcon className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                              <h4 className="font-medium">{favorite.chat.title}</h4>
+                              <h4 className="font-medium">
+                                {favorite.chat.title}
+                              </h4>
                               <p className="text-sm text-muted-foreground">
                                 {format(
                                   new Date(favorite.chat.last_interacted_at),

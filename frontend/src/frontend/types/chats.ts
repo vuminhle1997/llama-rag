@@ -1,6 +1,6 @@
-import { Favourite } from "./favourites";
-import { File } from "./files";
-import { Message } from "./message";
+import { Favourite } from './favourites';
+import { File } from './files';
+import { Message } from './message';
 
 export type LLMResponse = {
   id?: string;
@@ -10,7 +10,6 @@ export type LLMResponse = {
   is_dummy_stream: boolean;
   metadata: any;
 };
-
 
 export type Chat = {
   id: string;

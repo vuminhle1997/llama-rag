@@ -103,7 +103,8 @@ interface ChatEntryFormProps {
 const defaultTemplates = [
   {
     title: 'KI-Assistent',
-    description: 'Ein hilfreicher KI-Begleiter für all Ihre Anfragen und Aufgaben',
+    description:
+      'Ein hilfreicher KI-Begleiter für all Ihre Anfragen und Aufgaben',
     avatar_path: aiImage,
     temperature: 0.75,
     context: `Du bist ein hilfreicher KI-Assistent, der den Benutzer bei verschiedenen Aufgaben unterstützt.
@@ -143,12 +144,13 @@ const defaultTemplates = [
 
 ## Aktuelles Gespräch
 Nachfolgend findest du den Gesprächsverlauf, den du bei deinen Antworten berücksichtigen solltest:
-[Gesprächsverlauf hier einfügen]`
+[Gesprächsverlauf hier einfügen]`,
   },
   {
     // TODO: Add template, computer engineer Denis Kunz, specialising in software development and system architecture SPRING BOOT
     title: 'Computer-Ingenieur: Denis Kunz',
-    description: 'Spezialisiert auf Softwareentwicklung und Systemarchitektur mit Spring Boot',
+    description:
+      'Spezialisiert auf Softwareentwicklung und Systemarchitektur mit Spring Boot',
     avatar_path: softwareEngineerImage,
     temperature: 0.75,
     model: 'llama3.1',
@@ -180,11 +182,12 @@ Nachfolgend findest du den Gesprächsverlauf, den du bei deinen Antworten berüc
     
     ## Aktuelles Gespräch
     [Gesprächsverlauf hier einfügen]
-    `
+    `,
   },
   {
     title: 'PR-Person: Anna Pham',
-    description: 'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
+    description:
+      'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
     avatar_path: hrImage,
     model: 'llama3.1',
     temperature: 0.75,
@@ -258,11 +261,12 @@ Falls der Nutzer explizit die Nutzung eines Tools verlangt (z. B. "Nutze das HR-
 Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten berücksichtigen solltest:
 
 [Gesprächsverlauf hier einfügen]
-    `
+    `,
   },
   {
     title: 'Bauingenieur: Ranjeed Singh',
-    description: 'Spezialisiert auf Bauprojektmanagement und technische Planung',
+    description:
+      'Spezialisiert auf Bauprojektmanagement und technische Planung',
     avatar_path: engineerImage,
     temperature: 0.75,
     model: 'llama3.1',
@@ -291,11 +295,12 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 - Priorisierung von Sicherheitsstandards und Vorschriften
 - Berücksichtigung ökologischer Auswirkungen und Nachhaltigkeit
 - Fokus auf praktische und umsetzbare Lösungen
-- Pflege klarer Dokumentation und Aufzeichnungen`
+- Pflege klarer Dokumentation und Aufzeichnungen`,
   },
   {
     title: 'Senior-Berater: Daniel Dehn',
-    description: 'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
+    description:
+      'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
     avatar_path: consultantImage,
     temperature: 0.75,
     model: 'llama3.1',
@@ -324,80 +329,112 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 - Fokus auf messbare Ergebnisse und ROI
 - Berücksichtigung kurzfristiger und langfristiger Auswirkungen
 - Bereitstellung umsetzbarer Empfehlungen
-- Wahrung professioneller Objektivität`
-  }
+- Wahrung professioneller Objektivität`,
+  },
 ];
 
 const defaultModels = [
   {
     id: 'llama3.1',
     name: 'LLama 3.1',
-    description: 'LLama 3.1 von Meta ist ein ausgewogenes Sprachmodell, das eine hervorragende Balance zwischen Leistung und Effizienz bietet. Es ist ideal für allgemeine Anwendungen wie Textgenerierung, Übersetzungen und einfache Konversationsaufgaben. Benutzer können es für die Erstellung präziser und effizienter Kommunikation nutzen.',
-    isDefault: true
+    description:
+      'LLama 3.1 von Meta ist ein ausgewogenes Sprachmodell, das eine hervorragende Balance zwischen Leistung und Effizienz bietet. Es ist ideal für allgemeine Anwendungen wie Textgenerierung, Übersetzungen und einfache Konversationsaufgaben. Benutzer können es für die Erstellung präziser und effizienter Kommunikation nutzen.',
+    isDefault: true,
   },
   {
-    id: 'deepseek-r1', 
+    id: 'deepseek-r1',
     name: 'Deepseek-r1',
-    description: 'Deepseek-r1 von Deepseek ist ein spezialisiertes Modell für technische und wissenschaftliche Aufgaben. Es bietet verbesserte Präzision und ist besonders nützlich für Benutzer, die in der Forschung, Datenanalyse und technischen Dokumentation tätig sind.',
-    isDefault: false
+    description:
+      'Deepseek-r1 von Deepseek ist ein spezialisiertes Modell für technische und wissenschaftliche Aufgaben. Es bietet verbesserte Präzision und ist besonders nützlich für Benutzer, die in der Forschung, Datenanalyse und technischen Dokumentation tätig sind.',
+    isDefault: false,
   },
   {
     id: 'phi4',
     name: 'Phi 4',
-    description: 'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
+    description:
+      'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
     isDefault: false,
   },
   {
     id: 'qwen2.5-coder:32b',
-    name: 'Qwen 2.5 Coder 32B', 
-    description: 'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
+    name: 'Qwen 2.5 Coder 32B',
+    description:
+      'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
     isDefault: false,
   },
   {
     id: 'qwq',
     name: 'QwQ',
-    description: 'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
+    description:
+      'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
     isDefault: false,
   },
   {
     id: 'gemma3:27b',
     name: 'Gemma 3 27B',
-    description: 'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
+    description:
+      'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
     isDefault: false,
   },
   {
     id: 'codellama:34b',
     name: 'CodeLLama 34B',
-    description: 'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
+    description:
+      'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
     isDefault: false,
-  }
+  },
 ];
 
-export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' : 'create' }: ChatEntryFormProps) {
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
-    defaultValues: chat ? {
-      title: chat.title,
-      description: chat.description || '',
-      context: chat.context || '',
-      avatar: undefined,
-      temperature: chat.temperature || 0.75,
-      model: chat.model || 'llama3.1',
-    } : {
-      model: 'llama3.1'
-    }
+export default function ChatEntryForm({
+  chat,
+  onSuccess,
+  mode = chat ? 'update' : 'create',
+}: ChatEntryFormProps) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
+    defaultValues: chat
+      ? {
+          title: chat.title,
+          description: chat.description || '',
+          context: chat.context || '',
+          avatar: undefined,
+          temperature: chat.temperature || 0.75,
+          model: chat.model || 'llama3.1',
+        }
+      : {
+          model: 'llama3.1',
+        },
   });
-  const [ showSuccess, setShowSuccess ] = useState(false);
-  const [ showError, setShowError ] = useState(false);
-  const [ avatarPreview, setAvatarPreview ] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { mutateAsync: createChat, isPending: isCreating } = usePostChat();
-  const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(chat?.id || '');
+  const { mutateAsync: updateChat, isPending: isUpdating } = useUpdateChat(
+    chat?.id || ''
+  );
   const router = useRouter();
   const existingChats = useAppSelector(selectChats);
   const { avatar } = useGetAvatar(chat?.id || '');
-  
-  const useAsTemplate = async (templateChat: Chat | { id?: string; temperature?: number; title: string;
-     description: string; context: string; avatar_path?: StaticImageData; model?: string }) => {
+
+  const useAsTemplate = async (
+    templateChat:
+      | Chat
+      | {
+          id?: string;
+          temperature?: number;
+          title: string;
+          description: string;
+          context: string;
+          avatar_path?: StaticImageData;
+          model?: string;
+        }
+  ) => {
     setValue('title', `Kopie von: ${templateChat.title}`);
     setValue('description', templateChat.description || '');
     setValue('context', templateChat.context || '');
@@ -408,13 +445,16 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
     if ('id' in templateChat) {
       // Handle existing chat avatar by fetching directly
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/avatar/${templateChat.id}`, {
-          withCredentials: true,
-          responseType: 'blob',
-        });
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/avatar/${templateChat.id}`,
+          {
+            withCredentials: true,
+            responseType: 'blob',
+          }
+        );
         const blob = response.data;
         const file = new File([blob], 'avatar.jpg', { type: blob.type });
-        
+
         // Create a DataTransfer object to get a FileList
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
@@ -429,7 +469,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
         const response = await fetch(templateChat.avatar_path.src);
         const blob = await response.blob();
         const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-        
+
         // Create a DataTransfer object to get a FileList
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
@@ -438,7 +478,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       } catch (error) {
         console.error('Error loading template avatar:', error);
       }
-    } 
+    }
   };
 
   const handleAvatarClick = () => {
@@ -467,18 +507,22 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
   const onSubmit = async (data: FormData) => {
     const formData = new FormData();
 
-    formData.append('chat', JSON.stringify({
-      title: data.title,
-      description: data.description || '',
-      context: data.context,
-      temperature: data.temperature,
-      model: data.model,
-    }));
-    
+    formData.append(
+      'chat',
+      JSON.stringify({
+        title: data.title,
+        description: data.description || '',
+        context: data.context,
+        temperature: data.temperature,
+        model: data.model,
+      })
+    );
+
     if (data.avatar?.[0]) {
+      console.log(data.avatar[0]);
       formData.append('file', data.avatar[0]);
     }
-    
+
     try {
       let response;
       if (mode === 'create') {
@@ -486,7 +530,7 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
       } else {
         response = await updateChat(formData);
       }
-      
+
       setShowSuccess(true);
       setShowError(false);
       if (onSuccess) {
@@ -510,304 +554,362 @@ export default function ChatEntryForm({ chat, onSuccess, mode = chat ? 'update' 
 
   return (
     <>
-    <DialogContent className="sm:max-w-[425px] md:max-w-[1000px] flex h-[80vh]">
-      <div className="flex flex-1 gap-4">
-        {/* Template List */}
-        <div className="w-1/3 border-r pr-4">
-          <DialogHeader>
-            <DialogTitle>Vorlagen</DialogTitle>
-            <DialogDescription>
-              Wählen Sie einen vordefinierten Chat oder einen vorhandenen Chat als Vorlage.
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="h-[calc(100vh-450px)] mt-4">
-            <div className="space-y-2">
-              {/* Default Templates */}
+      <DialogContent className="sm:max-w-[425px] md:max-w-[1000px] flex h-[80vh]">
+        <div className="flex flex-1 gap-4">
+          {/* Template List */}
+          <div className="w-1/3 border-r pr-4">
+            <DialogHeader>
+              <DialogTitle>Vorlagen</DialogTitle>
+              <DialogDescription>
+                Wählen Sie einen vordefinierten Chat oder einen vorhandenen Chat
+                als Vorlage.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-[calc(100vh-450px)] mt-4">
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground px-2">Standardvorlagen</h3>
-                {defaultTemplates.map((template) => (
-                  <div
-                    key={uuidv4()}
-                    className="p-3 border rounded-lg hover:bg-accent cursor-pointer bg-muted/50"
-                    onClick={() => useAsTemplate(template)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {template.avatar_path && (
-                        <img 
-                          src={template.avatar_path.src} 
-                          alt={template.title}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      )}
-                      <div>
-                        <h4 className="font-medium">{template.title}</h4>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {template.description}
-                        </p>
+                {/* Default Templates */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground px-2">
+                    Standardvorlagen
+                  </h3>
+                  {defaultTemplates.map(template => (
+                    <div
+                      key={uuidv4()}
+                      className="p-3 border rounded-lg hover:bg-accent cursor-pointer bg-muted/50"
+                      onClick={() => useAsTemplate(template)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {template.avatar_path && (
+                          <img
+                            src={template.avatar_path.src}
+                            alt={template.title}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        )}
+                        <div>
+                          <h4 className="font-medium">{template.title}</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {template.description}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              {/* User's Existing Chats */}
-              {existingChats && existingChats.length > 0 && (
-                <>
-                  <Separator className="my-4" />
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium text-muted-foreground px-2">Ihre Chats</h3>
-                    {existingChats.map((existingChat) => (
+                {/* User's Existing Chats */}
+                {existingChats && existingChats.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-muted-foreground px-2">
+                        Ihre Chats
+                      </h3>
+                      {existingChats.map(existingChat => (
+                        <div
+                          key={existingChat.id}
+                          className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                          onClick={() => useAsTemplate(existingChat)}
+                        >
+                          <h4 className="font-medium">{existingChat.title}</h4>
+                          {existingChat.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {existingChat.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Form */}
+          <ScrollArea className="flex-1">
+            <DialogHeader>
+              <DialogTitle>
+                {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
+              </DialogTitle>
+              <DialogDescription>
+                {mode === 'create'
+                  ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
+                  : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
+                <p className="text-gray-400 mt-4">
+                  Markierte Felder mit * sind verpflichtend.
+                </p>
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="grid gap-4 py-4 md:max-h-[calc(100vh-300px)] overflow-y-auto my-4 px-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="avatar" className="text-right">
+                    Avatar
+                  </Label>
+                  <div className="col-span-3">
+                    <div className="flex flex-col items-center gap-4">
                       <div
-                        key={existingChat.id}
-                        className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                        onClick={() => useAsTemplate(existingChat)}
+                        onClick={handleAvatarClick}
+                        className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${!avatarPreview ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50' : ''}`}
                       >
-                        <h4 className="font-medium">{existingChat.title}</h4>
-                        {existingChat.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {existingChat.description}
-                          </p>
+                        {avatarPreview ? (
+                          <>
+                            <img
+                              src={avatarPreview}
+                              alt="Avatar preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-white text-sm">Ändern</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full p-4">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-8 w-8 text-gray-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-500 text-center mt-2">
+                              Avatar hochladen
+                            </span>
+                          </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Form */}
-        <ScrollArea className="flex-1">
-          <DialogHeader>
-            <DialogTitle>
-              {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
-            </DialogTitle>
-            <DialogDescription>
-              {mode === 'create' 
-                ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
-                : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
-                <p className="text-gray-400 mt-4">Markierte Felder mit * sind verpflichtend.</p>
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-4 py-4 md:max-h-[calc(100vh-300px)] overflow-y-auto my-4 px-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="avatar" className="text-right">
-                  Avatar
-                </Label>
-                <div className="col-span-3">
-                  <div className="flex flex-col items-center gap-4">
-                    <div 
-                      onClick={handleAvatarClick}
-                      className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${!avatarPreview ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50' : ''}`}
-                    >
-                      {avatarPreview ? (
-                        <>
-                          <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-white text-sm">Ändern</span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full p-4">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          <span className="text-sm text-gray-500 text-center mt-2">Avatar hochladen</span>
-                        </div>
+                      <Input
+                        {...register('avatar')}
+                        id="avatar"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        ref={e => {
+                          register('avatar').ref(e);
+                          fileInputRef.current = e;
+                        }}
+                      />
+                      {avatarPreview && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setAvatarPreview(null);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
+                          }}
+                        >
+                          Avatar entfernen
+                        </Button>
                       )}
                     </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Titel *
+                  </Label>
+                  <div className="col-span-3 space-y-2">
                     <Input
-                      {...register('avatar')}
-                      id="avatar"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      ref={(e) => {
-                        register('avatar').ref(e);
-                        fileInputRef.current = e;
-                      }}
+                      id="title"
+                      className={errors.title ? 'border-red-500' : ''}
+                      {...register('title', {
+                        required: 'Titel ist erforderlich',
+                      })}
                     />
-                    {avatarPreview && (
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => {
-                          setAvatarPreview(null);
-                          if (fileInputRef.current) {
-                            fileInputRef.current.value = '';
-                          }
-                        }}
-                      >
-                        Avatar entfernen
-                      </Button>
+                    {errors.title && (
+                      <p className="text-red-500 text-sm">
+                        {errors.title.message}
+                      </p>
                     )}
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right">
-                  Titel *
-                </Label>
-                <div className="col-span-3 space-y-2">
-                  <Input 
-                    id="title"
-                    className={errors.title ? "border-red-500" : ""}
-                    {...register('title', { 
-                      required: "Titel ist erforderlich" 
-                    })}
-                  />
-                  {errors.title && (
-                    <p className="text-red-500 text-sm">{errors.title.message}</p>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Beschreibung
-                </Label>
-                <Textarea
-                  id="description"
-                  className="col-span-3"
-                  {...register('description')}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="context" className="text-right">
-                  Kontext *
-                </Label>
-                <div className="col-span-3 space-y-2">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="description" className="text-right">
+                    Beschreibung
+                  </Label>
                   <Textarea
-                    id="context"
-                    className={errors.context ? "border-red-500" : ""}
-                    placeholder={placeholderForContext}
-                    rows={10}
-                    {...register('context', { 
-                      required: "Kontext ist erforderlich" 
-                    })}
+                    id="description"
+                    className="col-span-3"
+                    {...register('description')}
                   />
-                  {errors.context && (
-                    <p className="text-red-500 text-sm">{errors.context.message}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    Der Kontext muss die folgenden Elemente enthalten:
-                    <br />- Persönlichkeit und Rolle des KI-Assistenten
-                    <br />- Kommunikationsstil und Verhaltensmuster
-                    <br />- Spezifische Fähigkeiten und Expertise
-                    <br />- Umgang mit verfügbaren Tools
-                    <br />- Ausgabeformat und zusätzliche Regeln
-                  </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="model" className="text-right">
-                  Sprachmodell *
-                </Label>
-                <div className="col-span-3 space-y-2">
-                  <Select 
-                    defaultValue={watch('model')} 
-                    onValueChange={(value) => setValue('model', value)}
-                  >
-                    <SelectTrigger className="w-full h-[60px]">
-                      <SelectValue placeholder="Wählen Sie ein Sprachmodell" />
-                    </SelectTrigger>
-                    <SelectContent className="w-[var(--radix-select-trigger-width)] max-h-[300px]">
-                      {defaultModels.map((model) => (
-                        <SelectItem 
-                          key={model.id} 
-                          value={model.id}
-                          className="flex flex-col items-start py-3"
-                        >
-                          <div className="flex flex-col justify-start items-start">
-                            <div className="font-medium text-base text-left">{model.name}</div>
-                            <div className="text-sm text-muted-foreground leading-snug text-left mt-1">{model.description}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Das ausgewählte Sprachmodell bestimmt die Fähigkeiten und Charakteristiken des Chats.
-                  </p>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="context" className="text-right">
+                    Kontext *
+                  </Label>
+                  <div className="col-span-3 space-y-2">
+                    <Textarea
+                      id="context"
+                      className={errors.context ? 'border-red-500' : ''}
+                      placeholder={placeholderForContext}
+                      rows={10}
+                      {...register('context', {
+                        required: 'Kontext ist erforderlich',
+                      })}
+                    />
+                    {errors.context && (
+                      <p className="text-red-500 text-sm">
+                        {errors.context.message}
+                      </p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Der Kontext muss die folgenden Elemente enthalten:
+                      <br />- Persönlichkeit und Rolle des KI-Assistenten
+                      <br />- Kommunikationsstil und Verhaltensmuster
+                      <br />- Spezifische Fähigkeiten und Expertise
+                      <br />- Umgang mit verfügbaren Tools
+                      <br />- Ausgabeformat und zusätzliche Regeln
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4 mt-8">
-                <Label htmlFor="temperature" className="text-right">
-                  Temperatur
-                </Label>
-                <div className="col-span-3 space-y-2">
-                  <Slider
-                    id="temperature"
-                    className={errors.temperature ? "border-red-500" : ""}
-                    defaultValue={chat?.temperature ? [chat.temperature] : [0.75]}
-
-                    // @ts-ignore
-                    min={0}
-                    // @ts-ignore
-                    max={1}
-                    step={0.01}
-                    {...register('temperature')}
-                  />
-                  <div className="flex flex-col justify-center items-center">
-                  <p className="text-center">{watch('temperature')}</p>
-                  <span className="text-sm text-muted-foreground">0 = keine Kreativität, 1 = sehr kreativ</span>
-                  <span className="text-sm text-muted-foreground">0.75 = Standard</span>
-                  <span className="text-sm text-muted-foreground">Die Temperatur beeinflusst die Kreativität der Antworten. Ein höherer Wert führt zu kreativeren, aber weniger vorhersehbaren Antworten, während ein niedrigerer Wert zu präziseren und fokussierteren Antworten führt.</span>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="model" className="text-right">
+                    Sprachmodell *
+                  </Label>
+                  <div className="col-span-3 space-y-2">
+                    <Select
+                      defaultValue={watch('model')}
+                      onValueChange={value => setValue('model', value)}
+                    >
+                      <SelectTrigger className="w-full h-[60px]">
+                        <SelectValue placeholder="Wählen Sie ein Sprachmodell" />
+                      </SelectTrigger>
+                      <SelectContent className="w-[var(--radix-select-trigger-width)] max-h-[300px]">
+                        {defaultModels.map(model => (
+                          <SelectItem
+                            key={model.id}
+                            value={model.id}
+                            className="flex flex-col items-start py-3"
+                          >
+                            <div className="flex flex-col justify-start items-start">
+                              <div className="font-medium text-base text-left">
+                                {model.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground leading-snug text-left mt-1">
+                                {model.description}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Das ausgewählte Sprachmodell bestimmt die Fähigkeiten und
+                      Charakteristiken des Chats.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4 mt-8">
+                  <Label htmlFor="temperature" className="text-right">
+                    Temperatur
+                  </Label>
+                  <div className="col-span-3 space-y-2">
+                    <Slider
+                      id="temperature"
+                      className={errors.temperature ? 'border-red-500' : ''}
+                      defaultValue={
+                        chat?.temperature ? [chat.temperature] : [0.75]
+                      }
+                      // @ts-ignore
+                      min={0}
+                      // @ts-ignore
+                      max={1}
+                      step={0.01}
+                      {...register('temperature')}
+                    />
+                    <div className="flex flex-col justify-center items-center">
+                      <p className="text-center">{watch('temperature')}</p>
+                      <span className="text-sm text-muted-foreground">
+                        0 = keine Kreativität, 1 = sehr kreativ
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        0.75 = Standard
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Die Temperatur beeinflusst die Kreativität der
+                        Antworten. Ein höherer Wert führt zu kreativeren, aber
+                        weniger vorhersehbaren Antworten, während ein
+                        niedrigerer Wert zu präziseren und fokussierteren
+                        Antworten führt.
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter>
-            <div className="grid grid-cols-2 gap-4">
-            <Button type="reset" className="bg-gray-400" disabled={isPending}>
-                Zurücksetzen
-              </Button>
-              {/* TODO: Add cancel button */}
-            {/* <Button type="submit" className="bg-red-500" disabled={isPending}>
+              <DialogFooter>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    type="reset"
+                    className="bg-gray-400"
+                    disabled={isPending}
+                  >
+                    Zurücksetzen
+                  </Button>
+                  {/* TODO: Add cancel button */}
+                  {/* <Button type="submit" className="bg-red-500" disabled={isPending}>
                 Abbrechen
               </Button> */}
-              <Button type="submit" className="bg-primary" disabled={isPending}>
-                {isPending 
-                  ? (mode === 'create' ? 'Erstellen...' : 'Speichern...') 
-                  : (mode === 'create' ? 'Erstellen' : 'Speichern')}
-              </Button>
-            </div>
-            </DialogFooter>
-          </form>
-        </ScrollArea>
-      </div>
-    </DialogContent>
-    {showSuccess && (
-      <div className="fixed top-4 right-4 z-50 w-96">
-        <Alert variant="default" className="relative">
-          <Check className="h-4 w-4" />
-          <AlertTitle>
-            {mode === 'create' ? 'Chat erstellt' : 'Chat aktualisiert'}
-          </AlertTitle>
-          <AlertDescription>
-            {mode === 'create'
-              ? 'Der Chat wurde erfolgreich erstellt.'
-              : 'Der Chat wurde erfolgreich aktualisiert.'}
-          </AlertDescription>
-        </Alert>
-      </div>
-    )}
-    {showError && (
-      <div className="fixed top-4 right-4 z-50 w-96">
-        <Alert variant="destructive" className="relative">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>
-            {mode === 'create' ? 'Fehler beim Erstellen' : 'Fehler beim Aktualisieren'}
-          </AlertTitle>
-          <AlertDescription>
-            {mode === 'create'
-              ? 'Der Chat konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
-              : 'Der Chat konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.'}
-          </AlertDescription>
-        </Alert>
-      </div>
-    )}
+                  <Button
+                    type="submit"
+                    className="bg-primary"
+                    disabled={isPending}
+                  >
+                    {isPending
+                      ? mode === 'create'
+                        ? 'Erstellen...'
+                        : 'Speichern...'
+                      : mode === 'create'
+                        ? 'Erstellen'
+                        : 'Speichern'}
+                  </Button>
+                </div>
+              </DialogFooter>
+            </form>
+          </ScrollArea>
+        </div>
+      </DialogContent>
+      {showSuccess && (
+        <div className="fixed top-4 right-4 z-50 w-96">
+          <Alert variant="default" className="relative">
+            <Check className="h-4 w-4" />
+            <AlertTitle>
+              {mode === 'create' ? 'Chat erstellt' : 'Chat aktualisiert'}
+            </AlertTitle>
+            <AlertDescription>
+              {mode === 'create'
+                ? 'Der Chat wurde erfolgreich erstellt.'
+                : 'Der Chat wurde erfolgreich aktualisiert.'}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      {showError && (
+        <div className="fixed top-4 right-4 z-50 w-96">
+          <Alert variant="destructive" className="relative">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>
+              {mode === 'create'
+                ? 'Fehler beim Erstellen'
+                : 'Fehler beim Aktualisieren'}
+            </AlertTitle>
+            <AlertDescription>
+              {mode === 'create'
+                ? 'Der Chat konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
+                : 'Der Chat konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.'}
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
     </>
   );
 }

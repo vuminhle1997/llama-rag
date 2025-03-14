@@ -1,40 +1,51 @@
-import { UserIcon } from "@heroicons/react/24/solid";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { SidebarSeparator } from "../ui/sidebar";
-import { Settings2Icon, LogOutIcon } from "lucide-react";
-import { useAppSelector } from "@/frontend/store/hooks/hooks";
-import { selectUser, selectProfilePicture } from "@/frontend/store/reducer/app_reducer";  
-import Link from "next/link";
+import { UserIcon } from '@heroicons/react/24/solid';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { SidebarSeparator } from '../ui/sidebar';
+import { Settings2Icon, LogOutIcon } from 'lucide-react';
+import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import {
+  selectUser,
+  selectProfilePicture,
+} from '@/frontend/store/reducer/app_reducer';
+import Link from 'next/link';
 
 export default function FooterNavigation() {
-    const user = useAppSelector(selectUser);
-    const profilePicture = useAppSelector(selectProfilePicture);
-    return (
-        <div className="mt-auto">
-            <SidebarSeparator className="mx-0" />
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-2">
-                <Avatar>
-                  <AvatarImage src={profilePicture ? profilePicture : ''} />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{user?.given_name || ''}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {user?.unique_name || 'john.doe@example.com'}
-                  </span>
-                </div>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings2Icon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {/* <DropdownMenuItem>
+  const user = useAppSelector(selectUser);
+  const profilePicture = useAppSelector(selectProfilePicture);
+  return (
+    <div className="mt-auto">
+      <SidebarSeparator className="mx-0" />
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2">
+          <Avatar>
+            <AvatarImage src={profilePicture ? profilePicture : ''} />
+            <AvatarFallback>JD</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">
+              {user?.given_name || ''}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {user?.unique_name || 'john.doe@example.com'}
+            </span>
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Settings2Icon className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {/* <DropdownMenuItem>
                     <UserIcon className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
@@ -42,18 +53,18 @@ export default function FooterNavigation() {
                     <Settings2Icon className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem> */}
-                  {/* <DropdownMenuSeparator /> */}
-                  <DropdownMenuItem className="text-destructive">
-                    <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
-                      <div className="flex flex-row">
-                        <LogOutIcon className="mr-2 h-4 w-4" />
-                        <span>Ausloggen</span>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-    )
+            {/* <DropdownMenuSeparator /> */}
+            <DropdownMenuItem className="text-destructive">
+              <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
+                <div className="flex flex-row">
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  <span>Ausloggen</span>
+                </div>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
 }

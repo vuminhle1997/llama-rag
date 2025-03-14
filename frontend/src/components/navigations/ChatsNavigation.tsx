@@ -15,10 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
-import {
-  Dialog,
-  DialogTrigger,
-} from '../ui/dialog';
+import { Dialog, DialogTrigger } from '../ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,16 +59,22 @@ export default function ChatsNavigation() {
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
-        router.push("/")
-        window.location.reload(); 
+        router.push('/');
+        window.location.reload();
       },
-      onError: (error) => {
+      onError: error => {
         console.error('Failed to delete chat:', error);
-      }
+      },
     });
   };
 
-  const sortedChats = chats ? [...chats].sort((a, b) => new Date(b.last_interacted_at).getTime() - new Date(a.last_interacted_at).getTime()) : [];
+  const sortedChats = chats
+    ? [...chats].sort(
+        (a, b) =>
+          new Date(b.last_interacted_at).getTime() -
+          new Date(a.last_interacted_at).getTime()
+      )
+    : [];
 
   const groupChatsByDate = (chats: Chat[]): Record<string, Chat[]> => {
     return chats.reduce((acc: Record<string, Chat[]>, chat: Chat) => {
@@ -98,7 +101,7 @@ export default function ChatsNavigation() {
           <div className="date-separator font-bold text-center py-2">
             {getRelativeDate(date)}
           </div>
-          {chats.map((chat) => (
+          {chats.map(chat => (
             <SidebarMenuItem
               className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
                 chat.id === currentChatId ? 'bg-primary/20' : ''
@@ -110,10 +113,13 @@ export default function ChatsNavigation() {
                   {chat.title}
                 </SidebarMenuButton>
               </Link>
-              <Dialog open={isDialogOpen && selectedChat?.id === chat.id} onOpenChange={(open) => {
-                setIsDialogOpen(open);
-                if (!open) setSelectedChat(null);
-              }}>
+              <Dialog
+                open={isDialogOpen && selectedChat?.id === chat.id}
+                onOpenChange={open => {
+                  setIsDialogOpen(open);
+                  if (!open) setSelectedChat(null);
+                }}
+              >
                 <DropdownMenu>
                   <TooltipProvider>
                     <Tooltip>
@@ -142,20 +148,25 @@ export default function ChatsNavigation() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator /> */}
                     <DialogTrigger asChild>
-                      <DropdownMenuItem onSelect={() => {
-                        setSelectedChat(chat);
-                        setIsDialogOpen(true);
-                      }}>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setSelectedChat(chat);
+                          setIsDialogOpen(true);
+                        }}
+                      >
                         <PencilIcon className="h-4 w-4" /> Editieren
                       </DropdownMenuItem>
                     </DialogTrigger>
-                    <DropdownMenuItem className="text-destructive" onSelect={() => handleDelete(chat.id)}>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onSelect={() => handleDelete(chat.id)}
+                    >
                       <TrashIcon className="h-4 w-4" /> Löschen
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {selectedChat && (
-                  <ChatEntryForm 
+                  <ChatEntryForm
                     chat={selectedChat}
                     onSuccess={() => {
                       setIsDialogOpen(false);
@@ -169,17 +180,24 @@ export default function ChatsNavigation() {
           ))}
         </div>
       ))}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Chat löschen</AlertDialogTitle>
             <AlertDialogDescription>
-              Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+              Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese
+              Aktion kann nicht rückgängig gemacht werden.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Löschen
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "../store";
-import { AzureClaims } from "@/frontend/types";
-import { Chat } from "@/frontend/types";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { RootState } from '../store';
+import { AzureClaims } from '@/frontend/types';
+import { Chat } from '@/frontend/types';
 // Define a type for the slice state
 interface AppState {
   isAuthorized: boolean;
@@ -21,7 +21,7 @@ const initialState: AppState = {
 };
 
 export const appSlice = createSlice({
-  name: "app",
+  name: 'app',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
@@ -43,13 +43,20 @@ export const appSlice = createSlice({
   },
 });
 
-export const { setIsAuthorized, setUser, setChat, setChats, setProfilePicture } = appSlice.actions;
+export const {
+  setIsAuthorized,
+  setUser,
+  setChat,
+  setChats,
+  setProfilePicture,
+} = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectAuthorized = (state: RootState) => state.app.isAuthorized;
 export const selectUser = (state: RootState) => state.app.user;
 export const selectChat = (state: RootState) => state.app.chat;
 export const selectChats = (state: RootState) => state.app.chats;
-export const selectProfilePicture = (state: RootState) => state.app.profilePicture;
+export const selectProfilePicture = (state: RootState) =>
+  state.app.profilePicture;
 
 export default appSlice.reducer;

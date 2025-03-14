@@ -1,1 +1,1 @@
-export * from "./get_auth";
+export * from './get_auth';

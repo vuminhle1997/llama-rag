@@ -1,18 +1,22 @@
 // use react-query to post a new chat to the backend and axios, with credentials
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { Chat, Page } from "../types";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { Chat, Page } from '../types';
 
 export const usePostChat = () => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await axios.post<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, formData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post<Chat>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
       return response.data;
     },
   });
@@ -22,28 +26,34 @@ export const usePostChat = () => {
 
 export const useGetChats = (size: number, page: number) => {
   return useQuery({
-    queryKey: ["chats", size, page],
+    queryKey: ['chats', size, page],
     queryFn: async () => {
-      const response = await axios.get<Page<Chat>>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
-        withCredentials: true,
-        params: {
-          size,
-          page
+      const response = await axios.get<Page<Chat>>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
+        {
+          withCredentials: true,
+          params: {
+            size,
+            page,
+          },
         }
-      });
+      );
       return response.data;
-    }
+    },
   });
 };
 
 export const getChats = async (size: number, page: number) => {
-  const response = await axios.get<Page<Chat>>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`, {
-    withCredentials: true,
-    params: {
-      size,
-      page
+  const response = await axios.get<Page<Chat>>(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
+    {
+      withCredentials: true,
+      params: {
+        size,
+        page,
+      },
     }
-  });
+  );
   return response.data;
 };
 
@@ -51,13 +61,16 @@ export const getChats = async (size: number, page: number) => {
 
 export const useGetChat = (id: string) => {
   return useQuery({
-    queryKey: ["chats", id],
+    queryKey: ['chats', id],
     queryFn: async () => {
-      const response = await axios.get<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
-        withCredentials: true       
-      });
+      const response = await axios.get<Chat>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
       return response.data;
-    }
+    },
   });
 };
 
@@ -66,11 +79,14 @@ export const useGetChat = (id: string) => {
 export const useDeleteChat = (id: string) => {
   return useMutation({
     mutationFn: async () => {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, {
-        withCredentials: true
-      });
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
       return response.data;
-    }
+    },
   });
 };
 
@@ -79,14 +95,18 @@ export const useDeleteChat = (id: string) => {
 export const useUpdateChat = (id: string) => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`, formData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
       return response.data;
-    }
+    },
   });
 };
 
@@ -95,11 +115,15 @@ export const useUpdateChat = (id: string) => {
 export const usePostFile = (id: string) => {
   return useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await axios.post<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}/upload`, formData, {
-        withCredentials: true
-      });
+      const response = await axios.post<Chat>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${id}/upload`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
       return response.data;
-    }
+    },
   });
 };
 
@@ -108,11 +132,14 @@ export const usePostFile = (id: string) => {
 export const useDeleteFile = (chatId: string) => {
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/delete/${id}`, {
-        withCredentials: true
-      });
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/delete/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
       return response.data;
-    }
+    },
   });
 };
 
@@ -126,15 +153,18 @@ export const useChat = (chatId: string) => {
 
   // Fetch chat by ID
   const fetchChat = async () => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`, {
-      withCredentials: true,
-    });
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`,
+      {
+        withCredentials: true,
+      }
+    );
     return response.data;
   };
 
   // Query: Fetch chat
   const chatQuery = useQuery({
-    queryKey: ["chat", chatId],
+    queryKey: ['chat', chatId],
     queryFn: fetchChat,
     enabled: !!chatId, // Only fetch if chatId exists
   });
@@ -142,14 +172,17 @@ export const useChat = (chatId: string) => {
   // Mutation: Submit a search query
   const searchMutation = useMutation({
     mutationFn: async (text: string) => {
-      const response = await axios.get<Chat>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`, {
-        params: { text }, // Attach search text as query param
-        withCredentials: true,
-      });
+      const response = await axios.get<Chat>(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`,
+        {
+          params: { text }, // Attach search text as query param
+          withCredentials: true,
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["chat", chatId] }); // Refresh chat data
+      queryClient.invalidateQueries({ queryKey: ['chat', chatId] }); // Refresh chat data
     },
   });
 

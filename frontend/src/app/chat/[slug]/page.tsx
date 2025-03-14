@@ -5,7 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import React, { useRef, useEffect, useState } from 'react';
-import { Upload, Send, FileText, Loader2, Check, AlertCircle, Settings, HeartIcon, PencilIcon, TrashIcon } from 'lucide-react';
+import {
+  Upload,
+  Send,
+  FileText,
+  Loader2,
+  Check,
+  AlertCircle,
+  Settings,
+  HeartIcon,
+  PencilIcon,
+  TrashIcon,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +52,10 @@ import { useForm } from 'react-hook-form';
 import { useGetAvatar } from '@/frontend/queries/avatar';
 import { setChats } from '@/frontend/store/reducer/app_reducer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { usePostFavourite, useDeleteFavourite } from '@/frontend/queries/favourites';
+import {
+  usePostFavourite,
+  useDeleteFavourite,
+} from '@/frontend/queries/favourites';
 import ChatEntryForm from '@/components/form/ChatEntryForm';
 import {
   AlertDialog,
@@ -65,7 +79,13 @@ interface ChatFormData {
 }
 
 // Add TypewriterEffect component before the LoadingOverlay component
-const TypewriterEffect = ({ text, onLoad: onLoadEnd }: { text: string, onLoad: () => void }) => {
+const TypewriterEffect = ({
+  text,
+  onLoad: onLoadEnd,
+}: {
+  text: string;
+  onLoad: () => void;
+}) => {
   const [displayText, setDisplayText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -112,7 +132,9 @@ export default function SlugChatPage({
   const { slug } = React.use(params);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
-  const [pendingMessage, setPendingMessage] = React.useState<string | null>(null);
+  const [pendingMessage, setPendingMessage] = React.useState<string | null>(
+    null
+  );
   const [alert, setAlert] = React.useState<{
     show: boolean;
     type: 'success' | 'error';
@@ -141,7 +163,8 @@ export default function SlugChatPage({
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isCreateChatDialogOpen, setIsCreateChatDialogOpen] = React.useState(false);
+  const [isCreateChatDialogOpen, setIsCreateChatDialogOpen] =
+    React.useState(false);
 
   const {
     register,
@@ -175,7 +198,8 @@ export default function SlugChatPage({
         show: true,
         type: 'error',
         title: 'Fehler beim Löschen',
-        description: 'Die Datei konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
+        description:
+          'Die Datei konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
       });
       setTimeout(() => setAlert(null), 5000);
     }
@@ -204,7 +228,8 @@ export default function SlugChatPage({
         show: true,
         type: 'error',
         title: 'Ungültiger Dateityp',
-        description: 'Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch',
+        description:
+          'Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch',
       });
       setTimeout(() => setAlert(null), 5000);
       event.target.value = '';
@@ -233,7 +258,8 @@ export default function SlugChatPage({
         show: true,
         type: 'error',
         title: 'Fehler beim Hochladen',
-        description: 'Die Datei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.',
+        description:
+          'Die Datei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.',
       });
       setTimeout(() => setAlert(null), 5000);
     } finally {
@@ -283,16 +309,15 @@ export default function SlugChatPage({
     setLastMessageIsTyping(false);
   };
 
-  useEffect(() => {     
-    getChats(50, 1).then((chats) => {
+  useEffect(() => {
+    getChats(50, 1).then(chats => {
       dispatch(setChats(chats.items));
     });
   }, [handleFormSubmit]);
 
   useEffect(() => {
-
     if (chat) {
-      window.document.title = `global CT InsightChat - ${chat?.title}`
+      window.document.title = `global CT InsightChat - ${chat?.title}`;
       dispatch(setChat(chat));
     }
   }, [chat]);
@@ -309,7 +334,7 @@ export default function SlugChatPage({
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
-        router.push("/");
+        router.push('/');
         window.location.reload();
       },
       onError: (error: Error) => {
@@ -357,7 +382,9 @@ export default function SlugChatPage({
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h1 className="text-4xl font-bold mb-4">Chat nicht gefunden</h1>
-        <p className="text-gray-600 mb-8">Der angeforderte Chat konnte nicht gefunden werden.</p>
+        <p className="text-gray-600 mb-8">
+          Der angeforderte Chat konnte nicht gefunden werden.
+        </p>
         <Button
           onClick={() => router.push('/')}
           className="bg-primary text-white"
@@ -365,14 +392,17 @@ export default function SlugChatPage({
           Zurück zur Startseite
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <main className="flex flex-col h-screen w-screen bg-gray-50">
       {alert && (
         <div className="fixed top-4 right-4 z-50 w-96">
-          <Alert variant={alert.type === 'success' ? 'default' : 'destructive'} className="relative">
+          <Alert
+            variant={alert.type === 'success' ? 'default' : 'destructive'}
+            className="relative"
+          >
             {alert.type === 'success' ? (
               <Check className="h-4 w-4" />
             ) : (
@@ -402,7 +432,7 @@ export default function SlugChatPage({
             </p>
             <Button
               onClick={() => {
-                router.push("/")
+                router.push('/');
               }}
               className="bg-primary text-white"
             >
@@ -448,8 +478,8 @@ export default function SlugChatPage({
                       }}
                     >
                       <p className="text-gray-700">
-                        🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein Problem
-                        zu lösen?"
+                        🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein
+                        Problem zu lösen?"
                       </p>
                     </div>
                     <div
@@ -457,7 +487,8 @@ export default function SlugChatPage({
                       onClick={() => {
                         if (messageText === '') {
                           reset({
-                            message: 'Wie kannst du mir bei meiner Aufgabe helfen?',
+                            message:
+                              'Wie kannst du mir bei meiner Aufgabe helfen?',
                           });
                         }
                       }}
@@ -471,8 +502,10 @@ export default function SlugChatPage({
               ) : (
                 <>
                   {chat.messages.map((message, index) => {
-                    const isLastAssistantMessage = index === chat.messages.length - 1 && message.role === 'assistant';
-                    
+                    const isLastAssistantMessage =
+                      index === chat.messages.length - 1 &&
+                      message.role === 'assistant';
+
                     return (
                       <div
                         key={index}
@@ -497,7 +530,9 @@ export default function SlugChatPage({
                         )}
                         <div
                           className={`flex-1 rounded-lg shadow-sm p-4 ${
-                            message.role === 'user' ? 'bg-primary' : 'bg-white prose py-0'
+                            message.role === 'user'
+                              ? 'bg-primary'
+                              : 'bg-white prose py-0'
                           }`}
                         >
                           {message.blocks.map((block, blockIndex) => (
@@ -510,7 +545,10 @@ export default function SlugChatPage({
                               }
                             >
                               {isLastAssistantMessage && lastMessageIsTyping ? (
-                                <TypewriterEffect text={block.text} onLoad={handleMessageLoad} />
+                                <TypewriterEffect
+                                  text={block.text}
+                                  onLoad={handleMessageLoad}
+                                />
                               ) : (
                                 <div
                                   dangerouslySetInnerHTML={{
@@ -597,7 +635,8 @@ export default function SlugChatPage({
                       required: 'Nachricht ist erforderlich',
                       minLength: {
                         value: 5,
-                        message: 'Nachricht muss mindestens 5 Zeichen lang sein',
+                        message:
+                          'Nachricht muss mindestens 5 Zeichen lang sein',
                       },
                     })}
                     onKeyDown={e => {
@@ -655,7 +694,9 @@ export default function SlugChatPage({
                       size="icon"
                       className="h-8 w-8 text-primary hover:text-primary/80"
                       title="Nachricht senden"
-                      disabled={!messageText?.trim() || isSubmitting || isTyping}
+                      disabled={
+                        !messageText?.trim() || isSubmitting || isTyping
+                      }
                     >
                       {isSubmitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -741,7 +782,10 @@ export default function SlugChatPage({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+                  <Dialog
+                    open={isSettingsDialogOpen}
+                    onOpenChange={setIsSettingsDialogOpen}
+                  >
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
@@ -763,34 +807,54 @@ export default function SlugChatPage({
                             if (chat.favourite) {
                               deleteFavourite.mutate(slug, {
                                 onSuccess: () => {
-                                  setFavouriteAlert({ show: true, success: true });
+                                  setFavouriteAlert({
+                                    show: true,
+                                    success: true,
+                                  });
                                   setTimeout(() => {
                                     window.location.reload();
                                   }, 1500);
                                 },
                                 onError: error => {
-                                  console.error('Failed to remove chat from favourites:', error);
-                                  setFavouriteAlert({ show: true, success: false });
+                                  console.error(
+                                    'Failed to remove chat from favourites:',
+                                    error
+                                  );
+                                  setFavouriteAlert({
+                                    show: true,
+                                    success: false,
+                                  });
                                 },
                               });
                             } else {
                               postFavourite.mutate(slug, {
                                 onSuccess: () => {
-                                  setFavouriteAlert({ show: true, success: true });
+                                  setFavouriteAlert({
+                                    show: true,
+                                    success: true,
+                                  });
                                   setTimeout(() => {
                                     window.location.reload();
                                   }, 1500);
                                 },
                                 onError: error => {
-                                  console.error('Failed to favourite chat:', error);
-                                  setFavouriteAlert({ show: true, success: false });
+                                  console.error(
+                                    'Failed to favourite chat:',
+                                    error
+                                  );
+                                  setFavouriteAlert({
+                                    show: true,
+                                    success: false,
+                                  });
                                 },
                               });
                             }
                           }}
                         >
                           <HeartIcon className="h-4 w-4 mr-2" />
-                          {chat.favourite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+                          {chat.favourite
+                            ? 'Aus Favoriten entfernen'
+                            : 'Zu Favoriten hinzufügen'}
                         </Button>
                         <DialogTrigger asChild>
                           <Button
@@ -846,7 +910,9 @@ export default function SlugChatPage({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogAction
-                  onClick={() => setFavouriteAlert({ show: false, success: false })}
+                  onClick={() =>
+                    setFavouriteAlert({ show: false, success: false })
+                  }
                 >
                   OK
                 </AlertDialogAction>
@@ -860,7 +926,7 @@ export default function SlugChatPage({
               <DialogHeader>
                 <DialogTitle>Chat bearbeiten</DialogTitle>
               </DialogHeader>
-              <ChatEntryForm 
+              <ChatEntryForm
                 chat={selectedChat || undefined}
                 mode="update"
                 onSuccess={() => {
@@ -872,19 +938,26 @@ export default function SlugChatPage({
           </Dialog>
 
           {/* Delete Confirmation Dialog */}
-          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Chat löschen</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+                  Sind Sie sicher, dass Sie diesen Chat löschen möchten? Diese
+                  Aktion kann nicht rückgängig gemacht werden.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogAction onClick={() => setIsDeleteDialogOpen(false)}>
                   Abbrechen
                 </AlertDialogAction>
-                <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
                   Löschen
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -892,8 +965,11 @@ export default function SlugChatPage({
           </AlertDialog>
 
           {/* Create Chat Dialog */}
-          <Dialog open={isCreateChatDialogOpen} onOpenChange={setIsCreateChatDialogOpen}>
-            <ChatEntryForm 
+          <Dialog
+            open={isCreateChatDialogOpen}
+            onOpenChange={setIsCreateChatDialogOpen}
+          >
+            <ChatEntryForm
               mode="create"
               onSuccess={() => {
                 setIsCreateChatDialogOpen(false);

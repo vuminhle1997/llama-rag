@@ -8,18 +8,11 @@ import WelcomeScreen from '@/components/pages/index/WelcomeScreen';
 export default function Home() {
   const { isLoading, error } = useAuth();
 
-  if (isLoading)
-    return (
-      <DashboardLoadingSkeleton />
-    );
+  if (isLoading) return <DashboardLoadingSkeleton />;
 
   if (!isLoading && error) {
-    return (
-      <SignInPage />
-    );
+    return <SignInPage />;
   }
 
-  return (
-    <WelcomeScreen />
-  );
+  return <WelcomeScreen />;
 }
