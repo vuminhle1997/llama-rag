@@ -353,41 +353,41 @@ const defaultModels = [
       'Deepseek-r1 von Deepseek ist ein spezialisiertes Modell für technische und wissenschaftliche Aufgaben. Es bietet verbesserte Präzision und ist besonders nützlich für Benutzer, die in der Forschung, Datenanalyse und technischen Dokumentation tätig sind.',
     isDefault: false,
   },
-  {
-    id: 'phi4',
-    name: 'Phi 4',
-    description:
-      'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
-    isDefault: false,
-  },
-  {
-    id: 'qwen2.5-coder:32b',
-    name: 'Qwen 2.5 Coder 32B',
-    description:
-      'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
-    isDefault: false,
-  },
-  {
-    id: 'qwq',
-    name: 'QwQ',
-    description:
-      'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:27b',
-    name: 'Gemma 3 27B',
-    description:
-      'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
-    isDefault: false,
-  },
-  {
-    id: 'codellama:34b',
-    name: 'CodeLLama 34B',
-    description:
-      'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
-    isDefault: false,
-  },
+  // {
+  //   id: 'phi4',
+  //   name: 'Phi 4',
+  //   description:
+  //     'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
+  //   isDefault: false,
+  // },
+  // {
+  //   id: 'qwen2.5-coder:32b',
+  //   name: 'Qwen 2.5 Coder 32B',
+  //   description:
+  //     'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
+  //   isDefault: false,
+  // },
+  // {
+  //   id: 'qwq',
+  //   name: 'QwQ',
+  //   description:
+  //     'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
+  //   isDefault: false,
+  // },
+  // {
+  //   id: 'gemma3:27b',
+  //   name: 'Gemma 3 27B',
+  //   description:
+  //     'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
+  //   isDefault: false,
+  // },
+  // {
+  //   id: 'codellama:34b',
+  //   name: 'CodeLLama 34B',
+  //   description:
+  //     'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
+  //   isDefault: false,
+  // },
 ];
 
 export default function ChatEntryForm({
