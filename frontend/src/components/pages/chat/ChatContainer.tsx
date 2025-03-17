@@ -4,6 +4,7 @@ import TypewriterEffect from '@/components/ui/typewriter';
 import { Chat } from '@/frontend/types';
 import React from 'react';
 import { marked } from 'marked';
+import AIPlaceholder from '@/static/templates/helper.webp';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement|null>;
@@ -113,7 +114,7 @@ export default function ChatContainer({
               return (
                 <div
                   key={index}
-                  className={`flex items-start space-x-4 ${
+                  className={`flex items-start space-x-4 w-full ${
                     message.role === 'user' ? 'justify-end' : ''
                   }`}
                 >
@@ -121,8 +122,8 @@ export default function ChatContainer({
                     <>
                       {message.role === 'assistant' ? (
                         <img
-                          src={avatar ? avatar : ''}
-                          alt="AI Avatar"
+                          src={avatar ? avatar : AIPlaceholder.src}
+                          alt="The avatar of the AI assistant chat partner"
                           className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
                         />
                       ) : (
@@ -182,7 +183,7 @@ export default function ChatContainer({
                 </div>
 
                 <img
-                  src={profilePicture ? profilePicture : ''}
+                  src={profilePicture ? profilePicture : AIPlaceholder.src}
                   alt="User Profile Picture"
                   className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
                 />
@@ -193,8 +194,8 @@ export default function ChatContainer({
             {isTyping && (
               <div className="flex items-start space-x-4">
                 <img
-                  src={avatar ? avatar : ''}
-                  alt="AI Avatar"
+                  src={avatar ? avatar : AIPlaceholder.src}
+                  alt="The AI assistant's avatar typing indicator"
                   className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
                 />
                 <div className="flex-1 bg-white rounded-lg shadow-sm p-4">

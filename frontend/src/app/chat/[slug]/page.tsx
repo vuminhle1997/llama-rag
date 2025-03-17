@@ -311,6 +311,9 @@ export default function SlugChatPage({
       };
       setMessages([...messages, userMessage]);
       const response = await searchMutation.mutateAsync(data.message);
+
+      console.log(data.message)
+
       const newMessage: Message = {
         role: 'assistant',
         blocks: [{ block_type: 'text', text: response.message!.response }],

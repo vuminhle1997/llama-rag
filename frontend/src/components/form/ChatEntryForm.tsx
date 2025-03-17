@@ -29,7 +29,7 @@ import hrImage from '@/static/templates/hr.jpeg';
 import engineerImage from '@/static/templates/engineer.webp';
 import softwareEngineerImage from '@/static/templates/software_engineer.webp';
 import consultantImage from '@/static/templates/consultant.jpeg';
-import aiImage from '@/static/templates/ai.jpeg';
+import aiImage from '@/static/templates/helper.webp';
 import { StaticImageData } from 'next/image';
 import { useGetAvatar } from '@/frontend/queries/avatar';
 import { Check, AlertCircle } from 'lucide-react';

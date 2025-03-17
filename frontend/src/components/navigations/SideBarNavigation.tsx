@@ -19,17 +19,6 @@ import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from '@/components/ui/command';
-import {
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -69,22 +58,13 @@ export default function SideBarNavigation() {
         <div className="row col-span-2">
           <Dialog>
             <DialogTrigger asChild>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                      Neuen Chat erstellen
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Neuen Chat erstellen</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                variant="outline"
+                className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
+              >
+                <PencilSquareIcon className="h-4 w-4" />
+                Neuen Chat erstellen
+              </Button>
             </DialogTrigger>
             <ChatEntryForm />
           </Dialog>

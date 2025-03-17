@@ -66,8 +66,8 @@ const FavouritesDialog = () => {
                       className="block p-3 border rounded-lg hover:bg-accent cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <HeartIcon className="h-6 w-6 text-primary" />
+                        <div className="flex items-center justify-center">
+                          <HeartIcon className="h-8 w-8 text-primary" />
                         </div>
                         <div>
                           <h4 className="font-medium">{favorite.title}</h4>
