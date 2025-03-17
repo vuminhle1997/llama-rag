@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useDeleteChat } from '@/frontend/queries/chats';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
-import { selectChats } from '@/frontend/store/reducer/app_reducer';
+import { selectAppState, selectChats } from '@/frontend/store/reducer/app_reducer';
 import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import ChatsCollectionElement from './chat/ChatsCollectionElement';
@@ -36,9 +36,12 @@ export default function ChatsNavigation() {
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
   const chats = useAppSelector(selectChats);
+  const appState = useAppSelector(selectAppState);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteChat = useDeleteChat(chatToDelete || '');
+
+  const isLoading = appState === 'loading';
 
   /**
    * Handles the deletion of a chat by setting the chat ID to be deleted
@@ -87,7 +90,32 @@ export default function ChatsNavigation() {
 
   return (
     <SidebarMenu>
-      {Object.entries(groupedChats).map(([date, chats]) => (
+      {isLoading && !chats && (
+        <div className="space-y-3 p-4">
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[60%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[70%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[50%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[60%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[40%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[80%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="h-8 w-[90%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </div>
+      )}
+      {!isLoading && Object.entries(groupedChats).map(([date, chats]) => (
         <ChatsCollectionElement
           key={v4()}
           date={date}

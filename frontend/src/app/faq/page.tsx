@@ -181,34 +181,6 @@ export default function FAQPage() {
             </Accordion>
           ))}
         </div>
-
-        {/* <div className="space-y-4 animate-fade-in delay-800">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {suggestions.map((suggestion, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="h-auto p-4 text-left justify-start animate-fade-in-up"
-                style={{ animationDelay: `${(index + 4) * 100}ms` }}
-                onClick={() => setInput(suggestion)}
-              >
-                {suggestion}
-              </Button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 animate-fade-in delay-800">
-            <Input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Geben Sie hier Ihre Nachricht ein..."
-              className="flex-1"
-            />
-            <Button type="submit" size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div> */}
       </div>
     </main>
   );

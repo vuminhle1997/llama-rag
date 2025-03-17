@@ -12,6 +12,7 @@ interface AppState {
   favouriteChats: Chat[] | null;
   profilePicture: string | null;
   appState: 'idle' | 'loading' | 'failed';
+  showCommands: boolean;
 }
 
 // Define the initial state using that type
@@ -23,6 +24,7 @@ const initialState: AppState = {
   profilePicture: null,
   favouriteChats: null,
   appState: 'loading',
+  showCommands: false,
 };
 
 /**
@@ -71,6 +73,9 @@ export const appSlice = createSlice({
     setAppState: (state, action: PayloadAction<AppState['appState']>) => {
       state.appState = action.payload;
     },
+    setShowCommands: (state, action: PayloadAction<boolean>) => {
+      state.showCommands = action.payload;
+    }
   },  
 });
 
@@ -82,6 +87,7 @@ export const {
   setProfilePicture,
   setFavouriteChats,
   setAppState,
+  setShowCommands
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
@@ -93,5 +99,6 @@ export const selectProfilePicture = (state: RootState) =>
   state.app.profilePicture;
 export const selectFavouriteChats = (state: RootState) => state.app.favouriteChats;
 export const selectAppState = (state: RootState) => state.app.appState;
+export const selectShowCommands = (state: RootState) => state.app.showCommands;
 
 export default appSlice.reducer;

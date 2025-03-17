@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Chat, Page } from '../types';
+import { th } from 'date-fns/locale';
 
 /**
  * Custom hook to post chat data to the backend.
@@ -297,3 +298,23 @@ export const useChat = (chatId: string) => {
 
   return { chatQuery, searchMutation };
 };
+
+export const getChatsByTitle = async (title: string) => {
+  try {
+    const res = await axios.get<Chat[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/search`, {
+      withCredentials: true,
+      params: {
+        title,
+      },
+      headers: {
+        'Accept': 'application/json',
+      },
+    })
+    if (res.status === 200) {
+      return res.data;
+    }
+    return [];
+  } catch (error) {
+    throw new Error('Failed to fetch chats');
+  }
+}

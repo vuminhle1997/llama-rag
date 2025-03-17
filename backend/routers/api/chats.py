@@ -16,7 +16,7 @@ from typing import Optional
 from llama_index.core.settings import Settings
 from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
-from sqlmodel import Session
+from sqlmodel import Session, select
 from models.chat import ChatCreate, Chat, ChatUpdate
 from models.chat_file import ChatFile
 from pathlib import Path
@@ -49,6 +49,22 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
     query = query.filter(Chat.user_id == user_id).order_by(Chat.last_interacted_at.desc())
     page = sqlalchemy_pagination(query)
     return page
+
+@router.get("/search")
+async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_session),
+                             request: Request = Request,
+                             redis_client: Redis = Depends(get_redis_client)):
+
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    token = redis_client.get(f"session:{session_id}")
+    claims = decode_jwt(token)
+    user_id = claims["oid"]
+    chats = (db_client
+             .query(Chat).filter(Chat.title.like(f"%{title}%")).filter(Chat.user_id == user_id).all())
+
+    return chats
 
 
 @router.get("/{chat_id}")

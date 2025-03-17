@@ -72,3 +72,21 @@ export const useAuth = () => {
     },
   });
 };
+
+export const getAuth = () => {
+  return new Promise<{ error?: string; data?: AzureClaims }>((resolve) => {
+    axios
+      .get<AzureClaims>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/me`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then((res) => {
+        resolve({ data: res.data });
+      })
+      .catch(() => {
+        resolve({ error: 'Unauthorized' });
+      });
+  });
+};

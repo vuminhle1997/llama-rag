@@ -1,8 +1,10 @@
 'use client';
 
+import AuthProvider from '@/components/AuthProvider';
+import DashboardLoadingSkeleton from '@/components/pages/index/DashboardLoadingSkeleton';
 import SignInPage from '@/components/pages/index/SignInPage';
 import WelcomeScreen from '@/components/pages/index/WelcomeScreen';
-import { selectAppState, selectAuthorized, useAppSelector } from '@/frontend';
+import { useEffect } from 'react';
 
 /**
  * Home component that renders different screens based on the application state and authorization status.
@@ -13,16 +15,14 @@ import { selectAppState, selectAuthorized, useAppSelector } from '@/frontend';
  * - A welcome screen if the user is authorized.
  */
 export default function Home() {
-  const isAuthorized = useAppSelector(selectAuthorized);
-  const appState = useAppSelector(selectAppState);
+  useEffect(() => {
+    window.document.title = 'global CT InsightChat - Startseite';
+  }, []);
 
-  if (appState === 'loading') {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthorized) {
-    return <SignInPage />;
-  }
-
-  return <WelcomeScreen />;
+  return <AuthProvider
+    fallback={<DashboardLoadingSkeleton />}
+    errorFallback={<SignInPage />}
+  >
+    <WelcomeScreen />
+  </AuthProvider>
 }

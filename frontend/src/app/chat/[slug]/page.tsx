@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import {
-  Dialog,
-} from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import {
   useGetChat,
   useDeleteFile,
@@ -17,8 +15,8 @@ import { useRouter } from 'next/navigation';
 import {
   setChat,
   selectProfilePicture,
-  selectAuthorized,
   selectAppState,
+  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -48,31 +46,38 @@ import ChatFileManager, {
 import ChatSettingsDialog, {
   ChatSettingsDialogProps,
 } from '@/components/pages/chat/components/ChatSettingsDialog';
-import ChatFavouriteAlertDialog, { ChatFavouriteAlertDialogProps } from '@/components/pages/chat/components/ChatFavouriteAlertDialog';
-import ChatDeleteAlertDialog, { ChatDeleteAlertDialogProps } from '@/components/pages/chat/components/ChatDeleteAlertDialog';
-import ChatEditAlertDialog, { ChatEditAlertDialogProps } from '@/components/pages/chat/components/ChatEditAlertDialog';
+import ChatFavouriteAlertDialog, {
+  ChatFavouriteAlertDialogProps,
+} from '@/components/pages/chat/components/ChatFavouriteAlertDialog';
+import ChatDeleteAlertDialog, {
+  ChatDeleteAlertDialogProps,
+} from '@/components/pages/chat/components/ChatDeleteAlertDialog';
+import ChatEditAlertDialog, {
+  ChatEditAlertDialogProps,
+} from '@/components/pages/chat/components/ChatEditAlertDialog';
+import AuthProvider from '@/components/AuthProvider';
 
 /**
  * SlugChatPage component renders the chat page for a specific chat identified by the slug.
- * 
+ *
  * @param {Object} props - The component props.
  * @param {Promise<{ slug: string }>} props.params - The parameters containing the slug.
- * 
+ *
  * @returns {JSX.Element} The rendered chat page component.
- * 
+ *
  * @component
- * 
+ *
  * @example
  * // Usage example:
  * <SlugChatPage params={params} />
- * 
+ *
  * @remarks
  * This component handles various states and actions related to chat functionality, including:
  * - Fetching and displaying chat messages.
  * - Handling file uploads and deletions.
  * - Managing chat settings and alerts.
  * - Submitting new messages and handling typing indicators.
- * 
+ *
  * @requires useRouter - Next.js router hook for navigation.
  * @requires useAppDispatch - Redux dispatch hook for dispatching actions.
  * @requires useAppSelector - Redux selector hook for selecting state.
@@ -87,7 +92,7 @@ import ChatEditAlertDialog, { ChatEditAlertDialogProps } from '@/components/page
  * @requires useDeleteChat - Custom hook for deleting chat.
  * @requires usePostFavourite - Custom hook for posting favourite.
  * @requires useDeleteFavourite - Custom hook for deleting favourite.
- * 
+ *
  * @state {Chat | null} selectedChat - The currently selected chat.
  * @state {Message[]} messages - The list of chat messages.
  * @state {boolean} isDialogOpen - State for managing dialog visibility.
@@ -102,7 +107,7 @@ import ChatEditAlertDialog, { ChatEditAlertDialogProps } from '@/components/page
  * @state {string | null} pendingMessage - The pending message being typed.
  * @state {Object | null} alert - The alert state for displaying notifications.
  * @state {Object} favouriteAlert - The alert state for displaying favourite notifications.
- * 
+ *
  * @function handleDeleteFile - Handles file deletion.
  * @function handleUploadClick - Handles file upload click.
  * @function handleFileChange - Handles file input change.
@@ -121,7 +126,6 @@ export default function SlugChatPage({
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const isAuthorized = useAppSelector(selectAuthorized);
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
 
@@ -150,7 +154,7 @@ export default function SlugChatPage({
     title: string;
     description: string;
   } | null>(null);
-  
+
   const [favouriteAlert, setFavouriteAlert] = React.useState<{
     show: boolean;
     success: boolean;
@@ -165,7 +169,7 @@ export default function SlugChatPage({
   const deleteChat = useDeleteChat(slug);
   const postFavourite = usePostFavourite();
   const deleteFavourite = useDeleteFavourite();
-  
+
   const {
     register,
     handleSubmit: handleFormSubmit,
@@ -181,6 +185,10 @@ export default function SlugChatPage({
   const messageText = watch('message');
 
   useEffect(() => {
+    dispatch(setAppState('loading'))
+  }, [])
+
+  useEffect(() => {
     getChats(50, 1).then(chats => {
       dispatch(setChats(chats.items));
     });
@@ -190,6 +198,7 @@ export default function SlugChatPage({
     if (chat) {
       window.document.title = `global CT InsightChat - ${chat?.title}`;
       dispatch(setChat(chat));
+      dispatch(setAppState('idle'));
     }
   }, [chat]);
 
@@ -341,14 +350,6 @@ export default function SlugChatPage({
     });
   };
 
-  if (appState === 'loading') {
-    return <ChatLoadingScreen />;
-  }
-
-  if (!isAuthorized || appState === 'failed') {
-    return <ChatNotFoundScreen />;
-  }
-
   const chatProps: ChatContainerProps = {
     reset,
     chat: chat!,
@@ -419,56 +420,65 @@ export default function SlugChatPage({
   };
 
   return (
-    <main className="flex flex-col h-screen w-screen bg-gray-50">
-      {alert && <ChatAlertDialog {...alert} />}
+    <AuthProvider
+      fallback={<ChatLoadingScreen />}
+      errorFallback={<ChatNotFoundScreen />}
+    >
+      {
+        appState === 'idle' && <main className="flex flex-col h-screen w-screen bg-gray-50">
+        {alert && <ChatAlertDialog {...alert} />}
 
-      {(isUploading || deleteFileMutation.isPending) && (
-        <PendingMessageLoader
-          message={
-            isUploading ? 'Datei wird hochgeladen...' : 'Datei wird gelöscht...'
-          }
-        />
-      )}
-      {!chat ? (
-        <UserChatNotFoundScreen />
-      ) : (
-        <>
-          {/* Chat Messages Container */}
-          <ChatContainer {...chatProps} />
+        {(isUploading || deleteFileMutation.isPending) && (
+          <PendingMessageLoader
+            message={
+              isUploading
+                ? 'Datei wird hochgeladen...'
+                : 'Datei wird gelöscht...'
+            }
+          />
+        )}
+        {!chat ? (
+          <UserChatNotFoundScreen />
+        ) : (
+          <>
+            {/* Chat Messages Container */}
+            <ChatContainer {...chatProps} />
 
-          {/* Input Area */}
-          <ChatTextFieldArea {...chatTextFieldAreaProps} />
+            {/* Input Area */}
+            <ChatTextFieldArea {...chatTextFieldAreaProps} />
 
-          {/* File Management Dialog */}
-          <ChatFileManager {...fileManagerProps} />
+            {/* File Management Dialog */}
+            <ChatFileManager {...fileManagerProps} />
 
-          {/* Settings Button */}
-          <ChatSettingsDialog {...chatSettingsProps} />
+            {/* Settings Button */}
+            <ChatSettingsDialog {...chatSettingsProps} />
 
-          {/* Favourite Alert Dialog */}
-          <ChatFavouriteAlertDialog {...favouriteAlertProps} />
+            {/* Favourite Alert Dialog */}
+            <ChatFavouriteAlertDialog {...favouriteAlertProps} />
 
-          {/* Edit Chat Dialog */}
-          <ChatEditAlertDialog {...chatEditAlertProps} />
+            {/* Edit Chat Dialog */}
+            <ChatEditAlertDialog {...chatEditAlertProps} />
 
-          {/* Delete Confirmation Dialog */}
-          <ChatDeleteAlertDialog  {...chatDeleteDialogProps} />
+            {/* Delete Confirmation Dialog */}
+            <ChatDeleteAlertDialog {...chatDeleteDialogProps} />
 
-          {/* Create Chat Dialog */}
-          <Dialog
-            open={isCreateChatDialogOpen}
-            onOpenChange={setIsCreateChatDialogOpen}
-          >
-            <ChatEntryForm
-              mode="create"
-              onSuccess={() => {
-                setIsCreateChatDialogOpen(false);
-                router.push('/');
-              }}
-            />
-          </Dialog>
-        </>
-      )}
-    </main>
+            {/* Create Chat Dialog */}
+            <Dialog
+              open={isCreateChatDialogOpen}
+              onOpenChange={setIsCreateChatDialogOpen}
+            >
+              <ChatEntryForm
+                mode="create"
+                onSuccess={() => {
+                  setIsCreateChatDialogOpen(false);
+                  router.push('/');
+                }}
+              />
+            </Dialog>
+          </>
+        )}
+      </main>
+      }
+    </AuthProvider>
   );
 }
