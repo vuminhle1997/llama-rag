@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
-import { AzureClaims } from '@/frontend/types';
+import { AzureClaims, UserProfile } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
 
 // Define a type for the slice state
 interface AppState {
   isAuthorized: boolean;
-  user: AzureClaims | null;
+  user: UserProfile | null;
   chat: Chat | null;
   chats: Chat[] | null;
   favouriteChats: Chat[] | null;
@@ -55,7 +55,7 @@ export const appSlice = createSlice({
     setIsAuthorized: (state, action: PayloadAction<boolean>) => {
       state.isAuthorized = action.payload;
     },
-    setUser: (state, action: PayloadAction<AzureClaims>) => {
+    setUser: (state, action: PayloadAction<UserProfile>) => {
       state.user = action.payload;
     },
     setChat: (state, action: PayloadAction<Chat>) => {

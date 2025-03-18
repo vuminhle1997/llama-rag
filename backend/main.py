@@ -1,3 +1,6 @@
+import json
+from typing import Set, List
+
 from fastapi import FastAPI, Depends
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
@@ -31,6 +34,10 @@ Settings.embed_model = embed_model
 Settings.chunk_size = 512
 Settings.chunk_overlap = 50
 
+ALLOWED_GROUPS_IDS = [
+    'c7c0bd91-5cfa-4a58-a704-d36ae5a4b51c', # GDE-APP-GLOBALCTINSIGHTCHAT-RO
+    '16658413-e21e-4c7d-bbfd-4d59ba68aeb4', # global CT All
+]
 CLIENT_ID=os.getenv("CLIENT_ID")
 CLIENT_SECRET=os.getenv("CLIENT_SECRET")
 TENANT_ID=os.getenv("TENANT_ID")
@@ -58,6 +65,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+def user_is_part_of_group(user_groups: list[str], allowed_groups: list[str]) -> bool:
+    return bool(set(user_groups) & set(allowed_groups))
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
@@ -73,7 +83,7 @@ def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Reque
     if not session_id:
         raise HTTPException(status_code=401, detail="Not logged in")
     redis_client.delete(f"session:{session_id}")
-    return RedirectResponse(url="http://localhost:3000")
+    return RedirectResponse(url=REDIRECT_URI)
 
 @app.get("/redirect")
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
@@ -102,7 +112,17 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
-    return claims
+
+    headers = {
+        'Authorization': f"Bearer {token}",
+    }
+    user_info = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers).json()
+    group_info = requests.get("https://graph.microsoft.com/v1.0/me/memberOf", headers=headers).json()
+
+    return {
+        "user": user_info,
+        "groups": group_info,
+    }
 
 @app.get("/profile-picture")
 async def get_profile_picture(request: Request,
