@@ -34,10 +34,7 @@ Settings.embed_model = embed_model
 Settings.chunk_size = 512
 Settings.chunk_overlap = 50
 
-ALLOWED_GROUPS_IDS = [
-    'c7c0bd91-5cfa-4a58-a704-d36ae5a4b51c', # GDE-APP-GLOBALCTINSIGHTCHAT-RO
-    '16658413-e21e-4c7d-bbfd-4d59ba68aeb4', # global CT All
-]
+ALLOWED_GROUPS_IDS = os.getenv("ALLOWED_GROUPS_IDS").split(',')
 CLIENT_ID=os.getenv("CLIENT_ID")
 CLIENT_SECRET=os.getenv("CLIENT_SECRET")
 TENANT_ID=os.getenv("TENANT_ID")
@@ -111,13 +108,17 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
     if not session_id:
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
-    claims = decode_jwt(token)
 
     headers = {
         'Authorization': f"Bearer {token}",
     }
     user_info = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers).json()
     group_info = requests.get("https://graph.microsoft.com/v1.0/me/memberOf", headers=headers).json()
+
+    groups: list[str] = map(lambda g: g["id"], list(group_info["value"]))
+
+    if not user_is_part_of_group(groups, ALLOWED_GROUPS_IDS):
+        raise HTTPException(status_code=401, detail="User is not part of the group")
 
     return {
         "user": user_info,

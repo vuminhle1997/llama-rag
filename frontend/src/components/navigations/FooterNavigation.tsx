@@ -64,10 +64,13 @@ export default function FooterNavigation() {
           </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium">
-              {user?.given_name || ''}
+              {user?.displayName || ''}
             </span>
             <span className="text-xs text-muted-foreground">
-              {user?.unique_name || 'john.doe@example.com'}
+              {user?.mail || 'john.doe@example.com'}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {`${user?.officeLocation} - ${user?.jobTitle}` || 'john.doe@example.com'}
             </span>
           </div>
         </div>
