@@ -17,6 +17,8 @@ import {
   selectProfilePicture,
   selectAppState,
   setAppState,
+  setSubmittedMessages,
+  selectSubmittedMessages,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -148,6 +150,7 @@ export default function SlugChatPage({
   const [pendingMessage, setPendingMessage] = React.useState<string | null>(
     null
   );
+  const [submittedMessages, setSubmittedMessages] = React.useState<Message[]>([]);
   const [alert, setAlert] = React.useState<{
     show: boolean;
     type: 'success' | 'error';
@@ -307,17 +310,23 @@ export default function SlugChatPage({
       scrollToBottom();
       const userMessage: Message = {
         role: 'user',
-        blocks: [{ block_type: 'text', text: data.message }],
+        text: data.message,
+        block_type: 'text',
+        created_at: new Date().toDateString(),
       };
       setMessages([...messages, userMessage]);
       const response = await searchMutation.mutateAsync(data.message);
 
-      console.log(data.message)
-
       const newMessage: Message = {
         role: 'assistant',
-        blocks: [{ block_type: 'text', text: response.message!.response }],
+        text: response.message!.response.response,
+        block_type: 'text',
+        created_at: new Date().toDateString(),
       };
+
+      const messagesToSubmit = [newMessage, userMessage];
+
+      setSubmittedMessages([...messagesToSubmit, ...submittedMessages])
       setMessages(prevMessages => [...prevMessages, newMessage]);
       setLastMessageIsTyping(true);
 
@@ -364,6 +373,7 @@ export default function SlugChatPage({
     avatar,
     profilePicture,
     handleMessageLoad,
+    submittedMessages,
   };
 
   const chatTextFieldAreaProps: ChatTextFieldAreaProps = {

@@ -23,6 +23,7 @@ export const useGetAvatar = (chatId: string) => {
   const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!chatId) return;
     const fetchAvatar = async () => {
       try {
         const response = await axios.get(

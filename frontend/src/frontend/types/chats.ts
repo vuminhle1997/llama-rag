@@ -2,13 +2,17 @@ import { Favourite } from './favourites';
 import { File } from './files';
 import { Message } from './message';
 
-export type LLMResponse = {
+export type LLMMessage = {
   id?: string;
   response: string;
   sources: any[];
   source_nodes: any[];
   is_dummy_stream: boolean;
   metadata: any;
+};
+
+export type LLMAgentResponse = {
+  response: LLMMessage;
 };
 
 export type Chat = {
@@ -24,6 +28,6 @@ export type Chat = {
   files: File[];
   user_id: string;
   messages: Message[];
-  message?: LLMResponse;
+  message?: LLMAgentResponse;
   favourite?: Favourite;
 };

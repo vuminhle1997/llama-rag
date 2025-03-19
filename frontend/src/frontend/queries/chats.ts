@@ -282,11 +282,16 @@ export const useChat = (chatId: string) => {
   // Mutation: Submit a search query
   const searchMutation = useMutation({
     mutationFn: async (text: string) => {
-      const response = await axios.get<Chat>(
+      const response = await axios.post<Chat>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`,
         {
-          params: { text }, // Attach search text as query param
+          text: text,
+        },
+        {
           withCredentials: true,
+          headers: {
+            'Accept': 'application/json'
+          }
         }
       );
       return response.data;

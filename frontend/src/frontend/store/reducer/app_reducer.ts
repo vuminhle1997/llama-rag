@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
-import { AzureClaims, UserProfile } from '@/frontend/types';
+import { AzureClaims, Message, UserProfile } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
 
 // Define a type for the slice state
@@ -13,6 +13,8 @@ interface AppState {
   profilePicture: string | null;
   appState: 'idle' | 'loading' | 'failed';
   showCommands: boolean;
+  messages: Message[] | null;
+  submittedMessages: Message[];
 }
 
 // Define the initial state using that type
@@ -25,6 +27,8 @@ const initialState: AppState = {
   favouriteChats: null,
   appState: 'loading',
   showCommands: false,
+  messages: null,
+  submittedMessages: [],
 };
 
 /**
@@ -75,8 +79,14 @@ export const appSlice = createSlice({
     },
     setShowCommands: (state, action: PayloadAction<boolean>) => {
       state.showCommands = action.payload;
-    }
-  },  
+    },
+    setMessages: (state, action: PayloadAction<Message[]>) => {
+      state.messages = action.payload;
+    },
+    setSubmittedMessages: (state, action: PayloadAction<Message[]>) => {
+      state.submittedMessages = action.payload;
+    },
+  },
 });
 
 export const {
@@ -87,7 +97,9 @@ export const {
   setProfilePicture,
   setFavouriteChats,
   setAppState,
-  setShowCommands
+  setShowCommands,
+  setMessages,
+  setSubmittedMessages,
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
@@ -100,5 +112,8 @@ export const selectProfilePicture = (state: RootState) =>
 export const selectFavouriteChats = (state: RootState) => state.app.favouriteChats;
 export const selectAppState = (state: RootState) => state.app.appState;
 export const selectShowCommands = (state: RootState) => state.app.showCommands;
+export const selectMessages = (state: RootState) => state.app.messages;
+export const selectSubmittedMessages = (state: RootState) =>
+  state.app.submittedMessages;
 
 export default appSlice.reducer;

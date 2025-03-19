@@ -20,7 +20,9 @@ REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
+
+DATABASE_URL = os.getenv("DATABASE_URL", sqlite_url)
+engine = create_engine(DATABASE_URL)
 
 # chroma DB
 chroma_client = chromadb.HttpClient()

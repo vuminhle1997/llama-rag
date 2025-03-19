@@ -13,9 +13,10 @@ class BaseChatFile(SQLModel):
     file_name: str = Field(index=True, nullable=False)
     path_name: str = Field(index=True, nullable=False)
     mime_type: str = Field(index=True, nullable=False)
-    chat_id: Optional[str] = Field(default=None, foreign_key="chat.id")
+    chat_id: Optional[str] = Field(default=None, foreign_key="chats.id")
 
 class ChatFile(BaseChatFile, Base, table=True):
+    __tablename__ = "chat_files"
     id: str = Field(primary_key=True, nullable=False, default=str(uuid.uuid4()))
     created_at: datetime = Field(default = datetime.now())
     updated_at: datetime = Field(default = datetime.now())

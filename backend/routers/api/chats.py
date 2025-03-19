@@ -4,20 +4,23 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
+from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.llms.ollama import Ollama
+from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
 from llama_index.storage.chat_store.postgres import PostgresChatStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
 from chromadb import Collection
-from typing import Optional
-from llama_index.core.settings import Settings
+from typing import Optional, List
 from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
 from sqlmodel import Session, select
-from models.chat import ChatCreate, Chat, ChatUpdate
+
+from models import ChatMessage
+from models.chat import ChatCreate, Chat, ChatUpdate, ChatQuery
 from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
@@ -77,11 +80,9 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
-    chat_memory = ChatMemoryBuffer(
-        chat_store=chat_store,
-        chat_store_key=db_chat.id,
-        token_limit=42069,
-    )
+    messages = (db_client.query(ChatMessage)
+             .filter(ChatMessage.chat_id == chat_id)
+             .order_by(ChatMessage.created_at.desc()).all())[:10]
 
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -92,20 +93,20 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
-        'messages': chat_memory.get(),
+        'messages': messages,
         'favourite': favorite.model_dump() if favorite else None
     }
 
 
-@router.get("/{chat_id}/chat")
-async def chat_with_given_chat_id(chat_id: str, text: str,
+@router.post("/{chat_id}/chat")
+async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
                                   db_client: Session = Depends(get_db_session),
                                   request: Request = Request,
                                   redis_client: Redis = Depends(get_redis_client),
                                   chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector),
                                   chat_store: PostgresChatStore = Depends(get_chat_store)):
-    if not text:
-        raise HTTPException(status_code=404, detail="Query: text is required")
+    if not chat:
+        raise HTTPException(status_code=404, detail="Body: text is required")
 
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
@@ -115,11 +116,33 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
+    user_message = ChatMessage(
+        id=str(uuid.uuid4()),
+        role=MessageRole.USER,
+        text=chat.text,
+        block_type='text',
+        additional_kwargs={},
+        chat_id=chat_id,
+        created_at=datetime.now(),
+    )
+
+    old_messages = (db_client.query(ChatMessage)
+                    .filter(ChatMessage.chat_id == chat_id)
+                    .order_by(ChatMessage.created_at.desc()).all())[:25]
+
+    chat_history = [
+        LLMChatMessage(
+            role=message.role,
+            content=message.text,
+            additional_kwargs=message.additional_kwargs,
+        )
+        for message in old_messages
+    ]
+
     # Now the fun is getting started
     chat_memory = ChatMemoryBuffer.from_defaults(
-        chat_store_key=db_chat.id,
+        chat_history=chat_history,
         token_limit=3000,
-        chat_store=chat_store,
     )
 
     files = db_chat.files
@@ -138,7 +161,6 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     pd_tools = create_pandas_engines_tools_from_files(files=files)
     tools = tools + pd_tools
 
-    model_from_chat = None
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
@@ -146,9 +168,23 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
 
     llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
-    response = await agent.achat(text)
+    agent_response: AgentChatResponse = await agent.achat(chat.text)
 
     db_chat.last_interacted_at = datetime.now()
+    chat_messages = [
+        user_message,
+        ChatMessage(
+            id=str(uuid.uuid4()),
+            role=MessageRole.ASSISTANT,
+            text=agent_response.response,
+            block_type='text',
+            additional_kwargs={},
+            chat_id=chat_id,
+            created_at=datetime.now(),
+        )
+    ]
+    for chat_message in chat_messages:
+        db_chat.messages.append(chat_message)
     db_client.add(db_chat)
     db_client.commit()
     db_client.refresh(db_chat)
@@ -156,7 +192,7 @@ async def chat_with_given_chat_id(chat_id: str, text: str,
     return {
         **db_chat.model_dump(),
         "message": {
-            "response": response,
+            "response": agent_response,
             "role": "assistant"
         },
     }
