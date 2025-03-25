@@ -31,62 +31,6 @@ export interface ChatContainerProps {
   submittedMessages: Message[];
 }
 
-// {!chat.messages ||
-//   (chat.messages.length === 0 && (
-//     <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
-//       <div className="text-center space-y-4">
-//         <h2 className="text-2xl font-semibold text-gray-800">
-//           Willkommen im Chat!
-//         </h2>
-//         <p className="text-gray-600">
-//           Ich bin hier, um Ihnen zu helfen. Stelle mir eine Frage!
-//         </p>
-//       </div>
-//       <div className="space-y-4 w-full max-w-md">
-//         <div
-//           className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-//           onClick={() => {
-//             if (messageText === '') {
-//               reset({ message: 'Hallo, wie heißt du?' });
-//             }
-//           }}
-//         >
-//           <p className="text-gray-700">👋 "Hallo, wie heißt du?"</p>
-//         </div>
-//         <div
-//           className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-//           onClick={() => {
-//             if (messageText === '') {
-//               reset({
-//                 message:
-//                   'Welche Werkzeuge stehen zur Verfügung, um mein Problem zu lösen?',
-//               });
-//             }
-//           }}
-//         >
-//           <p className="text-gray-700">
-//             🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein Problem
-//             zu lösen?"
-//           </p>
-//         </div>
-//         <div
-//           className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-//           onClick={() => {
-//             if (messageText === '') {
-//               reset({
-//                 message: 'Wie kannst du mir bei meiner Aufgabe helfen?',
-//               });
-//             }
-//           }}
-//         >
-//           <p className="text-gray-700">
-//             💡 "Wie kannst du mir bei meiner Aufgabe helfen?"
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   ))}
-
 {
   /* Typing Indicator */
 }
@@ -157,8 +101,63 @@ export default function ChatContainer({
 
   return (
     <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
+      {!chat.messages ||
+        (chat.messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                Willkommen im Chat!
+              </h2>
+              <p className="text-gray-600">
+                Ich bin hier, um Ihnen zu helfen. Stelle mir eine Frage!
+              </p>
+            </div>
+            <div className="space-y-4 w-full max-w-md">
+              <div
+                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (messageText === '') {
+                    reset({ message: 'Hallo, wie heißt du?' });
+                  }
+                }}
+              >
+                <p className="text-gray-700">👋 "Hallo, wie heißt du?"</p>
+              </div>
+              <div
+                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (messageText === '') {
+                    reset({
+                      message:
+                        'Welche Werkzeuge stehen zur Verfügung, um mein Problem zu lösen?',
+                    });
+                  }
+                }}
+              >
+                <p className="text-gray-700">
+                  🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein Problem zu
+                  lösen?"
+                </p>
+              </div>
+              <div
+                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (messageText === '') {
+                    reset({
+                      message: 'Wie kannst du mir bei meiner Aufgabe helfen?',
+                    });
+                  }
+                }}
+              >
+                <p className="text-gray-700">
+                  💡 "Wie kannst du mir bei meiner Aufgabe helfen?"
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 flex flex-col-reverse">
-      {isTyping && (
+        {isTyping && (
           <div className="flex items-start space-x-4">
             <img
               src={avatar ? avatar : AIPlaceholder.src}
@@ -265,7 +264,7 @@ export default function ChatContainer({
             </div>
           );
         })}
-        
+
         {messagesFetched && messagesFetched.pages[0].items.length > 0 && (
           <>
             {messagesFetched.pages.map(page => {
