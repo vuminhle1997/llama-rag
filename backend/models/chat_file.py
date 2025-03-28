@@ -8,6 +8,7 @@ Base = declarative_base()
 
 if TYPE_CHECKING:
     from models.chat import Chat
+    from models.sql_dump_upload import SQLDumpUpload
 
 class BaseChatFile(SQLModel):
     file_name: str = Field(index=True, nullable=False)
@@ -21,6 +22,7 @@ class ChatFile(BaseChatFile, Base, table=True):
     created_at: datetime = Field(default = datetime.now())
     updated_at: datetime = Field(default = datetime.now())
     chat: "Chat" = Relationship(back_populates="files")
+    sql_dump: "SQLDumpUpload" = Relationship(back_populates="chat_file")
 
 class ChatFilePublic(BaseChatFile):
     id: str

@@ -21,6 +21,7 @@ if config.config_file_name is not None:
 from models.chat_file import Base
 from models.chat import Base
 from models.favourite import Base
+from models.sql_dump_upload import Base
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from models.chat_file import ChatFile
     from models.favourite import Favourite
     from models.chat_message import ChatMessage
+    from models.sql_dump_upload import SQLDumpUpload
 
 class ChatBase(SQLModel):
     title: str = Field(nullable=False, index=True)
@@ -28,6 +29,7 @@ class Chat(ChatBase, Base, table=True):
     temperature: float = Field(nullable=False, index=True, default=0.75)
     model: str = Field(nullable=False, index=True, default="llama3.1")
     files: List["ChatFile"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
+    sql_dumps: List["SQLDumpUpload"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
     favourite: "Favourite" = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
     messages: List["ChatMessage"] = Relationship(back_populates="chat", sa_relationship_kwargs={"cascade": "all, delete"})
 
