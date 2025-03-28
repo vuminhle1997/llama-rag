@@ -8,9 +8,10 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  Table
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Table, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import React from 'react';
 import { Chat, File } from '@/frontend/types';
@@ -60,8 +61,9 @@ export default function ChatFileManager({
               <TableHead>Aktionen</TableHead>
             </TableRow>
           </TableHeader>
+          
           <TableBody>
-            {chat.files?.map((file: File) => (
+          {chat.files?.map((file: File) => (
               <TableRow key={file.id}>
                 <TableCell>{file.file_name}</TableCell>
                 <TableCell>{file.mime_type}</TableCell>
