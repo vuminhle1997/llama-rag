@@ -1,7 +1,7 @@
 import json
 from typing import Set, List
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, File, UploadFile
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, JSONResponse, Response
@@ -147,6 +147,11 @@ async def get_profile_picture(request: Request,
         raise HTTPException(status_code=404, detail="Profile picture not found")
     else:
         raise HTTPException(status_code=500, detail="Error fetching profile picture")
+
+@app.post("/sql-test")
+def check_sql_upload(file: UploadFile = File(...)):
+    print(file)
+    return JSONResponse({'content_type': file.content_type})
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)

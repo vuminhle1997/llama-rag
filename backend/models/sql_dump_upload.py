@@ -18,6 +18,7 @@ class SQLDumpUploadBase(SQLModel):
     db_type: str = Field(nullable=False, index=True) # MySQL / Postgres
 
 class SQLDumpUpload(SQLDumpUploadBase, Base, table=True):
+    __tablename__ = "sql_dump_uploads"
     id: str = Field(nullable=False, index=True, primary_key=True, default=str(uuid.uuid4()))
     user_id: str = Field(nullable=False, index=True)
     chat_id: str = Field(nullable=False, index=True, foreign_key="chats.id")

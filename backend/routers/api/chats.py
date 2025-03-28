@@ -19,7 +19,7 @@ from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
 from sqlmodel import Session, select
 
-from models import ChatMessage
+from models import ChatMessage, SQLDumpUpload
 from models.chat import ChatCreate, Chat, ChatUpdate, ChatQuery
 from models.chat_file import ChatFile
 from pathlib import Path
@@ -209,7 +209,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    belongs_to_user = check_property_belongs_to_user(request, redis_session, db_chat)
+    belongs_to_user, user_id = check_property_belongs_to_user(request, redis_session, db_chat)
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
     # If file is not attached to Upload, raise Error
@@ -233,6 +233,10 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         file_name=file.filename,
     )
     db_chat.files.append(db_file)
+
+    if file.content_type.lower().find("sql") != -1:
+        print("It is a SQL Dump File")
+        # TODO: async coroutine work for processing sql dump
 
     try:
         # indexes file
