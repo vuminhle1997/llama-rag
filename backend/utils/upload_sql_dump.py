@@ -1,5 +1,3 @@
-import uuid
-
 import mysql.connector
 import psycopg2
 import os
@@ -16,6 +14,9 @@ mysql_host = os.getenv("MYSQL_HOST", "localhost")
 mysql_port = os.getenv("MYSQL_PORT", 3306)
 mysql_user = os.getenv("MYSQL_USER", "root")
 mysql_password = os.getenv("MYSQL_PASSWORD", "<PASSWORD>")
+
+def initialize_pg_url(pg_db: str):
+    return f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
 
 def load_mysql_dump(host: str, port: int, user: str, password: str, db: str, dump_path: str, **kwargs):
     try:

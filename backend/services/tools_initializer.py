@@ -1,6 +1,8 @@
 from typing import List
 
 import pandas as pd
+from llama_index.core.indices.struct_store import SQLTableRetrieverQueryEngine
+from llama_index.core.objects import SQLTableNodeMapping, SQLTableSchema, ObjectIndex
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core.settings import Settings
 from llama_index.experimental.query_engine import PandasQueryEngine
@@ -11,8 +13,10 @@ from llama_index.core.vector_stores import (
     FilterOperator,
 )
 from models import ChatFile
-from llama_index.core import StorageContext, VectorStoreIndex
-from llama_index.core.tools import FunctionTool
+from llama_index.core import StorageContext, VectorStoreIndex, SQLDatabase
+from llama_index.core.tools import FunctionTool, QueryEngineTool
+from sqlalchemy import create_engine
+from utils import initialize_pg_url
 
 class PandasTool:
     def __init__(self, query_engine: PandasQueryEngine):
@@ -78,6 +82,34 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     ]
     return pd_tools
 
-
-
-
+def create_sql_engines_tools_from_files(files: List[ChatFile]) -> List[QueryEngineTool]:
+    sql_tools = []
+    for file in files:
+        if "sql" in file.mime_type.lower():
+            pg_url = initialize_pg_url(file.database_name)
+            db_engine = create_engine(pg_url)
+            sql_database = SQLDatabase(db_engine, include_tables=file.tables)
+            tables_node_mapping = SQLTableNodeMapping(sql_database)
+            table_schema_objs = [
+                SQLTableSchema(table_name=table_name)
+                for table_name in file.tables
+            ]
+            obj_index = ObjectIndex.from_objects(
+                table_schema_objs,
+                tables_node_mapping,
+                VectorStoreIndex,
+            )
+            query_engine = SQLTableRetrieverQueryEngine(
+                sql_database=sql_database, table_retriever=obj_index.as_retriever(similarity_top_k=1)
+            )
+            tables_desc = ', '.join([str(x) for x in file.tables])
+            desc = (f"A SQL Query Engine tool going through the Database '{file.database_name}'."
+                           f" The table names are {tables_desc}")
+            sql_tools.append(
+                QueryEngineTool.from_defaults(
+                    query_engine=query_engine,
+                    name=f"sql_tool_{file.database_name}",
+                    description=desc,
+                )
+            )
+    return sql_tools
