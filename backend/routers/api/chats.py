@@ -19,7 +19,7 @@ from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
 from sqlmodel import Session, select
 
-from models import ChatMessage, SQLDumpUpload
+from models import ChatMessage
 from models.chat import ChatCreate, Chat, ChatUpdate, ChatQuery
 from models.chat_file import ChatFile
 from pathlib import Path
@@ -28,6 +28,8 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
                       , create_pandas_engines_tools_from_files)
+from fastapi import BackgroundTasks
+from utils import detect_sql_dump_type, process_dump_to_persist
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -203,7 +205,8 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               db_client: Session = Depends(get_db_session),
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
-                              redis_session: Redis = Depends(get_redis_client)):
+                              redis_session: Redis = Depends(get_redis_client),
+                              background_tasks: BackgroundTasks = BackgroundTasks):
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
@@ -232,18 +235,23 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         mime_type=file.content_type,
         file_name=file.filename,
     )
-    db_chat.files.append(db_file)
 
-    if file.content_type.lower().find("sql") != -1:
+    if file.content_type.lower().find("sql") != -1 and db_chat is not None:
         print("It is a SQL Dump File")
-        # TODO: async coroutine work for processing sql dump
+        database_name = (f"{db_chat.title}-{file.filename}".lower().replace(" ", "")
+                         .replace("-", "_").replace(".", "_").strip(""))
+        db_file.database_name = database_name
+        background_tasks.add_task(process_dump_to_persist,db_client=db_client, chat_id=chat_id, sql_dump_path=str(file_path),
+                                  db_name=database_name)
 
     try:
         # indexes file
         db_chat.last_interacted_at = datetime.now()
         db_client.commit()
         db_client.refresh(db_chat)
-        index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
+        if file.content_type.lower().find("sql") == -1:
+            index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
+
         return {
             **db_chat.model_dump(),
             'files': db_chat.files,

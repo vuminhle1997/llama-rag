@@ -5,5 +5,6 @@ detect_sql_dump_type,
 load_dump_to_database,
 load_mysql_dump,
 load_pgsql_dump,
-PostgresMigration
+PostgresMigration,
+process_dump_to_persist
 )

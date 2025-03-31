@@ -1,7 +1,11 @@
+import uuid
+
 import mysql.connector
 import psycopg2
 import os
 import re
+from models import Chat, ChatFile
+from sqlmodel import Session
 
 pg_host = os.getenv("PG_HOST", "localhost")
 pg_port = os.getenv("PG_PORT", 5432)
@@ -156,3 +160,63 @@ def load_dump_to_database(sql_dump_path: str, db_name="TWICE"):
     elif db == "Postgres":
         print("PostgreSQL dump detected")
         load_pgsql_dump(pg_host, pg_port, pg_user, pg_password, db_name, sql_dump_path)
+
+def list_all_tables_from_db(host: str, port: int, user: str, password: str, db: str, db_type: str, **kwargs):
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            dbname=db,
+            **kwargs,
+        )
+        cursor = conn.cursor()
+        statement = f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+        if db_type == "MySQL":
+            statement = f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{db}';"
+        cursor.execute(statement)
+
+        tables = []
+        for table in cursor.fetchall():
+            tables.append(table[0])
+
+        print(tables)
+        cursor.close()
+        conn.close()
+        return tables
+    except psycopg2.Error as e:
+        print(f"PostgreSQL Error: {e}")
+        return []
+
+
+def process_dump_to_persist(db_client: Session, chat_id: str, sql_dump_path: str, db_name: str):
+    """ Background task that processes the SQL dump asynchronously. """
+    with db_client as db_session:  # ✅ Create a new session
+        db_chat = db_session.get(Chat, chat_id)  # ✅ Re-fetch the chat object
+        if not db_chat:
+            print("Chat not found in background task.")
+            return
+
+        db_file = ChatFile(
+            id=str(uuid.uuid4()).replace("-", "_"),
+            chat_id=chat_id,
+            path_name=sql_dump_path,
+            mime_type="application/sql",
+            file_name=sql_dump_path.split("/")[-1],
+            database_name=db_name
+        )
+
+        db_type = detect_sql_dump_type(sql_dump_path)
+        load_dump_to_database(sql_dump_path, db_name)
+
+        tables = list_all_tables_from_db(
+            host=pg_host, port=pg_port, user=pg_user, password=pg_password, db_type=db_type, db=db_name
+        )
+
+        db_file.database_type = db_type
+        db_file.tables = tables
+
+        db_chat.files.append(db_file)  # ✅ Now `db_chat` is properly attached to `db_session`
+        db_session.commit()  # ✅ Persist changes
+        db_session.refresh(db_chat)  # ✅ Refresh to update changes
