@@ -38,7 +38,7 @@ def create_filters_for_files(files: List[ChatFile]):
                     value=file.id,
                 )
             ]
-        ) for file in files
+        ) for file in files if "sql" not in file.mime_type.lower()
     ]
     return filters
 
@@ -54,7 +54,6 @@ def create_query_engines_from_filters(filters: List[MetadataFilter], chroma_vect
 def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     pd_tools = []
     for file in files:
-        print(file.mime_type)
         if "csv" in file.mime_type.lower():
             pd_query = PandasQueryEngine(
                 df=pd.read_csv(file.path_name),

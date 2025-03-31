@@ -9,24 +9,24 @@ from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
-from llama_index.storage.chat_store.postgres import PostgresChatStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
 from chromadb import Collection
-from typing import Optional, List
+from typing import Optional
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
-from sqlmodel import Session, select
+from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection
+from sqlmodel import Session
 
 from models import ChatMessage
-from models.chat import ChatCreate, Chat, ChatUpdate, ChatQuery
+from models.chat import Chat, ChatQuery
 from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
-from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
+from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
+                      deletes_file_index_from_collection, create_agent
                       , create_pandas_engines_tools_from_files)
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, process_dump_to_persist, delete_database_from_postgres
@@ -75,8 +75,7 @@ async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_ses
 @router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
                    request: Request = Request,
-                   redis_client: Redis = Depends(get_redis_client),
-                   chat_store: PostgresChatStore = Depends(get_chat_store)):
+                   redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -105,8 +104,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
                                   db_client: Session = Depends(get_db_session),
                                   request: Request = Request,
                                   redis_client: Redis = Depends(get_redis_client),
-                                  chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector),
-                                  chat_store: PostgresChatStore = Depends(get_chat_store)):
+                                  chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
     if not chat:
         raise HTTPException(status_code=404, detail="Body: text is required")
 
