@@ -6,5 +6,6 @@ load_dump_to_database,
 load_mysql_dump,
 load_pgsql_dump,
 PostgresMigration,
-process_dump_to_persist
+process_dump_to_persist,
+delete_database_from_postgres
 )

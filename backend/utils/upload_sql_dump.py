@@ -189,34 +189,44 @@ def list_all_tables_from_db(host: str, port: int, user: str, password: str, db: 
         print(f"PostgreSQL Error: {e}")
         return []
 
+def delete_database_from_postgres(database_name: str):
+    try:
+        conn = psycopg2.connect(
+            host=pg_host,
+            port=pg_port,
+            user=pg_user,
+            password=pg_password,
+            dbname='postgres',
+        )
+        conn.autocommit = True
+        cursor = conn.cursor()
+        statement = f"DROP DATABASE {database_name};"
+        cursor.execute(statement)
 
-def process_dump_to_persist(db_client: Session, chat_id: str, sql_dump_path: str, db_name: str):
+        print(f"Database '{database_name}' dropped successfully.")
+        cursor.close()
+        conn.close()
+    except psycopg2.Error as e:
+        print(f"PostgreSQL Error: {e}")
+        raise e
+
+
+def process_dump_to_persist(db_client: Session, chat_id: str, chat_file_id: str,
+                            sql_dump_path: str, database_type: str, db_name: str):
     """ Background task that processes the SQL dump asynchronously. """
-    with db_client as db_session:  # ✅ Create a new session
-        db_chat = db_session.get(Chat, chat_id)  # ✅ Re-fetch the chat object
+    with db_client as db_session:
+        db_chat = db_session.get(Chat, chat_id)
         if not db_chat:
             print("Chat not found in background task.")
             return
 
-        db_file = ChatFile(
-            id=str(uuid.uuid4()).replace("-", "_"),
-            chat_id=chat_id,
-            path_name=sql_dump_path,
-            mime_type="application/sql",
-            file_name=sql_dump_path.split("/")[-1],
-            database_name=db_name
-        )
-
-        db_type = detect_sql_dump_type(sql_dump_path)
+        db_file = db_session.get(ChatFile, chat_file_id)
         load_dump_to_database(sql_dump_path, db_name)
 
         tables = list_all_tables_from_db(
-            host=pg_host, port=pg_port, user=pg_user, password=pg_password, db_type=db_type, db=db_name
+            host=pg_host, port=pg_port, user=pg_user, password=pg_password, db_type=database_type, db=db_name
         )
-
-        db_file.database_type = db_type
         db_file.tables = tables
 
-        db_chat.files.append(db_file)  # ✅ Now `db_chat` is properly attached to `db_session`
-        db_session.commit()  # ✅ Persist changes
-        db_session.refresh(db_chat)  # ✅ Refresh to update changes
+        db_session.commit()
+        db_session.refresh(db_chat)

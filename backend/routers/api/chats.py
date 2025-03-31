@@ -29,7 +29,7 @@ from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
                       , create_pandas_engines_tools_from_files)
 from fastapi import BackgroundTasks
-from utils import detect_sql_dump_type, process_dump_to_persist
+from utils import detect_sql_dump_type, process_dump_to_persist, delete_database_from_postgres
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -241,12 +241,16 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         database_name = (f"{db_chat.title}-{file.filename}".lower().replace(" ", "")
                          .replace("-", "_").replace(".", "_").strip(""))
         db_file.database_name = database_name
-        background_tasks.add_task(process_dump_to_persist,db_client=db_client, chat_id=chat_id, sql_dump_path=str(file_path),
+        database_type = detect_sql_dump_type(str(file_path))
+        db_file.database_type = database_type
+        background_tasks.add_task(process_dump_to_persist, db_client=db_client, chat_id=chat_id,
+                                  sql_dump_path=str(file_path), database_type=database_type, chat_file_id=db_file.id,
                                   db_name=database_name)
 
     try:
         # indexes file
         db_chat.last_interacted_at = datetime.now()
+        db_chat.files.append(db_file)
         db_client.commit()
         db_client.refresh(db_chat)
         if file.content_type.lower().find("sql") == -1:
@@ -417,8 +421,12 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
     if file_path.exists():
         file_path.unlink()  # Delete file from storage
 
-    # deletes index from DB
-    deletes_file_index_from_collection(chroma_collection=chroma_collection, file_id=db_file.id)
+    if db_file.mime_type.find("sql") != -1:
+        # delete sql database
+        delete_database_from_postgres(db_file.database_name)
+    else:
+        # deletes index from DB
+        deletes_file_index_from_collection(chroma_collection=chroma_collection, file_id=db_file.id)
     # Remove file record from the database
     db_client.delete(db_file)
     db_chat.last_interacted_at = datetime.now()
