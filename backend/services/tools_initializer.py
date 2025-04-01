@@ -82,8 +82,33 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     ]
     return pd_tools
 
-def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_store: ChromaVectorStore)\
-        -> List[QueryEngineTool]:
+def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_store: ChromaVectorStore) -> List[QueryEngineTool]:
+    """
+    Creates a list of SQL Query Engine tools from the provided files and a Chroma vector store.
+
+    This function processes a list of `ChatFile` objects, filters them based on metadata, and initializes
+    SQL Query Engine tools for files with SQL content. It uses the provided Chroma vector store to create
+    vector indices and integrates them with SQL databases to enable query execution.
+
+    Args:
+        files (List[ChatFile]): A list of `ChatFile` objects, each representing a file with metadata
+            such as `id`, `mime_type`, `database_name`, and `tables`.
+        chroma_vector_store (ChromaVectorStore): An instance of `ChromaVectorStore` used for creating
+            vector indices and filtering based on metadata.
+
+    Returns:
+        List[QueryEngineTool]: A list of `QueryEngineTool` objects, each representing a SQL Query Engine
+        tool configured for a specific database and its tables.
+
+    Raises:
+        Any exceptions raised during the initialization of vector indices, SQL databases, or query engines
+        will propagate to the caller.
+
+    Notes:
+        - The function filters files based on their MIME type to identify SQL-related files.
+        - It initializes a SQL database connection for each SQL file and maps its tables to a vector index.
+        - The resulting tools are configured with a description and a retriever for querying the database.
+    """
     storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
 
     sql_tools = []
