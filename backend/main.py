@@ -23,11 +23,17 @@ import requests
 from llama_index.core.settings import Settings
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.llms.groq import Groq
+from llama_index.llms.google_genai import GoogleGenAI
 
 load_dotenv()
 
+groq = os.getenv("GROQ_API_KEY")
+
 # LLM
 llm = Ollama(model="llama3.1")
+# llm = Groq(model="llama-3.3-70b-versatile", api_key=groq)
+# llm = GoogleGenAI(model="gemini-2.0-flash")
 embed_model = OllamaEmbedding(model_name="nomic-embed-text")
 Settings.llm = llm
 Settings.embed_model = embed_model

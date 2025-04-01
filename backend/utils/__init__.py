@@ -6,7 +6,11 @@ load_dump_to_database,
 load_mysql_dump,
 load_pgsql_dump,
 PostgresMigration,
-process_dump_to_persist,
 delete_database_from_postgres,
-initialize_pg_url
+initialize_pg_url,
+list_all_tables_from_db,
+pg_host,
+pg_port,
+pg_password,
+pg_user
 )

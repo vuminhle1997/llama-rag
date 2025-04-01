@@ -82,25 +82,42 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     ]
     return pd_tools
 
-def create_sql_engines_tools_from_files(files: List[ChatFile]) -> List[QueryEngineTool]:
+def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_store: ChromaVectorStore)\
+        -> List[QueryEngineTool]:
+    storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+
     sql_tools = []
     for file in files:
+        filter = MetadataFilters(
+            filters=[
+                MetadataFilter(
+                    operator=FilterOperator.EQ,
+                    key="file_id",
+                    value=file.id,
+                )
+            ]
+        )
+        vector_index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store,
+                                                          storage_context=storage_context,
+                                                          embed_model=Settings.embed_model,
+                                                          filter=filter)
         if "sql" in file.mime_type.lower():
             pg_url = initialize_pg_url(file.database_name)
             db_engine = create_engine(pg_url)
+
             sql_database = SQLDatabase(db_engine, include_tables=file.tables)
             tables_node_mapping = SQLTableNodeMapping(sql_database)
             table_schema_objs = [
                 SQLTableSchema(table_name=table_name)
                 for table_name in file.tables
             ]
-            obj_index = ObjectIndex.from_objects(
-                table_schema_objs,
-                tables_node_mapping,
-                VectorStoreIndex,
+            obj_index = ObjectIndex.from_objects_and_index(
+                objects=table_schema_objs,
+                object_mapping=tables_node_mapping,
+                index=vector_index,
             )
             query_engine = SQLTableRetrieverQueryEngine(
-                sql_database=sql_database, table_retriever=obj_index.as_retriever(similarity_top_k=1)
+                sql_database=sql_database, table_retriever=obj_index.as_retriever(similarity_top_k=1, filter=filter),
             )
             tables_desc = ', '.join([str(x) for x in file.tables])
             desc = (f"A SQL Query Engine tool going through the Database '{file.database_name}'."

@@ -1,6 +1,8 @@
 import json
 import uuid
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
@@ -26,12 +28,16 @@ from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
-                      deletes_file_index_from_collection, create_agent
-, create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files)
+                      deletes_file_index_from_collection, create_agent, process_dump_to_persist,
+create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files)
 from fastapi import BackgroundTasks
-from utils import detect_sql_dump_type, process_dump_to_persist, delete_database_from_postgres
+from utils import detect_sql_dump_type, delete_database_from_postgres
 
 from llama_index.llms.google_genai import GoogleGenAI
+from llama_index.llms.groq import Groq
+
+load_dotenv()
+groq = os.getenv("GROQ_API_KEY")
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -160,7 +166,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
         ) for i, query_engine in enumerate(query_engines)
     ]
     pd_tools = create_pandas_engines_tools_from_files(files=files)
-    sql_tools = create_sql_engines_tools_from_files(files=files)
+    sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
     tools = tools + pd_tools
     tools = tools + sql_tools
 
@@ -170,11 +176,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
         model_from_chat = "llama3.1"
 
     # TODO, uncomment this for later. Just use an interference provider for faster response
-    # llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500)
-    llm = GoogleGenAI(
-        model="gemini-2.0-flash",
-        temperature=0.1
-    )
+    llm = Ollama(model="phi4:latest", temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 
@@ -251,7 +253,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_file.database_type = database_type
         background_tasks.add_task(process_dump_to_persist, db_client=db_client, chat_id=chat_id,
                                   sql_dump_path=str(file_path), database_type=database_type, chat_file_id=db_file.id,
-                                  db_name=database_name)
+                                  db_name=database_name, chroma_collection=chroma_collection)
 
     try:
         # indexes file
@@ -259,7 +261,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_chat.files.append(db_file)
         db_client.commit()
         db_client.refresh(db_chat)
-        if file.content_type.lower().find("sql") == -1:
+        if "sql" not in file.content_type.lower():
             index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
 
         return {
