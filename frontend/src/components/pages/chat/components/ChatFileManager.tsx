@@ -8,13 +8,15 @@ import {
   TableHead,
   TableBody,
   TableCell,
+  Table
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Table, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import React from 'react';
 import { Chat, File } from '@/frontend/types';
 import { UseMutationResult } from '@tanstack/react-query';
+import { de } from 'date-fns/locale';
 
 export interface ChatFileManagerProps {
   isFileDialogOpen: boolean;
@@ -47,26 +49,34 @@ export default function ChatFileManager({
 }: ChatFileManagerProps) {
   return (
     <Dialog open={isFileDialogOpen} onOpenChange={setIsFileDialogOpen}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[1200px]">
         <DialogHeader>
-          <DialogTitle>Dateien verwalten</DialogTitle>
+          <DialogTitle>Dokumente verwalten</DialogTitle>
+          <span>PDFs, Excel, CSVs und SQL-Dateien</span>
         </DialogHeader>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Dateiname</TableHead>
               <TableHead>Typ</TableHead>
+              <TableHead>Datenbankname</TableHead>
+              <TableHead>Tabellen</TableHead>
+              <TableHead>Datenbanktyp</TableHead>
               <TableHead>Hochgeladen am</TableHead>
               <TableHead>Aktionen</TableHead>
             </TableRow>
           </TableHeader>
+          
           <TableBody>
-            {chat.files?.map((file: File) => (
+          {chat.files?.map((file: File) => (
               <TableRow key={file.id}>
                 <TableCell>{file.file_name}</TableCell>
                 <TableCell>{file.mime_type}</TableCell>
+                <TableCell>{file.database_name || '-'}</TableCell>
+                <TableCell>{file.tables ? file.tables.join(', ') : '-'}</TableCell>
+                <TableCell>{file.database_type || '-'}</TableCell>
                 <TableCell>
-                  {format(new Date(file.created_at), 'PPpp')}
+                  {format(new Date(file.created_at), 'PPpp', { locale: de})}
                 </TableCell>
                 <TableCell>
                   <Button

@@ -1,6 +1,8 @@
 import json
 import uuid
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
@@ -9,25 +11,33 @@ from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.tools import QueryEngineTool, ToolMetadata
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
-from llama_index.storage.chat_store.postgres import PostgresChatStore
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
 from chromadb import Collection
-from typing import Optional, List
+from typing import Optional
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chat_store, get_chroma_collection
-from sqlmodel import Session, select
+from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection
+from sqlmodel import Session
 
 from models import ChatMessage
-from models.chat import ChatCreate, Chat, ChatUpdate, ChatQuery
+from models.chat import Chat, ChatQuery
 from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
-from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file, deletes_file_index_from_collection, create_agent
-                      , create_pandas_engines_tools_from_files)
+from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
+                      deletes_file_index_from_collection, create_agent, process_dump_to_persist,
+create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files)
+from fastapi import BackgroundTasks
+from utils import detect_sql_dump_type, delete_database_from_postgres
+
+from llama_index.llms.google_genai import GoogleGenAI
+from llama_index.llms.groq import Groq
+
+load_dotenv()
+groq = os.getenv("GROQ_API_KEY")
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -73,8 +83,7 @@ async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_ses
 @router.get("/{chat_id}")
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
                    request: Request = Request,
-                   redis_client: Redis = Depends(get_redis_client),
-                   chat_store: PostgresChatStore = Depends(get_chat_store)):
+                   redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -103,8 +112,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
                                   db_client: Session = Depends(get_db_session),
                                   request: Request = Request,
                                   redis_client: Redis = Depends(get_redis_client),
-                                  chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector),
-                                  chat_store: PostgresChatStore = Depends(get_chat_store)):
+                                  chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
     if not chat:
         raise HTTPException(status_code=404, detail="Body: text is required")
 
@@ -157,16 +165,18 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
             )
         ) for i, query_engine in enumerate(query_engines)
     ]
-
     pd_tools = create_pandas_engines_tools_from_files(files=files)
+    sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
     tools = tools + pd_tools
+    tools = tools + sql_tools
 
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
         model_from_chat = "llama3.1"
 
-    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500)
+    # TODO, uncomment this for later. Just use an interference provider for faster response
+    llm = Ollama(model="phi4:latest", temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 
@@ -203,13 +213,14 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               db_client: Session = Depends(get_db_session),
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
-                              redis_session: Redis = Depends(get_redis_client)):
+                              redis_session: Redis = Depends(get_redis_client),
+                              background_tasks: BackgroundTasks = BackgroundTasks):
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    belongs_to_user = check_property_belongs_to_user(request, redis_session, db_chat)
+    belongs_to_user, user_id = check_property_belongs_to_user(request, redis_session, db_chat)
     if not belongs_to_user:
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
     # If file is not attached to Upload, raise Error
@@ -232,14 +243,27 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         mime_type=file.content_type,
         file_name=file.filename,
     )
-    db_chat.files.append(db_file)
+
+    if file.content_type.lower().find("sql") != -1 and db_chat is not None:
+        print("It is a SQL Dump File")
+        database_name = (f"{db_chat.title}-{file.filename}".lower().replace(" ", "")
+                         .replace("-", "_").replace(".", "_").strip(""))
+        db_file.database_name = database_name
+        database_type = detect_sql_dump_type(str(file_path))
+        db_file.database_type = database_type
+        background_tasks.add_task(process_dump_to_persist, db_client=db_client, chat_id=chat_id,
+                                  sql_dump_path=str(file_path), database_type=database_type, chat_file_id=db_file.id,
+                                  db_name=database_name, chroma_collection=chroma_collection)
 
     try:
         # indexes file
         db_chat.last_interacted_at = datetime.now()
+        db_chat.files.append(db_file)
         db_client.commit()
         db_client.refresh(db_chat)
-        index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
+        if "sql" not in file.content_type.lower():
+            index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
+
         return {
             **db_chat.model_dump(),
             'files': db_chat.files,
@@ -405,8 +429,12 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
     if file_path.exists():
         file_path.unlink()  # Delete file from storage
 
-    # deletes index from DB
-    deletes_file_index_from_collection(chroma_collection=chroma_collection, file_id=db_file.id)
+    if db_file.mime_type.find("sql") != -1:
+        # delete sql database
+        delete_database_from_postgres(db_file.database_name)
+    else:
+        # deletes index from DB
+        deletes_file_index_from_collection(chroma_collection=chroma_collection, file_id=db_file.id)
     # Remove file record from the database
     db_client.delete(db_file)
     db_chat.last_interacted_at = datetime.now()

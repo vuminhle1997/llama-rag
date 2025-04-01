@@ -243,12 +243,16 @@ export default function SlugChatPage({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log(file)
+
     const allowedTypes = [
       'application/pdf',
       'text/csv',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/plain',
+      'application/x-sql',
+      'application/sql'
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -257,7 +261,7 @@ export default function SlugChatPage({
         type: 'error',
         title: 'Ungültiger Dateityp',
         description:
-          'Bitte laden Sie nur PDF, CSV, Excel oder TXT-Dateien hoch',
+          'Bitte laden Sie nur PDF, CSV, Excel, SQL- oder TXT-Dateien hoch',
       });
       setTimeout(() => setAlert(null), 5000);
       event.target.value = '';

@@ -1,6 +1,8 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Column
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
@@ -14,6 +16,9 @@ class BaseChatFile(SQLModel):
     path_name: str = Field(index=True, nullable=False)
     mime_type: str = Field(index=True, nullable=False)
     chat_id: Optional[str] = Field(default=None, foreign_key="chats.id")
+    database_name: Optional[str] = Field(default=None, nullable=True, index=True)
+    database_type: Optional[str] = Field(default=None, nullable=True, index=True)
+    tables: List[str] | None = Field(default=None, sa_column=Column(JSON))
 
 class ChatFile(BaseChatFile, Base, table=True):
     __tablename__ = "chat_files"

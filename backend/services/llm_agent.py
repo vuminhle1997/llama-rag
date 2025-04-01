@@ -11,7 +11,7 @@ def create_agent(memory: ChatMemoryBuffer, system_prompt: PromptTemplate, tools:
     agent = ReActAgent.from_llm(
         system_prompt=system_prompt,
         memory=memory,
-        max_iterations=20,
+        max_iterations=50,
         **kwargs,
         verbose=True,
         tools=tools,
