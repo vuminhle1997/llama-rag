@@ -110,6 +110,9 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
         - The resulting tools are configured with a description and a retriever for querying the database.
     """
     storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+    index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store,
+                                                      storage_context=storage_context,
+                                                      embed_model=Settings.embed_model)
 
     sql_tools = []
     for file in files:
@@ -122,10 +125,7 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
                 )
             ]
         )
-        vector_index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store,
-                                                          storage_context=storage_context,
-                                                          embed_model=Settings.embed_model,
-                                                          filter=filter)
+
         if "sql" in file.mime_type.lower():
             pg_url = initialize_pg_url(file.database_name)
             db_engine = create_engine(pg_url)
@@ -136,10 +136,16 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
                 SQLTableSchema(table_name=table_name)
                 for table_name in file.tables
             ]
+            nodes = tables_node_mapping.to_nodes(table_schema_objs)
+            for node in nodes:
+                node.metadata = {
+                    'file_id': file.id,
+                }
+
             obj_index = ObjectIndex.from_objects_and_index(
                 objects=table_schema_objs,
                 object_mapping=tables_node_mapping,
-                index=vector_index,
+                index=index,
             )
             query_engine = SQLTableRetrieverQueryEngine(
                 sql_database=sql_database, table_retriever=obj_index.as_retriever(similarity_top_k=1, filter=filter),

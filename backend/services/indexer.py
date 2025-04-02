@@ -11,8 +11,13 @@ from models import ChatFile
 from utils import initialize_pg_url
 
 
-def index_uploaded_file(path: str, chroma_collection: Collection):
+def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection):
     documents = SimpleDirectoryReader(input_files=[path]).load_data()
+    for document in documents:
+        document.metadata = {
+            'file_id': chat_file.id,
+        }
+
     vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
@@ -47,12 +52,19 @@ def index_sql_dump(file: ChatFile, chroma_collection: Collection):
     db_engine = create_engine(pg_url)
     sql_database = SQLDatabase(db_engine, include_tables=file.tables)
     tables_node_mapping = SQLTableNodeMapping(sql_database)
+
     table_schema_objs = [
         SQLTableSchema(table_name=table_name)
         for table_name in file.tables
     ]
+    nodes = tables_node_mapping.to_nodes(objs=table_schema_objs)
+    for node in nodes:
+        node.metadata = {
+            'file_id': file.id,
+        }
+
     ObjectIndex.from_objects(
-        objects=table_schema_objs,
+        objects=nodes,
         object_mapping=tables_node_mapping,
         index_cls=VectorStoreIndex,
         storage_context=storage_context,
