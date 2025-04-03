@@ -177,7 +177,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
 
         db_file = ChatFile(
             id=str(uuid.uuid4()),
-            filename_name=None,
+            file_name=url,
             path_name=url,
             mime_type='text/html',
             chat_id=db_chat.id,
@@ -186,11 +186,16 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
             tables=None,
         )
 
+        for document in documents:
+            document.metadata = {
+                'file_id': db_file.id,
+            }
+
         storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
         VectorStoreIndex.from_documents(documents=[documents[0]],storage_context=storage_context,
                                                 show_progress=True)
         db_chat.files.append(db_file)
-        return url
+        return url, documents[0]
 
     scrape_tool = FunctionTool.from_defaults(
         async_fn=async_scrape_from_url,
@@ -208,7 +213,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
         model_from_chat = "llama3.1"
 
     # TODO, uncomment this for later. Just use an interference provider for faster response
-    llm = Ollama(model="phi4:latest", temperature=db_chat.temperature, request_timeout=500)
+    llm = Ollama(model="hf.co/MaziyarPanahi/Meta-Llama-3.1-8B-Instruct-GGUF:Q8_0", temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 
