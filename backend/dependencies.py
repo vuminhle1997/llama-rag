@@ -45,14 +45,14 @@ def get_redis_client():
         redis.close()
 
 def get_chroma_vector():
-    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-2'))
+    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     yield chroma_vector_store
 
 
 
 def get_chroma_collection():
-    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-2'))
+    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     yield chroma_collection
 
 def get_chat_store():

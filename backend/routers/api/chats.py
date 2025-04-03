@@ -5,12 +5,13 @@ import os
 from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from llama_index.core import PromptTemplate
+from llama_index.core import PromptTemplate, StorageContext, VectorStoreIndex
 from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.core.tools import QueryEngineTool, ToolMetadata, FunctionTool
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
+from llama_index.readers.web import BeautifulSoupWebReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
@@ -161,14 +162,50 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
             query_engine=query_engine,
             metadata=ToolMetadata(
                 name=f"query_engine_for_{i}",
-                description=f"Simple query engine for going through the file: {files[i].file_name}",
+                description=f"Simple query engine for going through the document: {files[i].file_name}",
             )
         ) for i, query_engine in enumerate(query_engines)
     ]
     pd_tools = create_pandas_engines_tools_from_files(files=files)
     sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
+
+    async def async_scrape_from_url(url: str):
+        """A custom function tool, that parses a webpage url from a chat message, scrapes the content webpage,
+        index that and stores that in the DB"""
+        reader = BeautifulSoupWebReader()
+        documents = reader.load_data([url])
+
+        db_file = ChatFile(
+            id=str(uuid.uuid4()),
+            file_name=url,
+            path_name=url,
+            mime_type='text/html',
+            chat_id=db_chat.id,
+            database_name=None,
+            database_type=None,
+            tables=None,
+        )
+
+        for document in documents:
+            document.metadata = {
+                'file_id': db_file.id,
+            }
+
+        storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+        VectorStoreIndex.from_documents(documents=[documents[0]],storage_context=storage_context,
+                                                show_progress=True)
+        db_chat.files.append(db_file)
+        return url, documents[0]
+
+    scrape_tool = FunctionTool.from_defaults(
+        async_fn=async_scrape_from_url,
+        name="scrape_from_url",
+        description="Scrape from URL",
+    )
+
     tools = tools + pd_tools
     tools = tools + sql_tools
+    tools = tools + [scrape_tool]
 
     if db_chat.model:
         model_from_chat = db_chat.model
@@ -176,7 +213,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
         model_from_chat = "llama3.1"
 
     # TODO, uncomment this for later. Just use an interference provider for faster response
-    llm = Ollama(model="phi4:latest", temperature=db_chat.temperature, request_timeout=500)
+    llm = Ollama(model="hf.co/MaziyarPanahi/Meta-Llama-3.1-8B-Instruct-GGUF:Q8_0", temperature=db_chat.temperature, request_timeout=500)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 
@@ -262,7 +299,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_client.commit()
         db_client.refresh(db_chat)
         if "sql" not in file.content_type.lower():
-            index_uploaded_file(path=str(file_path), chroma_collection=chroma_collection)
+            index_uploaded_file(path=str(file_path), chat_file=db_file, chroma_collection=chroma_collection)
 
         return {
             **db_chat.model_dump(),
