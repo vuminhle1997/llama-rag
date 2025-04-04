@@ -30,7 +30,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
                       deletes_file_index_from_collection, create_agent, process_dump_to_persist,
-create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files)
+create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files, create_search_engine_tool)
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
@@ -202,10 +202,12 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
         name="scrape_from_url",
         description="Scrape from URL",
     )
+    search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
 
     tools = tools + pd_tools
     tools = tools + sql_tools
     tools = tools + [scrape_tool]
+    tools = tools + [search_engine_tool]
 
     if db_chat.model:
         model_from_chat = db_chat.model
