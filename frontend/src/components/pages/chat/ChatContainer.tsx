@@ -2,7 +2,7 @@
 
 import TypewriterEffect from '@/components/ui/typewriter';
 import { Chat } from '@/frontend/types';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { marked } from 'marked';
 import AIPlaceholder from '@/static/templates/helper.webp';
 import { v4 } from 'uuid';
@@ -16,6 +16,9 @@ import {
   selectSubmittedMessages,
   setMessages,
 } from '@/frontend/store/reducer/app_reducer';
+import { Button } from '@/components/ui/button';
+import { MoreVerticalIcon } from 'lucide-react';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -66,6 +69,9 @@ export default function ChatContainer({
   submittedMessages,
 }: ChatContainerProps) {
   const { ref, inView } = useInView();
+  const {
+    toggleSidebar,
+  } = useSidebar();
 
   const {
     data: messagesFetched,
@@ -99,8 +105,19 @@ export default function ChatContainer({
     }
   }, [messagesFetched, chatContainerRef]);
 
+  const handleSideBarToggle = useCallback(() => {
+    toggleSidebar();
+  }, [toggleSidebar]);
+
   return (
     <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
+      <Button
+        variant="outline"
+        className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4 absolute"
+        onClick={() => handleSideBarToggle()}
+      >
+        <MoreVerticalIcon className="h-4 w-4" />
+      </Button>
       {!chat.messages ||
         (chat.messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">

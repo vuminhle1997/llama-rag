@@ -17,6 +17,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
@@ -47,83 +48,81 @@ export default function SideBarNavigation() {
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
 
+  const { open, toggleSidebar } = useSidebar();
+
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
   }, [showCommands, dispatch]);
+
+  const handleSideBarToggle = useCallback(() => {
+    toggleSidebar();
+  }, [toggleSidebar]);
 
   return (
     <Sidebar>
       <SidebarHeader>
         <div className="flex justify-between">
           <div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Dialog>
-                  <DialogTrigger>
-                    <Button
-                      variant="outline"
-                      className="bg-primary text-primary-foreground hover:bg-primary/10"
-                    >
-                      <MoreVerticalIcon className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <ChatEntryForm />
-                </Dialog>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Neuen Chat erstellen</p>
-                <div className="flex items-center justify-center text-center">
-                  
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    className="bg-primary text-primary-foreground hover:bg-primary/10"
+                    onClick={() => handleSideBarToggle()}
+                  >
+                    <MoreVerticalIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Neuen Chat erstellen</p>
+                  <div className="flex items-center justify-center text-center"></div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Dialog>
-                  <DialogTrigger>
-                    <Button
-                      variant="outline"
-                      className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <ChatEntryForm />
-                </Dialog>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Neuen Chat erstellen</p>
-                <div className="flex items-center justify-center text-center">
-                  
-                </div>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger >
-                <Button
-                  onClick={handleShowCommandDialog}
-                  className="bg-primary text-primary-foreground hover:bg-primary/50"
-                >
-                  <MagnifyingGlassCircleIcon className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Bisherigen Chat suchen.</p>
-                <div className="flex items-center justify-center text-center">
-                  <p>
-                    Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
-                    <br />
-                    um die Suche zu öffnen.
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Dialog>
+                    <DialogTrigger>
+                      <Button
+                        variant="outline"
+                        className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
+                      >
+                        <PencilSquareIcon className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <ChatEntryForm />
+                  </Dialog>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Neuen Chat erstellen</p>
+                  <div className="flex items-center justify-center text-center"></div>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    onClick={handleShowCommandDialog}
+                    className="bg-primary text-primary-foreground hover:bg-primary/50"
+                  >
+                    <MagnifyingGlassCircleIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Bisherigen Chat suchen.</p>
+                  <div className="flex items-center justify-center text-center">
+                    <p>
+                      Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
+                      <br />
+                      um die Suche zu öffnen.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </SidebarHeader>

@@ -14,7 +14,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/frontend';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { useGetProfilePicture } from '@/frontend/queries/avatar';
 import { useGetFavourites } from '@/frontend/queries/favourites';
 import { useAuth } from '@/frontend/queries';
