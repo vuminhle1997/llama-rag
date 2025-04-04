@@ -14,6 +14,9 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
@@ -26,6 +29,12 @@ import {
 } from '@/frontend';
 import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { ChevronDown, MoreVerticalIcon } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../ui/collapsible';
 
 /**
  * SideBarNavigation component renders the sidebar navigation for the application.
@@ -44,39 +53,63 @@ export default function SideBarNavigation() {
 
   return (
     <Sidebar>
-      <div className="sticky top-0 z-10 bg-background">
-        <SidebarHeader>
-          <div className="relative">
-            <Link href="/">
-              <Image className="p-4" alt="global CT Logo" src={Logo} />
-            </Link>
-          </div>
-        </SidebarHeader>
-      </div>
-
-      <SidebarContent>
-        <div className="row col-span-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
-              >
-                <PencilSquareIcon className="h-4 w-4" />
-                Neuen Chat erstellen
-              </Button>
-            </DialogTrigger>
-            <ChatEntryForm />
-          </Dialog>
+      <SidebarHeader>
+        <div className="flex justify-between">
+          <div>
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
+                <Dialog>
+                  <DialogTrigger>
+                    <Button
+                      variant="outline"
+                      className="bg-primary text-primary-foreground hover:bg-primary/10"
+                    >
+                      <MoreVerticalIcon className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <ChatEntryForm />
+                </Dialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Neuen Chat erstellen</p>
+                <div className="flex items-center justify-center text-center">
+                  
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          </div>
+          <div className="">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Dialog>
+                  <DialogTrigger>
+                    <Button
+                      variant="outline"
+                      className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <ChatEntryForm />
+                </Dialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Neuen Chat erstellen</p>
+                <div className="flex items-center justify-center text-center">
+                  
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger >
                 <Button
                   onClick={handleShowCommandDialog}
                   className="bg-primary text-primary-foreground hover:bg-primary/50"
                 >
                   <MagnifyingGlassCircleIcon className="h-4 w-4" />
-                  Suchen
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -91,8 +124,24 @@ export default function SideBarNavigation() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          </div>
         </div>
+      </SidebarHeader>
 
+      <SidebarContent>
+        <Collapsible defaultOpen className="group/collapsible">
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger>
+                Help
+                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent />
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
         <ChatsNavigation />
       </SidebarContent>
 
