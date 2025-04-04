@@ -1,3 +1,4 @@
+import uuid
 from typing import List
 
 import pandas as pd
@@ -12,9 +13,11 @@ from llama_index.core.vector_stores import (
     MetadataFilters,
     FilterOperator,
 )
-from models import ChatFile
+from models import ChatFile, Chat
 from llama_index.core import StorageContext, VectorStoreIndex, SQLDatabase
 from llama_index.core.tools import FunctionTool, QueryEngineTool
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.readers.web import BeautifulSoupWebReader
 from sqlalchemy import create_engine
 from utils import initialize_pg_url
 
@@ -161,3 +164,75 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
                 )
             )
     return sql_tools
+
+def create_search_engine_tool(chroma_vector_store: ChromaVectorStore, chat: Chat):
+    """
+    Creates a search engine tool that uses DuckDuckGo to search for documents based on a user-provided query.
+    The tool retrieves hyperlinks, scrapes the content of the URLs, and stores the documents in a vector store.
+
+    Args:
+        chroma_vector_store (ChromaVectorStore): The vector store used for storing document embeddings.
+        chat (Chat): The chat instance to associate the retrieved documents with.
+
+    Returns:
+        FunctionTool: A tool that can be used to perform searches and store the results in the vector store.
+
+    The tool performs the following steps:
+        1. Uses DuckDuckGo to perform a search and retrieve hyperlinks.
+        2. Scrapes the content of the retrieved URLs using BeautifulSoupWebReader.
+        3. Creates ChatFile instances for each document and associates them with the provided chat.
+        4. Stores the documents in the vector store with metadata and embeddings.
+    """
+    storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+    reader = DuckDuckGoSearchToolSpec()
+
+    def search_engine_tool(query: str):
+        """
+        Perform a search query using DuckDuckGo, scrape the resulting web pages, and process the content into documents.
+
+        Args:
+            query (str): The search query string.
+
+        Returns:
+            List[str]: A list of text content extracted from the scraped web pages.
+
+        Workflow:
+            1. Perform a DuckDuckGo search using the provided query and retrieve up to 3 results.
+            2. Extract URLs from the search results.
+            3. Scrape the content of the web pages corresponding to the URLs using BeautifulSoupWebReader.
+            4. For each scraped document:
+                - Create a ChatFile object to represent the document metadata.
+                - Append the ChatFile object to the chat's file list.
+                - Store the document in a vector store index for further processing.
+            5. Return the text content of the scraped documents.
+        """
+        hyperlinks = reader.duckduckgo_full_search(query, max_results=3)
+        urls = [hyperlink['href'] for hyperlink in hyperlinks]
+        scraper = BeautifulSoupWebReader()
+        documents = scraper.load_data(urls=urls)
+
+        for i, document in enumerate(documents):
+            db_file = ChatFile(
+                id=str(uuid.uuid4()),
+                file_name=urls[i],
+                path_name=urls[i],
+                database_name=None,
+                database_type=None,
+                chat_id=chat.id,
+                tables=None,
+                mime_type="text/html"
+            )
+            document.metadata = {
+                'file_id': db_file.id,
+            }
+            chat.files.append(db_file)
+            VectorStoreIndex.from_documents(documents=[document], vector_store=chroma_vector_store,
+                                            storage_context=storage_context, embed_model=Settings.embed_model,
+                                            show_progress=True)
+        return [document.text for document in documents]
+
+    return FunctionTool.from_defaults(
+        fn=search_engine_tool,
+        name="DuckDuckGoSearchTool",
+        description="Search engine tool for searching documents with DuckDuckGo by the user's requested query.",
+    )
