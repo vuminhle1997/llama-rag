@@ -15,7 +15,10 @@ import {
   useAppSelector,
 } from '@/frontend';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
-import { useGetProfilePicture } from '@/frontend/queries/avatar';
+import {
+  fetchAvatarOfChat,
+  useGetProfilePicture,
+} from '@/frontend/queries/avatar';
 import { useGetFavourites } from '@/frontend/queries/favourites';
 import { useAuth } from '@/frontend/queries';
 import FavouritesDialog from '../navigations/FavouritesDialog';
@@ -34,7 +37,7 @@ import {
 } from '@/components/ui/command';
 import { useForm } from 'react-hook-form';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
-import { Chat } from '@/frontend/types';
+import { Chat, Favourite, Page } from '@/frontend/types';
 import { v4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 
@@ -86,7 +89,6 @@ export default function LayoutProvider({
 
   useEffect(() => {
     if (value.length > 0) {
-      console.log('Search value:', value);
       getChatsByTitle(value)
         .then(chats => {
           setSearchedChats(chats);
@@ -121,6 +123,18 @@ export default function LayoutProvider({
       dispatch(
         setFavouriteChats(favouriteChats.items.map(favorite => favorite.chat))
       );
+      Promise.all(
+        favouriteChats.items.map(favourite =>
+          fetchAvatarOfChat(favourite.chat.id)
+        )
+      ).then(avatars => {
+        console.log(avatars)
+        const updatedChats = favouriteChats.items.map((favourite, index) => ({
+          ...favourite.chat,
+          avatar_blob: avatars[index].avatar_blob,
+        }));
+        dispatch(setFavouriteChats(updatedChats));
+      });
     }
   }, [favouriteChats]);
 
@@ -135,8 +149,18 @@ export default function LayoutProvider({
 
   useEffect(() => {
     if (data) {
-      dispatch(setChats(data.items));
       setSearchedChats(data.items);
+      Promise.all(
+        data.items.map(chat =>
+          fetchAvatarOfChat(chat.id)
+        )
+      ).then(avatars => {
+        const updatedChats = data.items.map((chat, index) => ({
+          ...chat,
+          avatar_blob: avatars[index].avatar_blob,
+        }));
+        dispatch(setChats(updatedChats));
+      });
     }
   }, [data]);
 

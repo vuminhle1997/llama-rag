@@ -97,7 +97,8 @@ export default function FavouritesNavigation() {
                           className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${chat.id === slug ? 'bg-primary/20' : ''}`}
                           key={`favourite-${index}`}
                         >
-                          <Link href={`/chat/${chat.id}`} className="flex-1">
+                          <Link href={`/chat/${chat.id}`} className="flex-1 flex justify-center items-center">
+                            <img src={chat.avatar_blob} alt={`Avatar of ${chat.title}`} className="h-10 w-10 rounded-full mr-2 border-2 border-primary" />
                             <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
                               {chat.title}
                             </SidebarMenuButton>

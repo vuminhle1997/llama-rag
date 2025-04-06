@@ -22,7 +22,7 @@ import {
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
-import { useGetAvatar } from '@/frontend/queries/avatar';
+import { fetchAvatarOfChat, useGetAvatar } from '@/frontend/queries/avatar';
 import { setChats } from '@/frontend/store/reducer/app_reducer';
 import {
   usePostFavourite,
@@ -150,7 +150,9 @@ export default function SlugChatPage({
   const [pendingMessage, setPendingMessage] = React.useState<string | null>(
     null
   );
-  const [submittedMessages, setSubmittedMessages] = React.useState<Message[]>([]);
+  const [submittedMessages, setSubmittedMessages] = React.useState<Message[]>(
+    []
+  );
   const [alert, setAlert] = React.useState<{
     show: boolean;
     type: 'success' | 'error';
@@ -188,12 +190,20 @@ export default function SlugChatPage({
   const messageText = watch('message');
 
   useEffect(() => {
-    dispatch(setAppState('loading'))
-  }, [])
+    dispatch(setAppState('loading'));
+  }, []);
 
   useEffect(() => {
     getChats(50, 1).then(chats => {
-      dispatch(setChats(chats.items));
+      Promise.all(chats.items.map(chat => fetchAvatarOfChat(chat.id))).then(
+        avatars => {
+          const updatedChats = chats.items.map((chat, index) => ({
+            ...chat,
+            avatar_blob: avatars[index].avatar_blob,
+          }));
+          dispatch(setChats(updatedChats));
+        }
+      );
     });
   }, [handleFormSubmit]);
 
@@ -243,7 +253,7 @@ export default function SlugChatPage({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log(file)
+    console.log(file);
 
     const allowedTypes = [
       'application/pdf',
@@ -252,7 +262,7 @@ export default function SlugChatPage({
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/plain',
       'application/x-sql',
-      'application/sql'
+      'application/sql',
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -330,7 +340,7 @@ export default function SlugChatPage({
 
       const messagesToSubmit = [newMessage, userMessage];
 
-      setSubmittedMessages([...messagesToSubmit, ...submittedMessages])
+      setSubmittedMessages([...messagesToSubmit, ...submittedMessages]);
       setMessages(prevMessages => [...prevMessages, newMessage]);
       setLastMessageIsTyping(true);
 
@@ -441,61 +451,61 @@ export default function SlugChatPage({
       fallback={<ChatLoadingScreen />}
       errorFallback={<ChatNotFoundScreen />}
     >
-      {
-        appState === 'idle' && <main className="flex flex-col h-screen w-screen bg-gray-50">
-        {alert && <ChatAlertDialog {...alert} />}
+      {appState === 'idle' && (
+        <main className="flex flex-col h-screen w-screen bg-gray-50">
+          {alert && <ChatAlertDialog {...alert} />}
 
-        {(isUploading || deleteFileMutation.isPending) && (
-          <PendingMessageLoader
-            message={
-              isUploading
-                ? 'Datei wird hochgeladen...'
-                : 'Datei wird gelöscht...'
-            }
-          />
-        )}
-        {!chat ? (
-          <UserChatNotFoundScreen />
-        ) : (
-          <>
-            {/* Chat Messages Container */}
-            <ChatContainer {...chatProps} />
+          {(isUploading || deleteFileMutation.isPending) && (
+            <PendingMessageLoader
+              message={
+                isUploading
+                  ? 'Datei wird hochgeladen...'
+                  : 'Datei wird gelöscht...'
+              }
+            />
+          )}
+          {!chat ? (
+            <UserChatNotFoundScreen />
+          ) : (
+            <>
+              {/* Chat Messages Container */}
+              <ChatContainer {...chatProps} />
 
-            {/* Input Area */}
-            <ChatTextFieldArea {...chatTextFieldAreaProps} />
+              {/* Input Area */}
+              <ChatTextFieldArea {...chatTextFieldAreaProps} />
 
-            {/* File Management Dialog */}
-            <ChatFileManager {...fileManagerProps} />
+              {/* File Management Dialog */}
+              <ChatFileManager {...fileManagerProps} />
 
-            {/* Settings Button */}
-            <ChatSettingsDialog {...chatSettingsProps} />
+              {/* Settings Button */}
+              <ChatSettingsDialog {...chatSettingsProps} />
 
-            {/* Favourite Alert Dialog */}
-            <ChatFavouriteAlertDialog {...favouriteAlertProps} />
+              {/* Favourite Alert Dialog */}
+              <ChatFavouriteAlertDialog {...favouriteAlertProps} />
 
-            {/* Edit Chat Dialog */}
-            <ChatEditAlertDialog {...chatEditAlertProps} />
+              {/* Edit Chat Dialog */}
+              <ChatEditAlertDialog {...chatEditAlertProps} />
 
-            {/* Delete Confirmation Dialog */}
-            <ChatDeleteAlertDialog {...chatDeleteDialogProps} />
+              {/* Delete Confirmation Dialog */}
+              <ChatDeleteAlertDialog {...chatDeleteDialogProps} />
 
-            {/* Create Chat Dialog */}
-            <Dialog
-              open={isCreateChatDialogOpen}
-              onOpenChange={setIsCreateChatDialogOpen}
-            >
-              <ChatEntryForm
-                mode="create"
-                onSuccess={() => {
-                  setIsCreateChatDialogOpen(false);
-                  router.push('/');
-                }}
-              />
-            </Dialog>
-          </>
-        )}
-      </main>
-      }
+              {/* Create Chat Dialog */}
+              <Dialog
+                open={isCreateChatDialogOpen}
+                onOpenChange={setIsCreateChatDialogOpen}
+              >
+                <ChatEntryForm
+                  mode="create"
+                  onSuccess={() => {
+                    setIsCreateChatDialogOpen(false);
+                    router.push('/');
+                  }}
+                />
+              </Dialog>
+            </>
+          )}
+        </main>
+      )}
     </AuthProvider>
   );
 }
