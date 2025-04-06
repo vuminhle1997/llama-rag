@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreVerticalIcon } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar';
+import { Bars3Icon } from '@heroicons/react/24/solid';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -69,9 +70,7 @@ export default function ChatContainer({
   submittedMessages,
 }: ChatContainerProps) {
   const { ref, inView } = useInView();
-  const {
-    toggleSidebar,
-  } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
 
   const {
     data: messagesFetched,
@@ -111,13 +110,15 @@ export default function ChatContainer({
 
   return (
     <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
-      <Button
-        variant="outline"
-        className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4 absolute"
-        onClick={() => handleSideBarToggle()}
-      >
-        <MoreVerticalIcon className="h-4 w-4" />
-      </Button>
+      {!open && (
+        <Button
+          variant="outline"
+          className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4 absolute"
+          onClick={() => handleSideBarToggle()}
+        >
+          <Bars3Icon className="h-4 w-4" />
+        </Button>
+      )}
       {!chat.messages ||
         (chat.messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">

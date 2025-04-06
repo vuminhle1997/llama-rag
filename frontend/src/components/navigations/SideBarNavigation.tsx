@@ -6,8 +6,10 @@ import Link from 'next/link';
 import Logo from '@/static/globalLogo.png';
 import Image from 'next/image';
 import {
+  HeartIcon,
   MagnifyingGlassCircleIcon,
   PencilSquareIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import {
@@ -18,11 +20,16 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent,
   useSidebar,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
+  selectFavouriteChats,
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -30,12 +37,19 @@ import {
 } from '@/frontend';
 import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { ChevronDown, MoreVerticalIcon } from 'lucide-react';
+import { ChevronDown, MoreHorizontal } from 'lucide-react';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import FavouritesNavigation from './FavouritesNavigation';
 
 /**
  * SideBarNavigation component renders the sidebar navigation for the application.
@@ -47,6 +61,7 @@ import {
 export default function SideBarNavigation() {
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
+  const favouriteChats = useAppSelector(selectFavouriteChats);
 
   const { open, toggleSidebar } = useSidebar();
 
@@ -71,7 +86,7 @@ export default function SideBarNavigation() {
                     className="bg-primary text-primary-foreground hover:bg-primary/10"
                     onClick={() => handleSideBarToggle()}
                   >
-                    <MoreVerticalIcon className="h-4 w-4" />
+                    <XMarkIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -128,19 +143,7 @@ export default function SideBarNavigation() {
       </SidebarHeader>
 
       <SidebarContent>
-        <Collapsible defaultOpen className="group/collapsible">
-          <SidebarGroup>
-            <SidebarGroupLabel asChild>
-              <CollapsibleTrigger>
-                Help
-                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent />
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
+        <FavouritesNavigation />
         <ChatsNavigation />
       </SidebarContent>
 
