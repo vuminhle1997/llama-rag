@@ -150,17 +150,7 @@ export default function LayoutProvider({
   useEffect(() => {
     if (data) {
       setSearchedChats(data.items);
-      Promise.all(
-        data.items.map(chat =>
-          fetchAvatarOfChat(chat.id)
-        )
-      ).then(avatars => {
-        const updatedChats = data.items.map((chat, index) => ({
-          ...chat,
-          avatar_blob: avatars[index].avatar_blob,
-        }));
-        dispatch(setChats(updatedChats));
-      });
+      dispatch(setChats(data.items))
     }
   }, [data]);
 

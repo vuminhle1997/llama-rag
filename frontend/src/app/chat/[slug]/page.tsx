@@ -166,7 +166,6 @@ export default function SlugChatPage({
   }>({ show: false, success: false });
 
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
-  const { avatar } = useGetAvatar(slug);
   const { searchMutation } = useChat(slug);
 
   const deleteFileMutation = useDeleteFile(slug);
@@ -194,17 +193,7 @@ export default function SlugChatPage({
   }, []);
 
   useEffect(() => {
-    getChats(50, 1).then(chats => {
-      Promise.all(chats.items.map(chat => fetchAvatarOfChat(chat.id))).then(
-        avatars => {
-          const updatedChats = chats.items.map((chat, index) => ({
-            ...chat,
-            avatar_blob: avatars[index].avatar_blob,
-          }));
-          dispatch(setChats(updatedChats));
-        }
-      );
-    });
+    // TODO: reload chats for side navigation on input submission
   }, [handleFormSubmit]);
 
   useEffect(() => {
@@ -384,7 +373,6 @@ export default function SlugChatPage({
     messageText,
     pendingMessage,
     isTyping,
-    avatar,
     profilePicture,
     handleMessageLoad,
     submittedMessages,

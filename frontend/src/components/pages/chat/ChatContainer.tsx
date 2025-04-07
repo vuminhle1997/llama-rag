@@ -4,7 +4,6 @@ import TypewriterEffect from '@/components/ui/typewriter';
 import { Chat } from '@/frontend/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { marked } from 'marked';
-import AIPlaceholder from '@/static/templates/helper.webp';
 import { v4 } from 'uuid';
 import { Message } from '@/frontend/types';
 import { getMessages } from '@/frontend/queries/messages';
@@ -17,16 +16,15 @@ import {
   setMessages,
 } from '@/frontend/store/reducer/app_reducer';
 import { Button } from '@/components/ui/button';
-import { MoreVerticalIcon } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Bars3Icon } from '@heroicons/react/24/solid';
+import Image from 'next/image';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
   chat: Chat;
   messageText: string;
   reset: (message: { message: string }) => void;
-  avatar?: string | null;
   profilePicture?: string | null;
   pendingMessage: string | null;
   isTyping: boolean;
@@ -61,7 +59,6 @@ export default function ChatContainer({
   chat,
   messageText,
   reset,
-  avatar,
   profilePicture,
   pendingMessage,
   isTyping,
@@ -86,6 +83,7 @@ export default function ChatContainer({
     },
     initialPageParam: 1,
     enabled: !!chat.id,
+    
   });
 
   useEffect(() => {
@@ -177,10 +175,18 @@ export default function ChatContainer({
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 flex flex-col-reverse">
         {isTyping && (
           <div className="flex items-start space-x-4">
-            <img
-              src={avatar ? avatar : AIPlaceholder.src}
+            <Image
+              src={
+                chat.avatar_path
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  : '/ai.jpeg'
+              }
               alt="The AI assistant's avatar typing indicator"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+              width={40}
+              height={40}
             />
             <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
               <div className="flex space-x-2">
@@ -207,10 +213,18 @@ export default function ChatContainer({
               <p className="text-white">{pendingMessage}</p>
             </div>
 
-            <img
-              src={profilePicture ? profilePicture : AIPlaceholder.src}
+            <Image
+              src={
+                chat.avatar_path
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  : '/ai.jpeg'
+              }
               alt="User Profile Picture"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+              width={40}
+              height={40}
             />
           </div>
         )}
@@ -229,10 +243,20 @@ export default function ChatContainer({
               {message.role !== 'user' && (
                 <>
                   {message.role === 'assistant' ? (
-                    <img
-                      src={avatar ? avatar : AIPlaceholder.src}
+                    <Image
+                      src={
+                        chat.avatar_path
+                          ? `${
+                              process.env.NEXT_PUBLIC_BACKEND_URL
+                            }/uploads/avatars/${chat.avatar_path
+                              .split('/')
+                              .pop()}`
+                          : '/ai.jpeg'
+                      }
                       alt="The avatar of the AI assistant chat partner"
                       className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                      width={40}
+                      height={40}
                     />
                   ) : (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
@@ -303,10 +327,20 @@ export default function ChatContainer({
                     {message.role !== 'user' && (
                       <>
                         {message.role === 'assistant' ? (
-                          <img
-                            src={avatar ? avatar : AIPlaceholder.src}
+                          <Image
+                            src={
+                              chat.avatar_path
+                                ? `${
+                                    process.env.NEXT_PUBLIC_BACKEND_URL
+                                  }/uploads/avatars/${chat.avatar_path
+                                    .split('/')
+                                    .pop()}`
+                                : '/ai.jpeg'
+                            }
                             alt="The avatar of the AI assistant chat partner"
                             className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
