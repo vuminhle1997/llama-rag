@@ -51,6 +51,31 @@ export const useGetAvatar = (chatId: string) => {
   return { avatar };
 };
 
+export const fetchAvatarOfChat = async (chatId: string) => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/avatar/${chatId}`,
+      {
+        withCredentials: true,
+        responseType: 'blob',
+        headers: {
+          'Cache-Control':
+            'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
+    return {
+      avatar_blob: URL.createObjectURL(response.data),
+      chat_id: chatId,
+    };
+  } catch (error) {
+    console.error('Error fetching avatar:', error);
+    throw error;
+  }
+};
+
 /**
  * Custom hook to fetch and return the user's profile picture.
  *

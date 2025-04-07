@@ -30,4 +30,5 @@ export type Chat = {
   messages: Message[];
   message?: LLMAgentResponse;
   favourite?: Favourite;
+  avatar_blob?: string;
 };

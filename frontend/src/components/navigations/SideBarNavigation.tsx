@@ -6,19 +6,30 @@ import Link from 'next/link';
 import Logo from '@/static/globalLogo.png';
 import Image from 'next/image';
 import {
+  HeartIcon,
   MagnifyingGlassCircleIcon,
   PencilSquareIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  useSidebar,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
+  selectFavouriteChats,
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -26,6 +37,19 @@ import {
 } from '@/frontend';
 import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { ChevronDown, MoreHorizontal } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import FavouritesNavigation from './FavouritesNavigation';
 
 /**
  * SideBarNavigation component renders the sidebar navigation for the application.
@@ -37,62 +61,89 @@ import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
 export default function SideBarNavigation() {
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
+  const favouriteChats = useAppSelector(selectFavouriteChats);
+
+  const { open, toggleSidebar } = useSidebar();
 
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
   }, [showCommands, dispatch]);
 
+  const handleSideBarToggle = useCallback(() => {
+    toggleSidebar();
+  }, [toggleSidebar]);
+
   return (
     <Sidebar>
-      <div className="sticky top-0 z-10 bg-background">
-        <SidebarHeader>
-          <div className="relative">
-            <Link href="/">
-              <Image className="p-4" alt="global CT Logo" src={Logo} />
-            </Link>
+      <SidebarHeader>
+        <div className="flex justify-between">
+          <div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    className="bg-primary text-primary-foreground hover:bg-primary/10"
+                    onClick={() => handleSideBarToggle()}
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Neuen Chat erstellen</p>
+                  <div className="flex items-center justify-center text-center"></div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-        </SidebarHeader>
-      </div>
+          <div className="">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Dialog>
+                    <DialogTrigger>
+                      <Button
+                        variant="outline"
+                        className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
+                      >
+                        <PencilSquareIcon className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <ChatEntryForm />
+                  </Dialog>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Neuen Chat erstellen</p>
+                  <div className="flex items-center justify-center text-center"></div>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    onClick={handleShowCommandDialog}
+                    className="bg-primary text-primary-foreground hover:bg-primary/50"
+                  >
+                    <MagnifyingGlassCircleIcon className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Bisherigen Chat suchen.</p>
+                  <div className="flex items-center justify-center text-center">
+                    <p>
+                      Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
+                      <br />
+                      um die Suche zu öffnen.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      </SidebarHeader>
 
       <SidebarContent>
-        <div className="row col-span-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
-              >
-                <PencilSquareIcon className="h-4 w-4" />
-                Neuen Chat erstellen
-              </Button>
-            </DialogTrigger>
-            <ChatEntryForm />
-          </Dialog>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleShowCommandDialog}
-                  className="bg-primary text-primary-foreground hover:bg-primary/50"
-                >
-                  <MagnifyingGlassCircleIcon className="h-4 w-4" />
-                  Suchen
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Bisherigen Chat suchen.</p>
-                <div className="flex items-center justify-center text-center">
-                  <p>
-                    Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
-                    <br />
-                    um die Suche zu öffnen.
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
+        <FavouritesNavigation />
         <ChatsNavigation />
       </SidebarContent>
 

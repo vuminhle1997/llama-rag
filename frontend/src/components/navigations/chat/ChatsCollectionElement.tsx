@@ -22,6 +22,7 @@ import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 import { Chat } from '@/frontend/types';
 import ChatEntryForm from '../../form/ChatEntryForm';
 import { getRelativeDate } from '@/frontend/utils';
+import aiHelper from '@/static/templates/ai.jpeg';
 
 export interface ChatsCollectionElementProps {
   date: string;
@@ -47,7 +48,6 @@ export default function ChatsCollectionElement({
   chats,
   currentChatId,
   handleDelete,
-  
 }: ChatsCollectionElementProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
@@ -64,9 +64,19 @@ export default function ChatsCollectionElement({
           key={`chat-${chat.id}`}
         >
           <Link href={`/chat/${chat.id}`} className="flex-1">
-            <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
-              {chat.title}
-            </SidebarMenuButton>
+            <Link
+              href={`/chat/${chat.id}`}
+              className="flex-1 flex justify-center items-center"
+            >
+              <img
+                src={chat.avatar_blob || aiHelper.src}
+                alt={`Avatar of ${chat.title}`}
+                className="h-10 w-10 rounded-full mr-2 border-2 border-primary"
+              />
+              <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
+                {chat.title}
+              </SidebarMenuButton>
+            </Link>
           </Link>
           <Dialog
             open={isDialogOpen && selectedChat?.id === chat.id}
