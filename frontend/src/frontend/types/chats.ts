@@ -31,4 +31,5 @@ export type Chat = {
   message?: LLMAgentResponse;
   favourite?: Favourite;
   avatar_blob?: string;
+  avatar_path: string;
 };

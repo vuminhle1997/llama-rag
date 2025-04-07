@@ -13,6 +13,7 @@ from redis import Redis
 from fastapi_pagination import add_pagination
 from utils import decode_jwt
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 import os
 import uvicorn
@@ -67,6 +68,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
+app.mount("/uploads/avatars", StaticFiles(directory="uploads/avatars"), name="avatar")
 
 def user_is_part_of_group(user_groups: list[str], allowed_groups: list[str]) -> bool:
     return bool(set(user_groups) & set(allowed_groups))

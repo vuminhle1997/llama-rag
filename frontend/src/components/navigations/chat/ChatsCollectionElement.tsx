@@ -23,6 +23,7 @@ import { Chat } from '@/frontend/types';
 import ChatEntryForm from '../../form/ChatEntryForm';
 import { getRelativeDate } from '@/frontend/utils';
 import aiHelper from '@/static/templates/ai.jpeg';
+import Image from 'next/image';
 
 export interface ChatsCollectionElementProps {
   date: string;
@@ -63,21 +64,27 @@ export default function ChatsCollectionElement({
           }`}
           key={`chat-${chat.id}`}
         >
-          <Link href={`/chat/${chat.id}`} className="flex-1">
-            <Link
-              href={`/chat/${chat.id}`}
-              className="flex-1 flex justify-center items-center"
-            >
-              <img
-                src={chat.avatar_blob || aiHelper.src}
-                alt={`Avatar of ${chat.title}`}
-                className="h-10 w-10 rounded-full mr-2 border-2 border-primary"
-              />
-              <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
-                {chat.title}
-              </SidebarMenuButton>
-            </Link>
+          <Link
+            href={`/chat/${chat.id}`}
+            className="flex-1 flex justify-center items-center"
+          >
+            <Image
+              src={
+                `${
+                  process.env.NEXT_PUBLIC_BACKEND_URL
+                }/uploads/avatars/${chat.avatar_path.split('/').pop()}` ||
+                aiHelper.src
+              }
+              alt={`Avatar of ${chat.title}`}
+              className="h-10 w-10 rounded-full mr-2 border-2 border-primary"
+              width={40}
+              height={40}
+            />
+            <SidebarMenuButton className="w-full text-left fit-content h-full break-words whitespace-normal py-1">
+              {chat.title}
+            </SidebarMenuButton>
           </Link>
+
           <Dialog
             open={isDialogOpen && selectedChat?.id === chat.id}
             onOpenChange={open => {
