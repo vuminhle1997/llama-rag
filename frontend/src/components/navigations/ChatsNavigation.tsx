@@ -1,16 +1,19 @@
 'use client';
 
-import { v4 as uuid, v4 } from 'uuid';
-import { SidebarMenu } from '../ui/sidebar';
+import { v4 as uuid } from 'uuid';
+import { SidebarGroup, SidebarGroupContent, SidebarMenu } from '../ui/sidebar';
 import { Chat } from '@/frontend/types';
-import { useState } from 'react';
-import { useDeleteChat } from '@/frontend/queries/chats';
+import { useEffect } from 'react';
+import { getChats, useDeleteChat } from '@/frontend/queries/chats';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
-import { selectAppState, selectChats } from '@/frontend/store/reducer/app_reducer';
+import { selectAppState } from '@/frontend/store/reducer/app_reducer';
 import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import ChatsCollectionElement from './chat/ChatsCollectionElement';
+import { useInView } from 'react-intersection-observer';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 /**
  * ChatsNavigation component handles the display and management of chat navigation.
@@ -18,30 +21,32 @@ import ChatsCollectionElement from './chat/ChatsCollectionElement';
  *
  * @component
  * @returns {JSX.Element} The rendered ChatsNavigation component.
- *
- * @remarks
- * - Uses `useRouter` to navigate between routes.
- * - Uses `usePathname` to get the current URL path.
- * - Uses `useAppSelector` to select chats from the Redux store.
- * - Uses `useState` to manage the state of the chat to be deleted and the delete dialog.
- * - Uses `useDeleteChat` to handle chat deletion.
- *
- * @example
- * ```tsx
- * <ChatsNavigation />
- * ```
  */
 export default function ChatsNavigation() {
+  const { ref, inView } = useInView({
+    threshold: 0.1,
+  });
+
   const router = useRouter();
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
-  const chats = useAppSelector(selectChats);
   const appState = useAppSelector(selectAppState);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteChat = useDeleteChat(chatToDelete || '');
 
-  const isLoading = appState === 'loading';
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
+    useInfiniteQuery({
+      queryKey: ['chats'],
+      queryFn: ({ pageParam = 1 }) => getChats(10, pageParam),
+      getNextPageParam: (lastPage, pages) => {
+        if (lastPage.page >= lastPage.pages) return undefined;
+        return lastPage.page + 1;
+      },
+      initialPageParam: 1,
+    });
+
+  const isLoading = appState === 'loading' || status === 'pending';
 
   /**
    * Handles the deletion of a chat by setting the chat ID to be deleted
@@ -56,8 +61,6 @@ export default function ChatsNavigation() {
 
   /**
    * Confirms the deletion of a chat and performs the delete operation.
-   * On successful deletion, it navigates to the home page and reloads the window.
-   * If an error occurs during deletion, it logs the error to the console.
    */
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
@@ -71,12 +74,10 @@ export default function ChatsNavigation() {
     });
   };
 
+  const chats = data ? data.pages.flatMap(page => page.items) : [];
+
   /**
    * Sorts the chats array based on the last interaction date in descending order.
-   * If the chats array is not provided, returns an empty array.
-   *
-   * @param {Array} chats - The array of chat objects to be sorted.
-   * @returns {Array} - The sorted array of chat objects.
    */
   const sortedChats = chats
     ? [...chats].sort(
@@ -88,47 +89,80 @@ export default function ChatsNavigation() {
 
   const groupedChats = groupChatsByDate(sortedChats as Chat[]);
 
+  // Effect hook to fetch next page when the load more element comes into view
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage]);
+
   return (
-    <SidebarMenu>
-      {isLoading && !chats && (
-        <div className="space-y-3 p-4">
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[60%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+    <SidebarGroup className="p-0">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {isLoading && !chats.length && (
+            <div className="space-y-3 p-4">
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <div
+                    className="h-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+                    style={{ width: `${40 + Math.random() * 50}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isLoading &&
+            Object.entries(groupedChats).map(([date, chats]) => (
+              <ChatsCollectionElement
+                key={uuid()}
+                date={date}
+                chats={chats}
+                currentChatId={currentChatId}
+                handleDelete={handleDelete}
+              />
+            ))}
+
+          {/* Improved load more indicator that will be observed */}
+          <div ref={ref} className="py-4 text-center text-sm text-gray-500">
+            {isFetchingNextPage ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-transparent" />
+                <span>Lädt mehr Chats...</span>
+              </div>
+            ) : hasNextPage ? (
+              <div className="flex items-center justify-center gap-2">
+                <span>Nach unten scrollen für mehr</span>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            ) : chats.length > 0 ? (
+              <span className="text-sm text-gray-500">
+                Keine weiteren Chats verfügbar 😢
+              </span>
+            ) : null}
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[70%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[50%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[60%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[40%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[80%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="h-8 w-[90%] animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-          </div>
-        </div>
-      )}
-      {!isLoading && Object.entries(groupedChats).map(([date, chats]) => (
-        <ChatsCollectionElement
-          key={v4()}
-          date={date}
-          chats={chats}
-          currentChatId={currentChatId}
-          handleDelete={handleDelete}
-        />
-      ))}
-      <DeleteChatDialog
-        confirmDelete={confirmDelete}
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-      />
-    </SidebarMenu>
+
+          <DeleteChatDialog
+            confirmDelete={confirmDelete}
+            isDeleteDialogOpen={isDeleteDialogOpen}
+            setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+          />
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }

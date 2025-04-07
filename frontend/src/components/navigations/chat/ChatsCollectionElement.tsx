@@ -54,7 +54,7 @@ export default function ChatsCollectionElement({
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
   return (
     <div key={date}>
-      <div className="date-separator font-bold text-center py-2">
+      <div className="date-separator font-bold text-center py-4">
         {getRelativeDate(date)}
       </div>
       {chats.map(chat => (
