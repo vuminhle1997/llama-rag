@@ -18,7 +18,7 @@ from redis import Redis
 from chromadb import Collection
 from typing import Optional
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection
+from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger
 from sqlmodel import Session
 
 from models import ChatMessage
@@ -56,6 +56,7 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
     query = db_client.query(Chat)
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error(f"Session id not found in cookies")
         raise HTTPException(status_code=404, detail="Not found")
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
@@ -71,6 +72,7 @@ async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_ses
 
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error(f"Session id not found in cookies")
         raise HTTPException(status_code=404, detail="Not found")
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
@@ -87,6 +89,7 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
                    redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
@@ -95,6 +98,7 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
              .order_by(ChatMessage.created_at.desc()).all())[:10]
 
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat not found")
     
     # Get favorite status
@@ -115,14 +119,17 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
                                   redis_client: Redis = Depends(get_redis_client),
                                   chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
     if not chat:
+        logger.error("Missing chat parameter")
         raise HTTPException(status_code=404, detail="Body: text is required")
 
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     user_message = ChatMessage(
@@ -257,17 +264,21 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
+        logger.error("Chat not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user, user_id = check_property_belongs_to_user(request, redis_session, db_chat)
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
     # If file is not attached to Upload, raise Error
     if not file.filename:
+        logger.error(f"Does not have a File")
         raise HTTPException(status_code=404, detail="File not found")
     # If file is already uploaded, raise Error
     for chat_file in db_chat.files:
         if chat_file.file_name == file.filename:
+            logger.error(f"File already uploaded {file.filename}")
             raise HTTPException(status_code=404, detail="File already exists")
     # Upload file to Folder and persist it
     chat_folder = BASE_UPLOAD_DIR / f"{chat_id}"
@@ -284,7 +295,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
     )
 
     if file.content_type.lower().find("sql") != -1 and db_chat is not None:
-        print("It is a SQL Dump File")
+        logger.info(f"Processing SQL File for Chat: {db_chat.id}")
         database_name = (f"{db_chat.title}-{file.filename}".lower().replace(" ", "")
                          .replace("-", "_").replace(".", "_").strip(""))
         db_file.database_name = database_name
@@ -309,6 +320,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         }
     except Exception as e:
         db_client.rollback()
+        logger.error(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
@@ -321,6 +333,7 @@ async def create_chat(
 ):
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error("Session id cookie not found")
         raise HTTPException(status_code=404, detail="Session not found")
 
     token = redis_client.get(f"session:{session_id}")
@@ -334,6 +347,7 @@ async def create_chat(
         # Get file extension
         ext = file.filename.split('.')[-1].lower()
         if ext not in ['jpg', 'jpeg', 'png', 'gif']:
+            logger.error("Invalid image format for chat avatar")
             raise HTTPException(status_code=400, detail="Invalid image format")
 
         # Create avatars directory if it doesn't exist
@@ -368,10 +382,12 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
                       redis_client: Redis = Depends(get_redis_client)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     avatar_path = None
@@ -380,6 +396,7 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
         # Get file extension
         ext = file.filename.split('.')[-1].lower()
         if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            logger.error("Invalid image format for chat avatar")
             raise HTTPException(status_code=400, detail="Invalid image format")
 
         # Create avatars directory if it doesn't exist
@@ -416,10 +433,12 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
                       chroma_collection: Collection = Depends(get_chroma_collection)):
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     files = db_chat.files
@@ -452,15 +471,18 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
     # If chat is not existing, raise Error
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
     if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to user")
 
     # If file is not existing or does not belong to Chat, raise Error
     db_file = db_client.get(ChatFile, file_id)
     if not db_file or db_file.chat_id != chat_id:
+        logger.error(f"{db_file.file_name} not found or does not belong to Chat")
         raise HTTPException(status_code=404, detail="File not found or does not belong to this chat")
 
     # Construct file path and delete from disk

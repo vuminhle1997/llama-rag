@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 
 from models import ChatFile
 from utils import initialize_pg_url
-
+from dependencies import logger
 
 def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection):
     documents = SimpleDirectoryReader(input_files=[path]).load_data()
@@ -75,4 +75,4 @@ def deletes_file_index_from_collection(file_id: str, chroma_collection: Collecti
     chroma_collection.delete(where={'file_id': {'$eq': file_id}})
     docs = chroma_collection.get(where={'file_id': {'$eq': file_id}})
     if len(docs['metadatas']) <= 0:
-        print('No documents found for file_id', file_id, 'Deleted file: ', file_id)
+        logger.error('No documents found for file_id', file_id, 'Deleted file: ', file_id)

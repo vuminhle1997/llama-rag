@@ -4,6 +4,7 @@ from models import Chat, ChatFile
 from utils import load_dump_to_database, list_all_tables_from_db, pg_user, pg_port, pg_host, pg_password
 from services import index_sql_dump
 from chromadb import Collection
+from dependencies import logger
 
 def process_dump_to_persist(db_client: Session, chat_id: str, chat_file_id: str, 
                             sql_dump_path: str, database_type: str, db_name: str, 
@@ -36,7 +37,7 @@ def process_dump_to_persist(db_client: Session, chat_id: str, chat_file_id: str,
     with db_client as db_session:
         db_chat = db_session.get(Chat, chat_id)
         if not db_chat:
-            print("Chat not found in background task.")
+            logger.error(f"Chat: '{chat_id}' not found in background task.")
             return
 
         db_file = db_session.get(ChatFile, chat_file_id)
