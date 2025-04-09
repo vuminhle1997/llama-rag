@@ -165,6 +165,86 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
             )
     return sql_tools
 
+def create_url_loader_tool(chroma_vector_store: ChromaVectorStore, chat: Chat):
+    """
+    Creates a function tool for asynchronously scraping content from URLs.
+
+    This function creates and returns a FunctionTool that can be used to scrape web content
+    from URLs and store it in a vector index. The tool uses BeautifulSoup for web scraping
+    and integrates with a ChromaVectorStore for content storage.
+
+        chroma_vector_store (ChromaVectorStore): The vector store instance for storing scraped content.
+        chat (Chat): The chat instance associated with the scraping operation.
+
+        FunctionTool: A tool that provides URL scraping functionality with the following:
+            - name: "ScrapeContentFromURL-Tool"
+            - description: "Scrape from URL"
+            - async function that handles the scraping operation
+
+    Example:
+        ```python
+        vector_store = ChromaVectorStore()
+        chat_instance = Chat()
+        url_scraper_tool = create_url_loader_tool(vector_store, chat_instance)
+        ```
+
+    Notes:
+        - The tool creates unique file records for each scraped URL
+        - Content is stored in the provided ChromaVectorStore
+        - File records are associated with the provided chat instance
+    storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+    """
+    
+    async def async_scrape_from_url(url: str):
+        """
+        Asynchronously scrapes content from a given URL and stores it in a vector index.
+
+        This function performs web scraping using BeautifulSoup, creates a file record,
+        and indexes the content for future retrieval.
+
+        Args:
+            url (str): The URL to scrape content from.
+
+        Returns:
+            tuple: A tuple containing:
+                - str: The original URL
+                - Document: The scraped document object containing the webpage content
+
+        Raises:
+            BeautifulSoupWebReaderError: If there are issues scraping the webpage
+            VectorStoreIndexError: If there are issues creating the vector index
+        """
+        reader = BeautifulSoupWebReader()
+        documents = reader.load_data([url])
+
+        db_file = ChatFile(
+            id=str(uuid.uuid4()),
+            file_name=url,
+            path_name=url,
+            mime_type='text/html',
+            chat_id=chat.id,
+            database_name=None,
+            database_type=None,
+            tables=None,
+        )
+
+        for document in documents:
+            document.metadata = {
+                'file_id': db_file.id,
+            }
+
+
+        VectorStoreIndex.from_documents(documents=[documents[0]],storage_context=storage_context,
+                                                show_progress=True)
+        chat.files.append(db_file)
+        return url, documents[0]
+
+    return FunctionTool.from_defaults(
+        async_fn=async_scrape_from_url,
+        name="ScrapeContentFromLinkTool",
+        description="Scrape website content from URL/Link given by the User",
+    )
+
 def create_search_engine_tool(chroma_vector_store: ChromaVectorStore, chat: Chat):
     """
     Creates a search engine tool that uses DuckDuckGo to search for documents based on a user-provided query.

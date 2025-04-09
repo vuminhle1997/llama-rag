@@ -30,7 +30,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
 from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
                       deletes_file_index_from_collection, create_agent, process_dump_to_persist,
-create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files, create_search_engine_tool)
+create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files, create_search_engine_tool, create_url_loader_tool)
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
@@ -176,39 +176,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     pd_tools = create_pandas_engines_tools_from_files(files=files)
     sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
 
-    async def async_scrape_from_url(url: str):
-        """A custom function tool, that parses a webpage url from a chat message, scrapes the content webpage,
-        index that and stores that in the DB"""
-        reader = BeautifulSoupWebReader()
-        documents = reader.load_data([url])
-
-        db_file = ChatFile(
-            id=str(uuid.uuid4()),
-            file_name=url,
-            path_name=url,
-            mime_type='text/html',
-            chat_id=db_chat.id,
-            database_name=None,
-            database_type=None,
-            tables=None,
-        )
-
-        for document in documents:
-            document.metadata = {
-                'file_id': db_file.id,
-            }
-
-        storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
-        VectorStoreIndex.from_documents(documents=[documents[0]],storage_context=storage_context,
-                                                show_progress=True)
-        db_chat.files.append(db_file)
-        return url, documents[0]
-
-    scrape_tool = FunctionTool.from_defaults(
-        async_fn=async_scrape_from_url,
-        name="scrape_from_url",
-        description="Scrape from URL",
-    )
+    scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
     search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
 
     tools = tools + pd_tools
