@@ -3,7 +3,7 @@ from sqlmodel import Session
 from starlette.requests import Request
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from dependencies import get_db_session, get_redis_client
+from dependencies import get_db_session, get_redis_client, logger
 from utils import decode_jwt
 from models import Chat
 
@@ -21,6 +21,7 @@ async def get_avatar_of_chat(chat_id: str,
     db_chat = db_client.get(Chat, chat_id)
 
     if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
         raise HTTPException(status_code=404, detail="Chat not found")
 
     session_id = request.cookies.get("session_id")
@@ -31,6 +32,7 @@ async def get_avatar_of_chat(chat_id: str,
     claims = decode_jwt(token)
     user_id = claims["oid"]
     if db_chat.user_id != user_id:
+        logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat does not belong to you")
 
     # Get avatar file path and return file response

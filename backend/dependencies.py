@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 from redis import Redis
+from logging_config import setup_logging, get_uvicorn_log_config
 
 # chroma
 import chromadb
@@ -11,6 +12,9 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.storage.chat_store.postgres import PostgresChatStore
 
 load_dotenv()
+
+# Logger
+logger = setup_logging()
 
 # redis
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -48,8 +52,6 @@ def get_chroma_vector():
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     yield chroma_vector_store
-
-
 
 def get_chroma_collection():
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))

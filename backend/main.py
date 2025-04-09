@@ -1,17 +1,13 @@
-import json
-from typing import Set, List
-
-from fastapi import FastAPI, Depends, File, UploadFile
+from fastapi import FastAPI, Depends
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, JSONResponse, Response
 from routers import route
-from dependencies import create_db_and_tables, get_redis_client
+from dependencies import create_db_and_tables, get_redis_client, logger
 from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
 from fastapi_pagination import add_pagination
-from utils import decode_jwt
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -73,13 +69,29 @@ app.mount("/uploads/avatars", StaticFiles(directory="uploads/avatars"), name="av
 def user_is_part_of_group(user_groups: list[str], allowed_groups: list[str]) -> bool:
     return bool(set(user_groups) & set(allowed_groups))
 
+# Middleware to log requests
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request: {request.method} {request.url}, \n "
+                f"ip-address: {request.client.host} \n "
+                f"agent: {request.headers.get('User-Agent')} \n "
+                f"accept: {request.headers.get('Accept')}")
+    try:
+        response = await call_next(request)
+    except Exception as ex:
+        logger.error(f"Request failed: {ex}", exc_info=True)
+        raise
+    return response
+
 @app.on_event("startup")
 def on_startup():
+    logger.debug("Creating tables for Database")
     create_db_and_tables()
 
 @app.get("/signin")
-async def azure_signin():
+async def azure_signin(request: Request):
     auth_url = azure_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    logger.info("Signed in user IP: ", request.client.host)
     return RedirectResponse(url=auth_url)
 
 @app.get("/logout")
@@ -94,6 +106,7 @@ def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Reque
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
     code = request.query_params.get("code")
     if not code:
+        logger.error(f"No code for Azure found for user: {request.client.host}")
         return JSONResponse({"error": "Authorization code not found"}, status_code=400)
 
     token_response = azure_app.acquire_token_by_authorization_code(code, SCOPES, redirect_uri=REDIRECT_URI)
@@ -105,6 +118,7 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
         # Set session cookie
         resp = RedirectResponse(url="http://localhost:3000")
         resp.set_cookie("session_id", session_id, httponly=True, secure=False)
+        logger.info(f"Successfully logged in: {session_id} for user: {request.client.host}")
         return resp
     else:
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
@@ -114,6 +128,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
     """Extracts JWT claims from access token"""
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error(f"No session id for Azure found for user: {request.client.host}")
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
 
@@ -126,6 +141,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
     groups: list[str] = map(lambda g: g["id"], list(group_info["value"]))
 
     if not user_is_part_of_group(groups, ALLOWED_GROUPS_IDS):
+        logger.error(f"User {request.client.host} does not belong to any group: {groups}")
         raise HTTPException(status_code=401, detail="User is not part of the group")
 
     return {
@@ -139,10 +155,12 @@ async def get_profile_picture(request: Request,
     GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me/photo/$value"
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error(f"No session id for Azure found for user: {request.client.host}")
         raise HTTPException(status_code=400, detail="Session ID not found")
 
     token = redis_client.get(f"session:{session_id}")
     if not token:
+        logger.error(f"No session id for Azure found for user: {request.client.host}")
         raise HTTPException(status_code=401, detail="Token not found in Redis")
 
     response = requests.get(GRAPH_API_URL, headers={"Authorization": f"Bearer {token}"})
@@ -150,16 +168,15 @@ async def get_profile_picture(request: Request,
     if response.status_code == 200:
         return Response(content=response.content, media_type="image/jpeg")
     elif response.status_code == 401:
+        logger.error(f"Failed to get session id for user: {request.client.host}")
         raise HTTPException(status_code=401, detail="Unauthorized. Invalid or expired token")
     elif response.status_code == 404:
+        logger.error(f"Failed to get session id for user: {request.client.host}")
         raise HTTPException(status_code=404, detail="Profile picture not found")
     else:
+        logger.error(f"Failed to get session id for user: {request.client.host}")
         raise HTTPException(status_code=500, detail="Error fetching profile picture")
 
-@app.post("/sql-test")
-def check_sql_upload(file: UploadFile = File(...)):
-    print(file)
-    return JSONResponse({'content_type': file.content_type})
-
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
+    logger.debug(f"Backend running at port: {PORT}")
+    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True, log_config=LOGGING_CONFIG)

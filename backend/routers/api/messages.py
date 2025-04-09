@@ -12,6 +12,7 @@ from fastapi_pagination import Page, paginate
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from sqlalchemy.orm import selectinload
 from sqlalchemy import desc
+from dependencies import logger
 
 router = APIRouter(
     prefix="/messages",
@@ -26,6 +27,7 @@ async def get_messages_by_chat_id(chat_id: str, request: Request = Request,
     query = db_client.query(ChatMessage)
     session_id = request.cookies.get("session_id")
     if not session_id:
+        logger.error(f"No session_id cookie found for {chat_id}")
         raise HTTPException(status_code=404, detail="Not found")
     token = redis_client.get(f"session:{session_id}")
     claims = decode_jwt(token)
@@ -35,6 +37,7 @@ async def get_messages_by_chat_id(chat_id: str, request: Request = Request,
     chat: Chat | None = page.items[0].chat if len(page.items) > 0 else None
 
     if chat and not chat.user_id == user_id:
+        logger.error(f"Chat {chat.chat_id} does not belong to {user_id}")
         raise HTTPException(status_code=404, detail="Chat does not belong to you")
 
     return page

@@ -3,6 +3,8 @@ import psycopg2
 import os
 import re
 
+from dependencies import logger
+
 pg_host = os.getenv("PG_HOST", "localhost")
 pg_port = os.getenv("PG_PORT", 5432)
 pg_user = os.getenv("PG_USER", "root")
@@ -86,18 +88,18 @@ class PostgresMigration():
             cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{pg_db}';")
             if not cursor.fetchone():
                 cursor.execute(f"CREATE DATABASE {pg_db};")
-                print(f"Database '{pg_db}' created successfully.")
+                logger.debug(f"Database '{pg_db}' created successfully.")
         except psycopg2.Error as e:
-            print(f"PostgreSQL Error: {e}")
+            logger.error(f"PostgreSQL Error: {e}")
         except Exception as e:
-            print(f"General Error: {e}")
+            logger.error(f"General Error: {e}")
 
         try:
             mysql_url = f"mysql://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}:{self.mysql_port}/{self.mysql_db}"
             pg_url = f"pgsql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}"
             os.system(f"pgloader {mysql_url} {pg_url}")
         except Exception as e:
-            print(f"General Error: {e}")
+            logger.error(f"General Error: {e}")
 
     def delete_old_db_from_mysql(self, **kwargs):
         """
@@ -127,11 +129,11 @@ class PostgresMigration():
             )
             cursor = conn.cursor()
             cursor.execute(f"DROP DATABASE {self.mysql_db}")
-            print(f"Database '{self.mysql_db}' dropped successfully.")
+            logger.debug(f"Database '{self.mysql_db}' dropped successfully.")
             conn.commit()
             conn.close()
         except mysql.connector.Error as e:
-            print(f"MySQL Error: {e}")
+            logger.error(f"MySQL Error: {e}")
 
 def initialize_pg_url(pg_db: str):
     """
@@ -188,7 +190,7 @@ def load_mysql_dump(host: str, port: int, user: str, password: str, db: str, dum
         cursor = conn.cursor()
 
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db};")
-        print(f"Database '{db}' checked/created successfully.")
+        logger.debug(f"Database '{db}' checked/created successfully.")
 
         conn.database = db
         conn.autocommit = True
@@ -203,11 +205,11 @@ def load_mysql_dump(host: str, port: int, user: str, password: str, db: str, dum
             statement = statement.strip()
             if statement:
                 cursor.execute(statement)
-        print("SQL dump loaded successfully.")
+        logger.debug(f"SQL dump {dump_path}, DB:{db} loaded successfully.")
     except mysql.connector.Error as e:
-        print(f"MySQL Error: {e}")
+        logger.error(f"MySQL Error: {e}")
     except Exception as e:
-        print(f"General Error: {e}")
+        logger.error(f"General Error: {e}")
     finally:
         cursor.close()
         conn.close()
@@ -250,11 +252,11 @@ def load_pgsql_dump(host: str, port: int, user: str, password: str, db: str, dum
         cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db}';")
         if not cursor.fetchone():
             cursor.execute(f"CREATE DATABASE {db};")
-            print(f"Database '{db}' created successfully.")
+            logger.debug(f"Database '{db}' created successfully.")
         cursor.close()
         conn.close()
     except psycopg2.Error as e:
-        print(f"PostgreSQL Error: {e}")
+        logger.error(f"PostgreSQL Error: {e}")
     finally:
         os.system(f"PGPASSWORD={password} psql -U {user}  -h {host} -p {port} -d {db} < {dump_path}")
 
@@ -290,6 +292,7 @@ def detect_sql_dump_type(file_path: str) -> str:
                     return "Postgres"
         return "Unknown"
     except Exception as e:
+        logger.error(f"Error reading sql dump file: {e}")
         return f"Error reading file: {e}"
 
 def load_dump_to_database(sql_dump_path: str, db_name="TWICE"):
@@ -315,13 +318,13 @@ def load_dump_to_database(sql_dump_path: str, db_name="TWICE"):
     """
     db = detect_sql_dump_type(sql_dump_path)
     if db == "MySQL":
-        print("MySQL dump detected")
+        logger.debug(f"MySQL dump detected for file: {sql_dump_path}")
         load_mysql_dump(mysql_host, mysql_port, mysql_user, mysql_password, db_name, sql_dump_path)
         migration = PostgresMigration(mysql_host, mysql_port, mysql_user, mysql_password, db_name,)
         migration.migrate_mysql_to_pg(pg_host, pg_port, pg_user, pg_password, db_name)
         migration.delete_old_db_from_mysql()
     elif db == "Postgres":
-        print("PostgreSQL dump detected")
+        logger.debug(f"PostgreSQL dump detected for file: {sql_dump_path}")
         load_pgsql_dump(pg_host, pg_port, pg_user, pg_password, db_name, sql_dump_path)
 
 def list_all_tables_from_db(host: str, port: int, user: str, password: str, db: str, db_type: str, **kwargs):
@@ -370,12 +373,12 @@ def list_all_tables_from_db(host: str, port: int, user: str, password: str, db: 
         for table in cursor.fetchall():
             tables.append(table[0])
 
-        print(tables)
+        logger.debug(f"Tables: {tables} from database: {db}")
         cursor.close()
         conn.close()
         return tables
     except psycopg2.Error as e:
-        print(f"PostgreSQL Error: {e}")
+        logger.error(f"PostgreSQL Error: {e}")
         return []
 
 def delete_database_from_postgres(database_name: str):
@@ -410,9 +413,9 @@ def delete_database_from_postgres(database_name: str):
         statement = f"DROP DATABASE {database_name};"
         cursor.execute(statement)
 
-        print(f"Database '{database_name}' dropped successfully.")
+        logger.debug(f"Database '{database_name}' dropped successfully.")
         cursor.close()
         conn.close()
     except psycopg2.Error as e:
-        print(f"PostgreSQL Error: {e}")
+        logger.error(f"PostgreSQL Error: {e}")
         raise e
