@@ -15,7 +15,7 @@ from llama_index.core.vector_stores import (
 )
 from models import ChatFile, Chat
 from llama_index.core import StorageContext, VectorStoreIndex, SQLDatabase
-from llama_index.core.tools import FunctionTool, QueryEngineTool
+from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
 from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
 from llama_index.readers.web import BeautifulSoupWebReader
 from sqlalchemy import create_engine
@@ -58,8 +58,25 @@ def create_query_engines_from_filters(filters: List[MetadataFilter], chroma_vect
     ]
     return query_engines
 
+def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore):
+    files = [file for file in files if "sql" not in file.mime_type.lower()]
+    filters = create_filters_for_files(files=files)
+    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
+    query_engine_tools = [
+        QueryEngineTool(
+            query_engine=query_engine,
+            metadata=ToolMetadata(
+                name=f"QueryEngineTool-{files[i].file_name}",
+                description=f"Simple query engine for going through the document: {files[i].file_name}",
+            )
+        ) for i, query_engine in enumerate(query_engines)
+    ]
+    return query_engine_tools
+
 def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     pd_tools = []
+    files = [file for file in files if "csv" in file.mime_type.lower() or "excel" in file.mime_type.lower()]
+
     for file in files:
         if "csv" in file.mime_type.lower():
             pd_query = PandasQueryEngine(
@@ -79,8 +96,8 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     pd_tools = [
         FunctionTool.from_defaults(
             async_fn=pd_tool.apandas_tool,
-            name=f"pandas_tool_{i}",
-            description=f"Tool for evaluating spreadsheet of file: {files[i].file_name}",
+            name=f"PandasTool-{files[i].file_name}",
+            description=f"Tool for evaluating spreadsheet of file: {files[i].file_name} with Pandas",
         ) for i, pd_tool in enumerate(pd_tools)
     ]
     return pd_tools
@@ -194,7 +211,7 @@ def create_url_loader_tool(chroma_vector_store: ChromaVectorStore, chat: Chat):
         - File records are associated with the provided chat instance
     storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
     """
-    
+    storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
     async def async_scrape_from_url(url: str):
         """
         Asynchronously scrapes content from a given URL and stores it in a vector index.
@@ -232,7 +249,6 @@ def create_url_loader_tool(chroma_vector_store: ChromaVectorStore, chat: Chat):
             document.metadata = {
                 'file_id': db_file.id,
             }
-
 
         VectorStoreIndex.from_documents(documents=[documents[0]],storage_context=storage_context,
                                                 show_progress=True)
