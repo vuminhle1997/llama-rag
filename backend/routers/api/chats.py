@@ -5,13 +5,11 @@ import os
 from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from llama_index.core import PromptTemplate, StorageContext, VectorStoreIndex
+from llama_index.core import PromptTemplate
 from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.core.tools import QueryEngineTool, ToolMetadata, FunctionTool
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
-from llama_index.readers.web import BeautifulSoupWebReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
@@ -28,9 +26,17 @@ from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
 from utils import decode_jwt, check_property_belongs_to_user
-from services import (create_filters_for_files, create_query_engines_from_filters, index_uploaded_file,
-                      deletes_file_index_from_collection, create_agent, process_dump_to_persist,
-create_pandas_engines_tools_from_files, create_sql_engines_tools_from_files, create_search_engine_tool, create_url_loader_tool)
+from services import (
+    index_uploaded_file,
+    deletes_file_index_from_collection,
+    create_agent,
+    process_dump_to_persist,
+    create_pandas_engines_tools_from_files,
+    create_sql_engines_tools_from_files,
+    create_search_engine_tool,
+    create_url_loader_tool,
+    create_query_engine_tools,
+)
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
@@ -53,6 +59,22 @@ router = APIRouter(
 async def get_all_chats(db_client: Session = Depends(get_db_session),
                         request: Request = Request,
                         redis_client: Redis = Depends(get_redis_client)):
+    """
+    Retrieve all chats for the authenticated user.
+
+    This endpoint fetches all chats associated with the authenticated user, 
+    ordered by the last interaction timestamp in descending order.
+
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+
+    **Returns**:
+    - A paginated list of chats.
+
+    **Raises**:
+    - 404: If the session ID is not found in cookies or the user is not authenticated.
+    """
     query = db_client.query(Chat)
     session_id = request.cookies.get("session_id")
     if not session_id:
@@ -69,7 +91,22 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
 async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_session),
                              request: Request = Request,
                              redis_client: Redis = Depends(get_redis_client)):
+    """
+    Search chats by title for the authenticated user.
 
+    This endpoint allows the user to search for chats by their title.
+
+    - **title**: The title or partial title of the chat to search for.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+
+    **Returns**:
+    - A list of chats matching the title.
+
+    **Raises**:
+    - 404: If the session ID is not found in cookies or the user is not authenticated.
+    """
     session_id = request.cookies.get("session_id")
     if not session_id:
         logger.error(f"Session id not found in cookies")
@@ -87,6 +124,22 @@ async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_ses
 async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
                    request: Request = Request,
                    redis_client: Redis = Depends(get_redis_client)):
+    """
+    Retrieve a specific chat by its ID.
+
+    This endpoint fetches a chat and its associated messages for the authenticated user.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+
+    **Returns**:
+    - The chat details, including files, messages, and favorite status.
+
+    **Raises**:
+    - 404: If the chat is not found or does not belong to the user.
+    """
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         logger.error(f"Chat {chat_id} not found")
@@ -118,6 +171,25 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
                                   request: Request = Request,
                                   redis_client: Redis = Depends(get_redis_client),
                                   chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
+    """
+    Interact with a specific chat by sending a message.
+
+    This endpoint allows the user to send a message to a chat and receive a response 
+    from the chat agent.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **chat**: The message query object containing the user's input.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+    - **chroma_vector_store**: Dependency for vector store operations.
+
+    **Returns**:
+    - The updated chat details and the assistant's response.
+
+    **Raises**:
+    - 404: If the chat is not found or does not belong to the user.
+    """
     if not chat:
         logger.error("Missing chat parameter")
         raise HTTPException(status_code=404, detail="Body: text is required")
@@ -162,17 +234,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     )
 
     files = db_chat.files
-    filters = create_filters_for_files(files)
-    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
-    tools = [
-        QueryEngineTool(
-            query_engine=query_engine,
-            metadata=ToolMetadata(
-                name=f"query_engine_for_{i}",
-                description=f"Simple query engine for going through the document: {files[i].file_name}",
-            )
-        ) for i, query_engine in enumerate(query_engines)
-    ]
+    tools = create_query_engine_tools(files=files, chroma_vector_store=chroma_vector_store)
     pd_tools = create_pandas_engines_tools_from_files(files=files)
     sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
 
@@ -229,6 +291,27 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               chroma_collection: Collection = Depends(get_chroma_collection),
                               redis_session: Redis = Depends(get_redis_client),
                               background_tasks: BackgroundTasks = BackgroundTasks):
+    """
+    Upload a file to a specific chat.
+
+    This endpoint allows the user to upload a file to a chat. If the file is an SQL dump, 
+    it will be processed and indexed in the background.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **file**: The file to be uploaded.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **chroma_collection**: Dependency for vector store operations.
+    - **redis_session**: Redis client dependency for session validation.
+    - **background_tasks**: Background task manager for processing SQL dumps.
+
+    **Returns**:
+    - The updated chat details, including the uploaded file.
+
+    **Raises**:
+    - 404: If the chat is not found, does not belong to the user, or the file already exists.
+    - 500: If an error occurs during file processing or indexing.
+    """
     db_chat = db_client.get(Chat, chat_id)
     # Check if chat exists, if exists, continue
     if not db_chat:
@@ -299,6 +382,25 @@ async def create_chat(
     request: Request = Request,
     redis_client: Redis = Depends(get_redis_client)
 ):
+    """
+    Create a new chat.
+
+    This endpoint allows the user to create a new chat. Optionally, an avatar image 
+    can be uploaded for the chat.
+
+    - **chat**: The chat data in JSON format.
+    - **file**: Optional avatar image file.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+
+    **Returns**:
+    - The created chat details.
+
+    **Raises**:
+    - 404: If the session ID is not found in cookies.
+    - 400: If the avatar image format is invalid.
+    """
     session_id = request.cookies.get("session_id")
     if not session_id:
         logger.error("Session id cookie not found")
@@ -348,6 +450,26 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
                       request: Request = Request,
                       db_client: Session = Depends(get_db_session),
                       redis_client: Redis = Depends(get_redis_client)):
+    """
+    Update an existing chat.
+
+    This endpoint allows the user to update the details of an existing chat. Optionally, 
+    a new avatar image can be uploaded.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **chat**: The updated chat data in JSON format.
+    - **file**: Optional new avatar image file.
+    - **request**: HTTP request object to extract cookies.
+    - **db_client**: Database session dependency.
+    - **redis_client**: Redis client dependency for session validation.
+
+    **Returns**:
+    - The updated chat details.
+
+    **Raises**:
+    - 404: If the chat is not found or does not belong to the user.
+    - 400: If the avatar image format is invalid.
+    """
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         logger.error(f"Chat {chat_id} not found")
@@ -399,6 +521,24 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
                       request: Request = Request,
                       redis_client: Redis = Depends(get_redis_client),
                       chroma_collection: Collection = Depends(get_chroma_collection)):
+    """
+    Delete a chat.
+
+    This endpoint allows the user to delete a chat and all its associated files, 
+    messages, and avatar.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+    - **chroma_collection**: Dependency for vector store operations.
+
+    **Returns**:
+    - The deleted chat details.
+
+    **Raises**:
+    - 404: If the chat is not found or does not belong to the user.
+    """
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:
         logger.error(f"Chat {chat_id} not found")
@@ -436,6 +576,25 @@ async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = D
                               request: Request = Request,
                               redis_client: Redis = Depends(get_redis_client),
                               chroma_collection: Collection = Depends(get_chroma_collection)):
+    """
+    Delete a file from a chat.
+
+    This endpoint allows the user to delete a specific file from a chat. If the file 
+    is an SQL dump, the associated database will also be deleted.
+
+    - **chat_id**: The unique identifier of the chat.
+    - **file_id**: The unique identifier of the file.
+    - **db_client**: Database session dependency.
+    - **request**: HTTP request object to extract cookies.
+    - **redis_client**: Redis client dependency for session validation.
+    - **chroma_collection**: Dependency for vector store operations.
+
+    **Returns**:
+    - The updated chat details after file deletion.
+
+    **Raises**:
+    - 404: If the chat or file is not found, or the file does not belong to the chat.
+    """
     # If chat is not existing, raise Error
     db_chat = db_client.get(Chat, chat_id)
     if not db_chat:

@@ -1,7 +1,12 @@
 from sqlmodel import Session
 from models import Chat, ChatFile
 
-from utils import load_dump_to_database, list_all_tables_from_db, pg_user, pg_port, pg_host, pg_password
+from utils import (
+    load_dump_to_database, 
+    list_all_tables_from_db, 
+    pg_user, pg_port, pg_host, 
+    pg_password
+)
 from services import index_sql_dump
 from chromadb import Collection
 from dependencies import logger

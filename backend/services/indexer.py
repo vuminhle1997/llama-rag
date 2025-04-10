@@ -12,6 +12,23 @@ from utils import initialize_pg_url
 from dependencies import logger
 
 def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection):
+    """
+    Indexes an uploaded file into a ChromaDB collection for vector search capabilities.
+
+    This function processes a document, adds metadata, and stores it in a vector database
+    for efficient similarity searching.
+
+    Args:
+        path (str): File system path to the document to be indexed
+        chat_file (ChatFile): ChatFile object containing metadata about the file
+        chroma_collection (Collection): ChromaDB collection instance for storage
+
+    Returns:
+        None
+
+    Example:
+        >>> index_uploaded_file("/path/to/file.pdf", chat_file, chroma_collection)
+    """
     documents = SimpleDirectoryReader(input_files=[path]).load_data()
     for document in documents:
         document.metadata = {

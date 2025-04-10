@@ -4,6 +4,18 @@ from pathlib import Path
 from datetime import datetime
 
 def setup_logging():
+    """
+    Sets up logging for the main application.
+
+    Creates a 'logs' directory if it doesn't exist and configures multiple log handlers:
+    - Info logs are written to a daily rotating file with a '.info.log' suffix.
+    - Error logs are written to a daily rotating file with a '.error.log' suffix.
+    - Debug logs are written to a daily rotating file with a '.debug.log' suffix.
+    - Logs are also output to the console.
+
+    Returns:
+        logging.Logger: Configured logger for the application.
+    """
     logs_dir = Path("logs")
     logs_dir.mkdir(exist_ok=True)
 
@@ -70,6 +82,17 @@ def setup_logging():
 
 # Uvicorn access logger configuration
 def get_uvicorn_log_config():
+    """
+    Generates a logging configuration dictionary for Uvicorn.
+
+    Configures Uvicorn to log:
+    - Access logs to a daily rotating file with a '.access.log' suffix.
+    - Default logs to a daily rotating file with a '.uvicorn.log' suffix.
+    - Logs are also output to the console.
+
+    Returns:
+        dict: Logging configuration dictionary for Uvicorn.
+    """
     current_date = datetime.now().strftime("%Y_%m_%d")
     logs_dir = "logs"
 

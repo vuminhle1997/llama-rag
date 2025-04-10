@@ -2,14 +2,11 @@ import os
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 from redis import Redis
-from logging_config import setup_logging, get_uvicorn_log_config
+from logging_config import setup_logging
 
 # chroma
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
-
-# postgres Chat Stora
-from llama_index.storage.chat_store.postgres import PostgresChatStore
 
 load_dotenv()
 
@@ -32,9 +29,17 @@ engine = create_engine(DATABASE_URL)
 chroma_client = chromadb.HttpClient()
 
 def create_db_and_tables():
+    """
+    Create all database tables defined in the SQLModel metadata.
+    This function should be called during application initialization.
+    """
     SQLModel.metadata.create_all(engine)
 
 def get_db_session():
+    """
+    Provide a SQLModel database session.
+    This function is a generator that yields a session and ensures it is closed after use.
+    """
     session = Session(engine)
     try:
         yield session
@@ -42,6 +47,10 @@ def get_db_session():
         session.close()
 
 def get_redis_client():
+    """
+    Provide a Redis client connection.
+    This function is a generator that yields a Redis client and ensures it is closed after use.
+    """
     redis = Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
     try:
         yield redis
@@ -49,16 +58,18 @@ def get_redis_client():
         redis.close()
 
 def get_chroma_vector():
+    """
+    Provide a ChromaVectorStore instance for vector storage operations.
+    This function is a generator that yields the vector store.
+    """
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     yield chroma_vector_store
 
 def get_chroma_collection():
+    """
+    Provide a Chroma collection instance.
+    This function is a generator that yields the Chroma collection.
+    """
     chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     yield chroma_collection
-
-def get_chat_store():
-    chat_store = PostgresChatStore.from_uri(
-        uri="postgresql+asyncpg://postgres:password@127.0.0.1:5432/llama-rag",
-    )
-    yield chat_store

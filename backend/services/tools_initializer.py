@@ -14,7 +14,11 @@ from llama_index.core.vector_stores import (
     FilterOperator,
 )
 from models import ChatFile, Chat
-from llama_index.core import StorageContext, VectorStoreIndex, SQLDatabase
+from llama_index.core import (
+    StorageContext, 
+    VectorStoreIndex, 
+    SQLDatabase
+)
 from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
 from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
 from llama_index.readers.web import BeautifulSoupWebReader
@@ -65,7 +69,7 @@ def create_filters_for_files(files: List[ChatFile]):
     ]
     return filters
 
-def create_query_engines_from_filters(filters: List[MetadataFilter], chroma_vector_store: ChromaVectorStore) -> List[BaseQueryEngine]:
+def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vector_store: ChromaVectorStore) -> List[BaseQueryEngine]:
     """
     Creates a list of query engines from metadata filters using a Chroma vector store.
 
