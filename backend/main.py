@@ -90,12 +90,36 @@ def on_startup():
 
 @app.get("/signin")
 async def azure_signin(request: Request):
+    """
+    Initiates the Azure sign-in process by redirecting the user to the Azure authorization URL.
+
+    This endpoint generates an authorization URL for the user to sign in with their Azure account.
+    Once the user signs in, they will be redirected to the specified redirect URI.
+
+    Example:
+        GET /signin
+
+    Returns:
+        RedirectResponse: Redirects the user to the Azure authorization URL.
+    """
     auth_url = azure_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
     logger.info("Signed in user IP: ", request.client.host)
     return RedirectResponse(url=auth_url)
 
 @app.get("/logout")
 def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Request = Request):
+    """
+    Logs out the user by deleting their session from Redis.
+
+    This endpoint invalidates the user's session by removing the session ID from Redis.
+    The user will be redirected to the specified redirect URI after logout.
+
+    Example:
+        GET /logout
+
+    Returns:
+        RedirectResponse: Redirects the user to the specified redirect URI.
+    """
     session_id = request.cookies.get("session_id")
     if not session_id:
         raise HTTPException(status_code=401, detail="Not logged in")
@@ -104,6 +128,23 @@ def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Reque
 
 @app.get("/redirect")
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
+    """
+    Handles the Azure authentication callback and retrieves the access token.
+
+    This endpoint is called after the user signs in with Azure. It processes the authorization
+    code and retrieves an access token. The token is stored in Redis, and a session cookie is set.
+
+    Example:
+        GET /redirect?code=<authorization_code>
+
+    Args:
+        request (Request): The incoming HTTP request.
+        redis_client (Redis): Redis client dependency.
+
+    Returns:
+        RedirectResponse: Redirects the user to the frontend if successful.
+        JSONResponse: Returns an error message if the token retrieval fails.
+    """
     code = request.query_params.get("code")
     if not code:
         logger.error(f"No code for Azure found for user: {request.client.host}")
@@ -125,7 +166,26 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
 
 @app.get("/me")
 async def get_user_claims(request: Request, redis_client: Redis = Depends(get_redis_client)):
-    """Extracts JWT claims from access token"""
+    """
+    Retrieves the user's claims and group memberships from Microsoft Graph API.
+
+    This endpoint extracts the user's claims and group memberships using the access token
+    stored in Redis. It validates whether the user belongs to the allowed groups.
+
+    Example:
+        GET /me
+
+    Args:
+        request (Request): The incoming HTTP request.
+        redis_client (Redis): Redis client dependency.
+
+    Returns:
+        dict: A dictionary containing user information and group memberships.
+
+    Raises:
+        HTTPException: If the session ID or token is not found, or if the user does not belong
+        to the allowed groups.
+    """
     session_id = request.cookies.get("session_id")
     if not session_id:
         logger.error(f"No session id for Azure found for user: {request.client.host}")
@@ -152,6 +212,26 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
 @app.get("/profile-picture")
 async def get_profile_picture(request: Request,
                               redis_client: Redis = Depends(get_redis_client)):
+    """
+    Fetches the user's profile picture from Microsoft Graph API.
+
+    This endpoint retrieves the user's profile picture using the access token stored in Redis.
+    The profile picture is returned as a JPEG image.
+
+    Example:
+        GET /profile-picture
+
+    Args:
+        request (Request): The incoming HTTP request.
+        redis_client (Redis): Redis client dependency.
+
+    Returns:
+        Response: The profile picture as a JPEG image.
+
+    Raises:
+        HTTPException: If the session ID or token is not found, or if the profile picture
+        cannot be retrieved due to an error or invalid token.
+    """
     GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me/photo/$value"
     session_id = request.cookies.get("session_id")
     if not session_id:
@@ -179,4 +259,4 @@ async def get_profile_picture(request: Request,
 
 if __name__ == "__main__":
     logger.debug(f"Backend running at port: {PORT}")
-    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True, log_config=LOGGING_CONFIG)
+    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
