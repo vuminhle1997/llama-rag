@@ -14,7 +14,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/frontend';
-import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import {
   fetchAvatarOfChat,
   useGetProfilePicture,
@@ -25,19 +25,15 @@ import FavouritesDialog from '../navigations/FavouritesDialog';
 import SideBarNavigation from '../navigations/SideBarNavigation';
 import { getChatsByTitle, useGetChats } from '@/frontend/queries/chats';
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
 } from '@/components/ui/command';
-import { useForm } from 'react-hook-form';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
-import { Chat, Favourite, Page } from '@/frontend/types';
+import { Chat} from '@/frontend/types';
 import { v4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 

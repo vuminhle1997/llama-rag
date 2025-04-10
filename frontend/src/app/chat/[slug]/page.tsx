@@ -7,7 +7,6 @@ import {
   useDeleteFile,
   usePostFile,
   useChat,
-  getChats,
   useDeleteChat,
 } from '@/frontend/queries/chats';
 import { Message, Chat } from '@/frontend/types';
@@ -17,13 +16,9 @@ import {
   selectProfilePicture,
   selectAppState,
   setAppState,
-  setSubmittedMessages,
-  selectSubmittedMessages,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
-import { fetchAvatarOfChat, useGetAvatar } from '@/frontend/queries/avatar';
-import { setChats } from '@/frontend/store/reducer/app_reducer';
 import {
   usePostFavourite,
   useDeleteFavourite,
@@ -188,12 +183,14 @@ export default function SlugChatPage({
 
   const messageText = watch('message');
 
-  useEffect(() => {
+  useEffect(() => { 
     dispatch(setAppState('loading'));
+    // @eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     // TODO: reload chats for side navigation on input submission
+    // @eslint-disable-next-line
   }, [handleFormSubmit]);
 
   useEffect(() => {
@@ -202,6 +199,7 @@ export default function SlugChatPage({
       dispatch(setChat(chat));
       dispatch(setAppState('idle'));
     }
+    // @eslint-disable-next-line
   }, [chat]);
 
   useEffect(() => {

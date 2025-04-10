@@ -2,19 +2,13 @@
 
 import TypewriterEffect from '@/components/ui/typewriter';
 import { Chat } from '@/frontend/types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { marked } from 'marked';
 import { v4 } from 'uuid';
 import { Message } from '@/frontend/types';
 import { getMessages } from '@/frontend/queries/messages';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useAppSelector } from '@/frontend/store/hooks';
-import { useDispatch } from 'react-redux';
-import {
-  selectSubmittedMessages,
-  setMessages,
-} from '@/frontend/store/reducer/app_reducer';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Bars3Icon } from '@heroicons/react/24/solid';
