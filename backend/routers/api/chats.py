@@ -16,7 +16,7 @@ from redis import Redis
 from chromadb import Collection
 from typing import Optional
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger
+from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url
 from sqlmodel import Session
 
 from models import ChatMessage
@@ -251,8 +251,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     else:
         model_from_chat = "llama3.1"
 
-    # TODO, uncomment this for later. Just use an interference provider for faster response
-    llm = Ollama(model="hf.co/MaziyarPanahi/Meta-Llama-3.1-8B-Instruct-GGUF:Q8_0", temperature=db_chat.temperature, request_timeout=500)
+    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 

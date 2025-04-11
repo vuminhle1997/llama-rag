@@ -25,6 +25,9 @@ connect_args = {"check_same_thread": False}
 DATABASE_URL = os.getenv("DATABASE_URL", sqlite_url)
 engine = create_engine(DATABASE_URL)
 
+# ollama
+base_url = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:{os.getenv('OLLAMA_PORT', 11434)}/"
+
 # chroma DB
 CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost") 
 CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000)) 
