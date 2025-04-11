@@ -13,30 +13,32 @@ services:
     networks:
       - gct-apps
   chromadb:
-    image: chromadb/chroma:0.6.1
+    image: chromadb/chroma:1.0.4
     container_name: gct-insight-chat-chromadb
     restart: always
     ports:
       - "8000:8000"
-    networks:
-      - gct-apps
     volumes:
       - chromadb_data:/data
+    networks:
+      - gct-apps
   mysql:
     image: mysql:8.0.19
+    container_name: gct-insight-chat-mysql
     command: mysqld --default-authentication-plugin=mysql_native_password
     restart: always
     env_file:
       - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volumes:
-      - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gct-apps
   postgres:
     image: postgres:latest
     container_name: gct-insight-chat-postgres
@@ -46,41 +48,54 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    networks:
-      - gct-apps
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
     volumes:
       - chromadb_data:/data
+    networks:
+      - gct-apps
   nextjs:
+    image: globalct-insight-chat-nextjs:latest
+    container_name: gct-insight-chat-nextjs
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: gct-insight-chat-nextjs
+    ports:
+      - "3000:3000"
     env_file:
       - .env
     environment:
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
     restart: always
-    ports:
-      - "3000:3000"
+    depends_on:
+      - fastapi
+      - redis
+      - mysql
+      - postgres
+      - chromadb
     networks:
       - gct-apps
   fastapi:
+    image: globalct-insight-chat-fastapi:latest
+    container_name: gct-insight-chat-fastapi
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: gct-insight-chat-fastapi
     restart: always
     env_file:
       - .env
     ports:
       - "4000:4000"
-    networks:
-      - gct-apps
     volumes:
       - backend_data:/var/app/backend/uploads
+    depends_on:
+      - redis
+      - mysql
+      - postgres
+      - chromadb
+    networks:
+      - gct-apps
 
 volumes:
   redis_data:
