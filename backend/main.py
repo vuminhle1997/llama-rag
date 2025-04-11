@@ -28,7 +28,7 @@ load_dotenv()
 groq = os.getenv("GROQ_API_KEY")
 
 # LLM
-llm = Ollama(model="hf.co/MaziyarPanahi/Meta-Llama-3.1-8B-Instruct-GGUF:Q8_0")
+llm = Ollama(model="hf.co/MaziyarPanahi/gemma-3-27b-it-GGUF:Q4_K_M")
 # llm = Groq(model="llama-3.3-70b-versatile", api_key=groq)
 # llm = GoogleGenAI(model="gemini-2.0-flash")
 embed_model = OllamaEmbedding(model_name="mxbai-embed-large")
