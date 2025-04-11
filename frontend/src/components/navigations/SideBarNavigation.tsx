@@ -2,11 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Logo from '@/static/globalLogo.png';
-import Image from 'next/image';
 import {
-  HeartIcon,
   MagnifyingGlassCircleIcon,
   PencilSquareIcon,
   XMarkIcon,
@@ -16,14 +12,7 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
   useSidebar,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
@@ -37,18 +26,6 @@ import {
 } from '@/frontend';
 import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '../ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
 import FavouritesNavigation from './FavouritesNavigation';
 
 /**
@@ -61,9 +38,8 @@ import FavouritesNavigation from './FavouritesNavigation';
 export default function SideBarNavigation() {
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
-  const favouriteChats = useAppSelector(selectFavouriteChats);
 
-  const { open, toggleSidebar } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));

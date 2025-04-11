@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
-import { AzureClaims, Message, UserProfile } from '@/frontend/types';
+import { Message, UserProfile } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
 
 // Define a type for the slice state

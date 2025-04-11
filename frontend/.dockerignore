@@ -1,6 +1,5 @@
-.next
-node_modules
-prisma
 .git
 .gitignore
+.next
+node_modules
 README.md

@@ -226,6 +226,7 @@ export default function ChatEntryForm({
         }, 3000);
       }
     } catch (error) {
+      console.error(error)
       setShowError(true);
       setShowSuccess(false);
       setTimeout(() => {

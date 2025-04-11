@@ -3,7 +3,7 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, JSONResponse, Response
 from routers import route
-from dependencies import create_db_and_tables, get_redis_client, logger
+from dependencies import create_db_and_tables, get_redis_client, logger, base_url
 from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
@@ -28,10 +28,9 @@ load_dotenv()
 groq = os.getenv("GROQ_API_KEY")
 
 # LLM
-llm = Ollama(model="hf.co/MaziyarPanahi/Meta-Llama-3.1-8B-Instruct-GGUF:Q8_0")
-# llm = Groq(model="llama-3.3-70b-versatile", api_key=groq)
-# llm = GoogleGenAI(model="gemini-2.0-flash")
-embed_model = OllamaEmbedding(model_name="mxbai-embed-large")
+llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url)
+embed_model = OllamaEmbedding(model_name="mxbai-embed-large", base_url=base_url)
+
 Settings.llm = llm
 Settings.embed_model = embed_model
 Settings.chunk_size = 512
@@ -45,11 +44,13 @@ AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 origins = [
     "http://localhost",
     "http://localhost:3000",  # Default Next.js dev server
     "http://localhost:4000",  # Make sure this is included
+    FRONTEND_URL,
 ]
 
 azure_app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, AUTHORITY)

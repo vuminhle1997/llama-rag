@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Bars3Icon, PencilSquareIcon } from '@heroicons/react/24/solid';
 import ChatEntryForm from '@/components/form/ChatEntryForm';
 import { useSidebar } from '@/components/ui/sidebar';
-
-const suggestions = [
-  'Was sind die wichtigsten Funktionen unseres Produkts?',
-  'Wie kann ich meinen Workflow verbessern?',
-  'Erzählen Sie mir von den neuesten Updates',
-  'Helfen Sie mir bei der Fehlerbehebung',
-];
 
 /**
  * The `WelcomeScreen` component renders the welcome screen for the Global CT InsightChat application.
