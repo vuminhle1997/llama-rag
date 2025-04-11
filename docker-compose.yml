@@ -8,7 +8,8 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      # - ollama_data:/root/.ollama
+      - /home/kiwerkstatt/.ollama:/root/.ollama
     networks:
       - gct-apps
   redis:
@@ -117,6 +118,8 @@ volumes:
   postgres_data:
     driver: local
   backend_data:
+    driver: local
+  ollama_data:
     driver: local
 
 networks:
