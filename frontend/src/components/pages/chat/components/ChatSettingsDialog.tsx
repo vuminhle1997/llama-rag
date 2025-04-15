@@ -68,22 +68,24 @@ export default function ChatSettingsDialog({
 }: ChatSettingsDialogProps) {
   return (
     <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
-      <DialogTrigger>
+      <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-primary/10 hover:bg-primary/20"
-            >
-              <Settings className="h-4 w-4 text-primary" />
-            </Button>
+          <TooltipTrigger asChild>
+            <DialogTrigger>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-primary/10 hover:bg-primary/20"
+              >
+                <Settings className="h-4 w-4 text-primary" />
+              </Button>
+            </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
             <p>Chat-Einstellungen</p>
           </TooltipContent>
         </Tooltip>
-      </DialogTrigger>
+      </TooltipProvider>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Chat Einstellungen</DialogTitle>
@@ -142,19 +144,18 @@ export default function ChatSettingsDialog({
               ? 'Aus Favoriten entfernen'
               : 'Zu Favoriten hinzufügen'}
           </Button>
-          <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => {
-                setSelectedChat(chat);
-                setIsDialogOpen(true);
-              }}
-            >
-              <PencilIcon className="h-4 w-4 mr-2" />
-              Chat bearbeiten
-            </Button>
-          </DialogTrigger>
+
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => {
+              setSelectedChat(chat);
+              setIsDialogOpen(true);
+            }}
+          >
+            <PencilIcon className="h-4 w-4 mr-2" />
+            Chat bearbeiten
+          </Button>
           <Button
             variant="destructive"
             className="w-full justify-start"
