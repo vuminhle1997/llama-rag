@@ -68,7 +68,7 @@ export default function ChatSettingsDialog({
 }: ChatSettingsDialogProps) {
   return (
     <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Tooltip>
           <TooltipTrigger>
             <Button
