@@ -278,6 +278,14 @@ export default function ChatContainer({
             />
           </div>
         )}
+
+        {
+          /**
+           * Consists of messages:
+           * - user submitted messages
+           * - assistant responses after submissions
+           */
+        }
         {submittedMessages.map((message, index) => {
           const isLastAssistantMessage =
             index === submittedMessages.length - 1 &&
@@ -286,7 +294,7 @@ export default function ChatContainer({
           return (
             <div
               key={index}
-              className={`flex items-start space-x-4 w-full ${
+              className={`flex items-start gap-4 w-full mb-4 ${
                 message.role === 'user' ? 'justify-end' : ''
               }`}
             >
@@ -369,7 +377,7 @@ export default function ChatContainer({
                 return (
                   <div
                     key={index}
-                    className={`flex items-start space-x-4 w-full ${
+                    className={`flex items-start gap-4 w-full mb-4 ${
                       message.role === 'user' ? 'justify-end' : ''
                     }`}
                     ref={isLastPage ? ref : null}
