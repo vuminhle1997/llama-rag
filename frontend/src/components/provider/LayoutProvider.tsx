@@ -170,7 +170,6 @@ export default function LayoutProvider({
         } as React.CSSProperties
       }
     >
-      <FavouritesDialog />
       <div className="flex h-screen w-screen">
         <SideBarNavigation />
         {children}
