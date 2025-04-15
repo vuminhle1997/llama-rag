@@ -14,7 +14,6 @@ import ChatsCollectionElement from './chat/ChatsCollectionElement';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import _ from 'lodash';
 
 /**
  * ChatsNavigation component handles the display and management of chat navigation.
@@ -94,11 +93,6 @@ export default function ChatsNavigation() {
   const sortedChats: Chat[] = chats;
 
   const groupedChats = groupChatsByDate(sortedChats as Chat[]);
-
-
-  // with lodash, sort chats by last_interaction_at desc
-  const sortedChatsLodasg = _.orderBy(chats, ['last_interaction_at'], ['desc']);
-  console.log(sortedChatsLodasg);
   return (
     <SidebarGroup className="p-0">
       <SidebarGroupContent>
