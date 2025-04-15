@@ -16,6 +16,8 @@ import {
   selectProfilePicture,
   selectAppState,
   setAppState,
+  selectChats,
+  setChats,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -40,9 +42,6 @@ import { ChatFormData } from '@/frontend/types';
 import ChatFileManager, {
   ChatFileManagerProps,
 } from '@/components/pages/chat/components/ChatFileManager';
-import ChatSettingsDialog, {
-  ChatSettingsDialogProps,
-} from '@/components/pages/chat/components/ChatSettingsDialog';
 import ChatFavouriteAlertDialog, {
   ChatFavouriteAlertDialogProps,
 } from '@/components/pages/chat/components/ChatFavouriteAlertDialog';
@@ -53,6 +52,7 @@ import ChatEditAlertDialog, {
   ChatEditAlertDialogProps,
 } from '@/components/pages/chat/components/ChatEditAlertDialog';
 import AuthProvider from '@/components/AuthProvider';
+import _ from 'lodash';
 
 /**
  * SlugChatPage component renders the chat page for a specific chat identified by the slug.
@@ -122,6 +122,7 @@ export default function SlugChatPage({
   const { slug } = React.use(params);
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const chats = useAppSelector(selectChats);
 
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
@@ -187,11 +188,6 @@ export default function SlugChatPage({
     dispatch(setAppState('loading'));
     // @eslint-disable-next-line
   }, []);
-
-  useEffect(() => {
-    // TODO: reload chats for side navigation on input submission
-    // @eslint-disable-next-line
-  }, [handleFormSubmit]);
 
   useEffect(() => {
     if (chat) {
@@ -333,6 +329,19 @@ export default function SlugChatPage({
 
       await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
+
+      const updatedChats = _.cloneDeep(chats);
+      const chatToUpdate = _.find(updatedChats, { id: slug });
+
+      if (chatToUpdate) {
+        chatToUpdate.last_interacted_at = new Date().toISOString();
+        const sortedChats = _.orderBy(
+          updatedChats,
+          ['last_interacted_at'],
+          ['desc']
+        );
+        dispatch(setChats(sortedChats));
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {

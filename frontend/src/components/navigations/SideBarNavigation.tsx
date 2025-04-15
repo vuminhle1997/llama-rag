@@ -18,7 +18,6 @@ import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
-  selectFavouriteChats,
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -106,7 +105,7 @@ export default function SideBarNavigation() {
                   <p>Bisherigen Chat suchen.</p>
                   <div className="flex items-center justify-center text-center">
                     <p>
-                      Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
+                      Drücke <br /> ⌘+K (macOS) <br /> Strg+K (Windows/Linux){' '}
                       <br />
                       um die Suche zu öffnen.
                     </p>

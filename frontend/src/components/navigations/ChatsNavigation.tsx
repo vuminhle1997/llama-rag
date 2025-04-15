@@ -6,14 +6,15 @@ import { Chat } from '@/frontend/types';
 import { useEffect } from 'react';
 import { getChats, useDeleteChat } from '@/frontend/queries/chats';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAppSelector } from '@/frontend/store/hooks/hooks';
-import { selectAppState } from '@/frontend/store/reducer/app_reducer';
+import { useAppSelector, useAppDispatch } from '@/frontend/store/hooks/hooks';
+import { selectAppState, setChats, selectChats } from '@/frontend/store/reducer/app_reducer';
 import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import ChatsCollectionElement from './chat/ChatsCollectionElement';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import _ from 'lodash';
 
 /**
  * ChatsNavigation component handles the display and management of chat navigation.
@@ -31,6 +32,8 @@ export default function ChatsNavigation() {
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
   const appState = useAppSelector(selectAppState);
+  const dispatch = useAppDispatch();
+  const chats = useAppSelector(selectChats) || [];
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const deleteChat = useDeleteChat(chatToDelete || '');
@@ -74,28 +77,28 @@ export default function ChatsNavigation() {
     });
   };
 
-  const chats = data ? data.pages.flatMap(page => page.items) : [];
+  // Effect hook to fetch next page when the load more element comes into view
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().then((result) => {
+        const newChats = result?.data?.pages.flatMap(page => page.items) || [];
+        dispatch(setChats(newChats));
+      });
+    }
+  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage, dispatch]);
+
 
   /**
    * Sorts the chats array based on the last interaction date in descending order.
    */
-  const sortedChats = chats
-    ? [...chats].sort(
-        (a, b) =>
-          new Date(b.last_interacted_at).getTime() -
-          new Date(a.last_interacted_at).getTime()
-      )
-    : [];
+  const sortedChats: Chat[] = chats;
 
   const groupedChats = groupChatsByDate(sortedChats as Chat[]);
 
-  // Effect hook to fetch next page when the load more element comes into view
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage]);
 
+  // with lodash, sort chats by last_interaction_at desc
+  const sortedChatsLodasg = _.orderBy(chats, ['last_interaction_at'], ['desc']);
+  console.log(sortedChatsLodasg);
   return (
     <SidebarGroup className="p-0">
       <SidebarGroupContent>
