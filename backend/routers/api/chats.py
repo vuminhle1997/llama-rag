@@ -2,13 +2,10 @@ import json
 import uuid
 from datetime import datetime
 import os
-import asyncio
 from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
-from llama_index.core.agent import ReActAgent
-from llama_index.core.chat_engine.types import AgentChatResponse, StreamingAgentChatResponse
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
@@ -16,7 +13,7 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 from redis import Redis
 
 from chromadb import Collection
-from typing import Optional, AsyncGenerator
+from typing import Optional
 from starlette.requests import Request
 from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url
 from sqlmodel import Session
@@ -38,12 +35,12 @@ from services import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
+    stream_agent_response,
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
-from sse_starlette.sse import EventSourceResponse # For streaming
-from fastapi.responses import StreamingResponse # Import StreamingResponse
+from fastapi.responses import StreamingResponse
 from llama_index.core.chat_engine.types import AgentChatResponse
 
 from llama_index.llms.google_genai import GoogleGenAI
@@ -54,96 +51,6 @@ groq = os.getenv("GROQ_API_KEY")
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-chat_memory_basic = ChatMemoryBuffer.from_defaults(
-    token_limit=3000,
-    chat_store_key="twice-once",
-)
-
-# --- Helper function for streaming ---
-async def stream_agent_response(
-    agent: ReActAgent, # Use the correct Agent type
-    user_input: str,
-    db_client: Session,
-    chat_id: str,
-    user_message: ChatMessage,
-) -> AsyncGenerator[str, None]:
-    """
-    Streams the agent's response chunk by chunk in SSE format
-    and saves the full response to the DB afterwards.
-    """
-    full_response_text = ""
-    try:
-        # Use the streaming method of your agent (e.g., astream_chat)
-        streaming_response: StreamingAgentChatResponse = await agent.astream_chat(user_input)
-
-
-        # Send user message ID first (optional, but can be useful for frontend)
-        # yield f"data: {json.dumps({'user_message_id': user_message.id})}\n\n"
-        async_generator = streaming_response.async_response_gen()
-
-        async for chunk in async_generator:
-            # Process different types of chunks if necessary
-            # Check the structure of your specific streaming response object
-            # Common patterns involve checking chunk.delta for text
-            delta = None
-            if hasattr(chunk, 'delta') and chunk.delta:
-                delta = chunk.delta
-            elif isinstance(chunk, str): # Handle simpler cases if agent streams raw strings
-                delta = chunk
-
-            if delta:
-                full_response_text += delta
-                # Format as Server-Sent Event (SSE)
-                yield f"data: {json.dumps({'value': delta})}\n\n"
-                await asyncio.sleep(0.1)
-
-        # Signal the end of the stream
-        yield f"data: {json.dumps({'status': 'done'})}\n\n"
-
-    except Exception as e:
-        logger.error(f"Error during agent streaming for chat {chat_id}: {e}", exc_info=True)
-        # Send an error event to the client
-        yield f"data: {json.dumps({'error': 'An error occurred during streaming.'})}\n\n"
-        # Still try to save whatever was generated, or handle error appropriately
-        full_response_text += "\n\n[Error during generation]"
-    finally:
-        # --- Save the Assistant's full message AFTER streaming is complete ---
-        if full_response_text:
-            assistant_message = ChatMessage(
-                id=str(uuid.uuid4()),
-                role=MessageRole.ASSISTANT,
-                text=full_response_text.strip(),
-                block_type='text',
-                additional_kwargs={}, # Add any relevant kwargs if needed
-                chat_id=chat_id,
-                created_at=datetime.now(),
-            )
-            messages = [
-                user_message,
-                assistant_message,
-            ]
-            try:
-                # Fetch the chat again in this async context if needed, or pass db_chat
-                db_chat = db_client.get(Chat, chat_id)
-                if db_chat:
-                    for chat_message in messages:
-                        db_chat.messages.append(chat_message)
-
-                    db_chat.last_interacted_at = datetime.now() # Update interaction time
-                    # db_client.add(db_chat) # Adding might not be needed if already tracked
-                    db_client.commit()
-                    db_client.refresh(db_chat)
-                    logger.info(f"Assistant message saved for chat {chat_id}")
-                else:
-                    logger.error(f"Chat {chat_id} not found when trying to save assistant message.")
-
-            except Exception as db_error:
-                logger.error(f"Failed to save assistant message for chat {chat_id}: {db_error}", exc_info=True)
-                db_client.rollback()
-        else:
-            logger.warning(f"No response generated for chat {chat_id}, not saving assistant message.")
-
 
 router = APIRouter(
     prefix="/chats",
@@ -267,6 +174,30 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
                       request: Request = Request,
                       redis_client: Redis = Depends(get_redis_client),
                       chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
+    """
+    Handles the chat streaming endpoint for a specific chat session.
+
+    This endpoint allows users to send a chat query and receive a streaming response
+    from the chat agent. It validates the chat session, checks user permissions, and
+    processes the chat query using a language model and associated tools.
+
+    Args:
+        chat_id (str): The unique identifier of the chat session.
+        chat (ChatQuery): The chat query object containing the user's input text.
+        db_client (Session): Database session dependency for interacting with the database.
+        request (Request): The HTTP request object.
+        redis_client (Redis): Redis client dependency for caching and session management.
+        chroma_vector_store (ChromaVectorStore): Dependency for vector-based storage and retrieval.
+
+    Raises:
+        HTTPException: If the chat parameter is missing.
+        HTTPException: If the chat session is not found in the database.
+        HTTPException: If the chat session does not belong to the authenticated user.
+
+    Returns:
+        StreamingResponse: A streaming response containing the chat agent's output in
+        "text/event-stream" format.
+    """
     if not chat:
         logger.error("Missing chat parameter")
         raise HTTPException(status_code=404, detail="Body: text is required")
@@ -331,8 +262,9 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
 
+
     streaming_generator = stream_agent_response(agent=agent, user_input=chat.text, db_client=db_client,
-                                                db_chat=db_chat, user_message=user_message)
+                                                chat_id=db_chat.id, user_message=user_message)
 
     return StreamingResponse(streaming_generator, media_type="text/event-stream")
 

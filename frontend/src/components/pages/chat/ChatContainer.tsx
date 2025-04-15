@@ -1,8 +1,7 @@
 'use client';
 
-import TypewriterEffect from '@/components/ui/typewriter';
 import { Chat, Favourite } from '@/frontend/types';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { marked } from 'marked';
 import { v4 } from 'uuid';
 import { Message } from '@/frontend/types';
@@ -30,10 +29,6 @@ export interface ChatContainerProps {
   reset: (message: { message: string }) => void;
   profilePicture?: string | null;
   pendingMessage: string | null;
-  isTyping: boolean;
-  lastMessageIsTyping: boolean;
-  handleMessageLoad: () => void;
-  submittedMessages: Message[];
   isSettingsDialogOpen: boolean;
   setIsSettingsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   slug: string;
@@ -48,6 +43,10 @@ export interface ChatContainerProps {
   setSelectedChat: React.Dispatch<React.SetStateAction<Chat | null>>;
   setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleDelete: () => void;
+
+  response: string;
+  isStreaming: boolean;
+  scrollToBottom: () => void;
 }
 
 /**
@@ -62,8 +61,6 @@ export interface ChatContainerProps {
  * @param {string} props.profilePicture - URL of the user's profile picture.
  * @param {string} props.pendingMessage - The pending message text.
  * @param {boolean} props.isTyping - Indicates if the assistant is typing.
- * @param {Function} props.handleMessageLoad - Function to handle message load.
- * @param {boolean} props.lastMessageIsTyping - Indicates if the last message is being typed.
  *
  * @returns {JSX.Element} The rendered chat container component.
  */
@@ -74,10 +71,6 @@ export default function ChatContainer({
   reset,
   profilePicture,
   pendingMessage,
-  isTyping,
-  handleMessageLoad,
-  lastMessageIsTyping,
-  submittedMessages,
   deleteFavourite,
   handleDelete,
   isSettingsDialogOpen,
@@ -87,10 +80,15 @@ export default function ChatContainer({
   setIsSettingsDialogOpen,
   setSelectedChat,
   slug,
+  isStreaming,
+  response,
+  scrollToBottom,
 }: ChatContainerProps) {
   const isMobile = useIsMobile();
   const { ref, inView } = useInView();
   const { open, toggleSidebar } = useSidebar();
+
+  const [submittedMessages, setSubmittedMessages] = useState<Message[]>([]);
 
   const {
     data: messagesFetched,
@@ -123,6 +121,31 @@ export default function ChatContainer({
       }
     }
   }, [messagesFetched, chatContainerRef]);
+
+  useEffect(() => {
+    if (!isStreaming && response.length > 0) {
+      if (pendingMessage) {
+        const userMessage: Message = {
+          id: v4(),
+          role: 'user',
+          text: pendingMessage,
+          created_at: new Date().toISOString(),
+          block_type: 'text',
+        }
+        const assistantMessage: Message = {
+          id: v4(),
+          role: 'assistant',
+          text: response,
+          created_at: new Date().toISOString(),
+          block_type: 'text',
+        }
+        setSubmittedMessages(prev => [assistantMessage, userMessage, ...prev]);
+        setTimeout(() => {
+          scrollToBottom();
+        }, 750)
+      }
+    }
+  }, [isStreaming, response])
 
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
@@ -223,14 +246,13 @@ export default function ChatContainer({
           </div>
         ))}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 flex flex-col-reverse">
-        {isTyping && (
+        {isStreaming && response.length < 1 && (
           <div className="flex items-start space-x-4">
             <Image
               src={
                 chat.avatar_path
-                  ? `${
-                      process.env.NEXT_PUBLIC_BACKEND_URL
-                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  ? `${process.env.NEXT_PUBLIC_BACKEND_URL
+                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
@@ -256,8 +278,50 @@ export default function ChatContainer({
             </div>
           </div>
         )}
+        {/* Assistant Response */}
+        {
+          isStreaming && response.length > 0 && (
+            <div className="flex items-start space-x-4">
+              <Image
+                src={
+                  chat.avatar_path
+                    ? `${process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                    : '/ai.jpeg'
+                }
+                alt="The AI assistant's avatar typing indicator"
+                className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                width={40}
+                height={40}
+              />
+              <div
+                className={`flex-1 rounded-lg shadow-sm p-4 bg-white prose py-0`}
+              >
+                {
+                  <div
+                    key={v4()}
+                    className={'text-gray-800'
+                    }
+                  >
+                    {
+                      response && (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: marked(
+                              response.replaceAll('\n', '<br />')
+                            ),
+                          }}
+                        ></div>
+                      )
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          )
+        }
         {/* Pending Message */}
-        {pendingMessage && (
+        {isStreaming && pendingMessage && (
           <div className="flex items-start space-x-4 justify-end">
             <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
               <p className="text-white">{pendingMessage}</p>
@@ -284,9 +348,8 @@ export default function ChatContainer({
           return (
             <div
               key={index}
-              className={`flex items-start gap-4 w-full mb-4 ${
-                message.role === 'user' ? 'justify-end' : ''
-              }`}
+              className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
+                }`}
             >
               {message.role !== 'user' && (
                 <>
@@ -294,11 +357,10 @@ export default function ChatContainer({
                     <Image
                       src={
                         chat.avatar_path
-                          ? `${
-                              process.env.NEXT_PUBLIC_BACKEND_URL
-                            }/uploads/avatars/${chat.avatar_path
-                              .split('/')
-                              .pop()}`
+                          ? `${process.env.NEXT_PUBLIC_BACKEND_URL
+                          }/uploads/avatars/${chat.avatar_path
+                            .split('/')
+                            .pop()}`
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
@@ -314,9 +376,8 @@ export default function ChatContainer({
                 </>
               )}
               <div
-                className={`flex-1 rounded-lg shadow-sm p-4 ${
-                  message.role === 'user' ? 'bg-primary' : 'bg-white prose py-0'
-                }`}
+                className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user' ? 'bg-primary' : 'bg-white prose py-0'
+                  }`}
               >
                 {
                   <div
@@ -325,22 +386,15 @@ export default function ChatContainer({
                       message.role === 'user' ? 'text-white' : 'text-gray-800'
                     }
                   >
-                    {isLastAssistantMessage && lastMessageIsTyping ? (
-                      <TypewriterEffect
-                        text={message.text}
-                        onLoad={handleMessageLoad}
-                      />
-                    ) : (
-                      message.text && (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: marked(
-                              message.text.replaceAll('\n', '<br />')
-                            ),
-                          }}
-                        ></div>
-                      )
-                    )}
+
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(
+                          message.text.replaceAll('\n', '<br />')
+                        ),
+                      }}
+                    ></div>
+
                   </div>
                 }
               </div>
@@ -359,17 +413,12 @@ export default function ChatContainer({
           <>
             {messagesFetched.pages.map(page => {
               return page.items.map((message, index) => {
-                const isLastAssistantMessage =
-                  index === messagesFetched.pages[0].items.length - 1 &&
-                  message.role === 'assistant';
-
                 const isLastPage = page.items.length === index + 1;
                 return (
                   <div
                     key={index}
-                    className={`flex items-start gap-4 w-full mb-4 ${
-                      message.role === 'user' ? 'justify-end' : ''
-                    }`}
+                    className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
+                      }`}
                     ref={isLastPage ? ref : null}
                   >
                     {message.role !== 'user' && (
@@ -378,11 +427,10 @@ export default function ChatContainer({
                           <Image
                             src={
                               chat.avatar_path
-                                ? `${
-                                    process.env.NEXT_PUBLIC_BACKEND_URL
-                                  }/uploads/avatars/${chat.avatar_path
-                                    .split('/')
-                                    .pop()}`
+                                ? `${process.env.NEXT_PUBLIC_BACKEND_URL
+                                }/uploads/avatars/${chat.avatar_path
+                                  .split('/')
+                                  .pop()}`
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
@@ -398,11 +446,10 @@ export default function ChatContainer({
                       </>
                     )}
                     <div
-                      className={`flex-1 rounded-lg shadow-sm p-4 ${
-                        message.role === 'user'
-                          ? 'bg-primary'
-                          : 'bg-white prose py-0'
-                      }`}
+                      className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user'
+                        ? 'bg-primary'
+                        : 'bg-white prose py-0'
+                        }`}
                     >
                       {
                         <div
@@ -413,21 +460,14 @@ export default function ChatContainer({
                               : 'text-gray-800'
                           }
                         >
-                          {isLastAssistantMessage && lastMessageIsTyping ? (
-                            <TypewriterEffect
-                              text={message.text}
-                              onLoad={handleMessageLoad}
-                            />
-                          ) : (
-                            message.text && (
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: marked(
-                                    message.text.replaceAll('\n', '<br />')
-                                  ),
-                                }}
-                              ></div>
-                            )
+                          {message.text && (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(
+                                  message.text.replaceAll('\n', '<br />')
+                                ),
+                              }}
+                            ></div>
                           )}
                         </div>
                       }
