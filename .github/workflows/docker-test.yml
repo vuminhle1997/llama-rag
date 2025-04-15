@@ -1,27 +1,67 @@
-name: Build Docker Images
+name: Test Build Docker Images on Dev
 
 on:
   push:
     branches:
-      - dev
+      - dev # Only run on pushes to the 'dev' branch
+    paths:
+      # --- Backend Files ---
+      # Python source files
+      - 'backend/**/*.py'
+      # Common config/dependency files
+      - 'backend/requirements*.txt'
+      - 'backend/pyproject.toml'
+      - 'backend/**.ini'
+      - 'backend/**.toml'
+      # Dockerfile for backend
+      - 'backend/Dockerfile'
+
+      # --- Frontend Files ---
+      - 'frontend/**/*.ts'
+      - 'frontend/**/*.tsx'
+      - 'frontend/**/*.js'
+      - 'frontend/**/*.jsx'
+      - 'frontend/**/*.css'
+      - 'frontend/**/*.scss'
+      - 'frontend/**/*.sass'
+      - 'frontend/**/*.less'
+      - 'frontend/package.json'
+      - 'frontend/yarn.lock'
+      - 'frontend/package-lock.json'
+      - 'frontend/pnpm-lock.yaml'
+      - 'frontend/**.json' # Covers tsconfig.json, etc.
+      - 'frontend/**.yaml'
+      - 'frontend/**.yml'
+      - 'frontend/**.html'
+      - 'frontend/tailwind.config.*' # .js, .ts, .cjs
+      - 'frontend/postcss.config.*'  # .js, .ts, .cjs
+      - 'frontend/next.config.*'     # .js, .mjs
+      - 'frontend/Dockerfile'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BASENAME: ${{ github.repository }}
 
 jobs:
-  build:
+  test-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # - name: Log in to DockerHub
-      #   uses: docker/login-action@v2
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
-
+        uses: docker/setup-buildx-action@v3 
       - name: Extract Git Commit ID
         id: vars
         run: echo "commit_id=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -29,9 +69,9 @@ jobs:
       - name: Build and tag fastapi Docker image
         run: |
           docker build -t fastapi:${{ env.commit_id }} ./backend
-          echo "FastAPI build successful"
+          echo "FastAPI build successful for commit ${{ env.commit_id }}"
 
       - name: Build and tag nextjs Docker image
         run: |
           docker build -t nextjs:${{ env.commit_id }} ./frontend
-          echo "Next.js build successful"
+          echo "Next.js build successful for commit ${{ env.commit_id }}"

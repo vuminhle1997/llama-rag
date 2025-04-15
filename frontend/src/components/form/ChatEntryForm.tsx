@@ -317,7 +317,7 @@ export default function ChatEntryForm({
                         <span>Ihre Chats</span>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className=''>
+                    <AccordionContent>
                       {existingChats && existingChats.length > 0 && (
                         <UsersChatNavigation
                           existingChats={existingChats}

@@ -263,29 +263,19 @@ export default function ChatContainer({
               <p className="text-white">{pendingMessage}</p>
             </div>
 
-            <Image
-              src={
-                chat.avatar_path
-                  ? `${
-                      process.env.NEXT_PUBLIC_BACKEND_URL
-                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
-                  : '/ai.jpeg'
-              }
+            <img
+              src={profilePicture ? profilePicture : ''}
               alt="User Profile Picture"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
-              width={40}
-              height={40}
             />
           </div>
         )}
 
-        {
-          /**
-           * Consists of messages:
-           * - user submitted messages
-           * - assistant responses after submissions
-           */
-        }
+        {/**
+         * Consists of messages:
+         * - user submitted messages
+         * - assistant responses after submissions
+         */}
         {submittedMessages.map((message, index) => {
           const isLastAssistantMessage =
             index === submittedMessages.length - 1 &&
