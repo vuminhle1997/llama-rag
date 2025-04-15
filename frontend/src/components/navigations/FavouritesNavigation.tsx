@@ -1,6 +1,6 @@
 'use client';
 import React, { useCallback } from 'react';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,7 +19,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import {
   EllipsisHorizontalIcon,
@@ -41,9 +40,7 @@ import ChatEntryForm from '../form/ChatEntryForm';
 import { useDeleteChat } from '@/frontend/queries/chats';
 import {
   useParams,
-  usePathname,
   useRouter,
-  useSearchParams,
 } from 'next/navigation';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import Image from 'next/image';

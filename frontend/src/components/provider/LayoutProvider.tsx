@@ -6,7 +6,6 @@ import {
   selectChats,
   selectShowCommands,
   setAppState,
-  setChats,
   setFavouriteChats,
   setProfilePicture,
   setShowCommands,
@@ -14,30 +13,24 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@/frontend';
-import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import {
-  fetchAvatarOfChat,
   useGetProfilePicture,
 } from '@/frontend/queries/avatar';
 import { useGetFavourites } from '@/frontend/queries/favourites';
 import { useAuth } from '@/frontend/queries';
-import FavouritesDialog from '../navigations/FavouritesDialog';
 import SideBarNavigation from '../navigations/SideBarNavigation';
-import { getChatsByTitle, useGetChats } from '@/frontend/queries/chats';
+import { getChatsByTitle } from '@/frontend/queries/chats';
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
 } from '@/components/ui/command';
-import { useForm } from 'react-hook-form';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
-import { Chat, Favourite, Page } from '@/frontend/types';
+import { Chat} from '@/frontend/types';
 import { v4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 
@@ -82,7 +75,6 @@ export default function LayoutProvider({
   const { data: authData, isLoading, error } = useAuth();
   const { profilePicture } = useGetProfilePicture();
   const { data: favouriteChats } = useGetFavourites(50, 1);
-  const { data } = useGetChats(50, 1);
 
   const [value, setValue] = React.useState('');
   const [searchedChats, setSearchedChats] = React.useState<Chat[]>(chats || []);
@@ -123,18 +115,6 @@ export default function LayoutProvider({
       dispatch(
         setFavouriteChats(favouriteChats.items.map(favorite => favorite.chat))
       );
-      Promise.all(
-        favouriteChats.items.map(favourite =>
-          fetchAvatarOfChat(favourite.chat.id)
-        )
-      ).then(avatars => {
-        console.log(avatars)
-        const updatedChats = favouriteChats.items.map((favourite, index) => ({
-          ...favourite.chat,
-          avatar_blob: avatars[index].avatar_blob,
-        }));
-        dispatch(setFavouriteChats(updatedChats));
-      });
     }
   }, [favouriteChats]);
 
@@ -146,13 +126,6 @@ export default function LayoutProvider({
       dispatch(setAppState('failed'));
     }
   }, [authData, isLoading, error]);
-
-  useEffect(() => {
-    if (data) {
-      setSearchedChats(data.items);
-      dispatch(setChats(data.items))
-    }
-  }, [data]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -174,7 +147,6 @@ export default function LayoutProvider({
         } as React.CSSProperties
       }
     >
-      <FavouritesDialog />
       <div className="flex h-screen w-screen">
         <SideBarNavigation />
         {children}

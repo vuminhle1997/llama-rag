@@ -1,0 +1,91 @@
+name: Build and Push FastAPI & Next.js to GHCR on Tag
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push events for tags matching the pattern 'v*'
+  push:
+    tags:
+      - 'v*' # Matches tags like v1.0, v1.2.3, v2.0.0-beta1 etc.
+
+  # Allows you to run this workflow manually from the Actions tab (optional)
+  workflow_dispatch:
+
+# Environment variables available to all jobs and steps in the workflow
+env:
+  REGISTRY: ghcr.io
+  # Base repository name derived from GitHub context (e.g., your-username/your-repo)
+  # We'll append '-fastapi' or '-nextjs' to this for image names
+  IMAGE_BASENAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    # Permissions needed for the workflow to read contents and write packages (GHCR)
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Checks out your repository code corresponding to the pushed tag
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }} # Your GitHub username or organization name
+          password: ${{ secrets.GITHUB_TOKEN }} # Special token automatically created by GitHub Actions
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3 # Enhances docker build capabilities
+
+      # --- Build and Push FastAPI Image ---
+
+      - name: Extract Docker metadata for FastAPI
+        id: meta-fastapi # Unique ID for FastAPI metadata
+        uses: docker/metadata-action@v5
+        with:
+          # Define image name for FastAPI service in GHCR
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BASENAME }}/fastapi
+          tags: |
+            # Use the Git tag that triggered the workflow (e.g., v1.0.0)
+            type=ref,event=tag
+            # Also tag this build as 'latest'
+            type=raw,value=latest,enable=true
+
+      - name: Build and push FastAPI Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend # Build context for FastAPI app
+          file: ./backend/Dockerfile # Explicitly specify the Dockerfile path
+          push: true # Actually push the image
+          tags: ${{ steps.meta-fastapi.outputs.tags }} # Use tags: version and latest
+          labels: ${{ steps.meta-fastapi.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # --- Build and Push Next.js Image ---
+
+      - name: Extract Docker metadata for Next.js
+        id: meta-nextjs # Unique ID for Next.js metadata
+        uses: docker/metadata-action@v5
+        with:
+          # Define image name for Next.js service in GHCR
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BASENAME }}/nextjs
+          tags: |
+            # Use the Git tag that triggered the workflow (e.g., v1.0.0)
+            type=ref,event=tag
+            # Also tag this build as 'latest'
+            type=raw,value=latest,enable=true
+
+      - name: Build and push Next.js Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend # Build context for Next.js app
+          file: ./frontend/Dockerfile # Explicitly specify the Dockerfile path
+          push: true # Actually push the image
+          tags: ${{ steps.meta-nextjs.outputs.tags }} # Use tags: version and latest
+          labels: ${{ steps.meta-nextjs.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

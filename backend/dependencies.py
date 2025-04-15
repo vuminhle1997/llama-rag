@@ -25,8 +25,21 @@ connect_args = {"check_same_thread": False}
 DATABASE_URL = os.getenv("DATABASE_URL", sqlite_url)
 engine = create_engine(DATABASE_URL)
 
+# ollama
+base_url = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:{os.getenv('OLLAMA_PORT', 11434)}"
+
 # chroma DB
-chroma_client = chromadb.HttpClient()
+CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost") 
+CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000)) 
+CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4') 
+logger.info(f"Attempting to connect to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}")
+try:
+    chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+    chroma_client.heartbeat() # Check connection
+    logger.info("Successfully connected to ChromaDB.")
+except Exception as e:
+    logger.error(f"Failed to connect to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}: {e}")
+    chroma_client = None 
 
 def create_db_and_tables():
     """

@@ -1,11 +1,10 @@
 'use client';
 
-import { Separator } from '@/components/ui/separator';
 import { Chat } from '@/frontend/types';
-import { ChatBubbleOvalLeftIcon } from '@heroicons/react/24/solid';
+import Image from 'next/image';
 import React from 'react';
 
-export interface UsersChatNavigationProps   {
+export interface UsersChatNavigationProps {
   existingChats: Chat[];
   useAsTemplate: (chat: Chat) => void;
 }
@@ -45,26 +44,36 @@ export default function UsersChatNavigation({
 }: UsersChatNavigationProps) {
   return (
     <React.Fragment>
-      <Separator className="my-4" />
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-muted-foreground px-2">
-          <div className="flex flex-row gap-2">
-            <ChatBubbleOvalLeftIcon className="h-5 w-5" />
-            <span>Ihre Chats</span>
-          </div>
-        </h3>
         {existingChats.map(existingChat => (
           <div
             key={existingChat.id}
             className="p-3 border rounded-lg hover:bg-accent cursor-pointer"
             onClick={() => useAsTemplate(existingChat)}
           >
-            <h4 className="font-medium">{existingChat.title}</h4>
-            {existingChat.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {existingChat.description}
-              </p>
-            )}
+            <div className="grid grid-cols-4">
+              <div className="col-span-1 content-center">
+                <Image
+                  src={`${
+                    process.env.NEXT_PUBLIC_BACKEND_URL
+                  }/uploads/avatars/${existingChat.avatar_path
+                    .split('/')
+                    .pop()}`}
+                  width={50}
+                  height={50}
+                  className="rounded-full"
+                  alt={`Avatar of ${existingChat.title}`}
+                />
+              </div>
+              <div className="col-span-3">
+                <h4 className="font-medium">{existingChat.title}</h4>
+                {existingChat.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {existingChat.description}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>

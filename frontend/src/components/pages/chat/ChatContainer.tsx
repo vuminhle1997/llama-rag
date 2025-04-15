@@ -1,24 +1,27 @@
 'use client';
 
 import TypewriterEffect from '@/components/ui/typewriter';
-import { Chat } from '@/frontend/types';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Chat, Favourite } from '@/frontend/types';
+import React, { useCallback, useEffect } from 'react';
 import { marked } from 'marked';
 import { v4 } from 'uuid';
 import { Message } from '@/frontend/types';
 import { getMessages } from '@/frontend/queries/messages';
 import { useInView } from 'react-intersection-observer';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { useAppSelector } from '@/frontend/store/hooks';
-import { useDispatch } from 'react-redux';
-import {
-  selectSubmittedMessages,
-  setMessages,
-} from '@/frontend/store/reducer/app_reducer';
+import { useInfiniteQuery, UseMutationResult } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Bars3Icon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
+import { useIsMobile } from '@/hooks/use-mobile';
+import ChatSettingsDialog, {
+  ChatSettingsDialogProps,
+} from './components/ChatSettingsDialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -31,10 +34,20 @@ export interface ChatContainerProps {
   lastMessageIsTyping: boolean;
   handleMessageLoad: () => void;
   submittedMessages: Message[];
-}
-
-{
-  /* Typing Indicator */
+  isSettingsDialogOpen: boolean;
+  setIsSettingsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  slug: string;
+  setFavouriteAlert: React.Dispatch<
+    React.SetStateAction<{
+      show: boolean;
+      success: boolean;
+    }>
+  >;
+  postFavourite: UseMutationResult<Favourite, Error, string, unknown>;
+  deleteFavourite: UseMutationResult<Favourite, Error, string, unknown>;
+  setSelectedChat: React.Dispatch<React.SetStateAction<Chat | null>>;
+  setIsDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleDelete: () => void;
 }
 
 /**
@@ -65,7 +78,17 @@ export default function ChatContainer({
   handleMessageLoad,
   lastMessageIsTyping,
   submittedMessages,
+  deleteFavourite,
+  handleDelete,
+  isSettingsDialogOpen,
+  postFavourite,
+  setFavouriteAlert,
+  setIsDialogOpen,
+  setIsSettingsDialogOpen,
+  setSelectedChat,
+  slug,
 }: ChatContainerProps) {
+  const isMobile = useIsMobile();
   const { ref, inView } = useInView();
   const { open, toggleSidebar } = useSidebar();
 
@@ -83,7 +106,6 @@ export default function ChatContainer({
     },
     initialPageParam: 1,
     enabled: !!chat.id,
-    
   });
 
   useEffect(() => {
@@ -106,17 +128,45 @@ export default function ChatContainer({
     toggleSidebar();
   }, [toggleSidebar]);
 
+  const chatSettingsProps: ChatSettingsDialogProps = {
+    chat: chat!,
+    deleteFavourite,
+    handleDelete,
+    isSettingsDialogOpen,
+    postFavourite,
+    setFavouriteAlert,
+    setIsDialogOpen,
+    setIsSettingsDialogOpen,
+    setSelectedChat,
+    slug,
+  };
+
   return (
     <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
-      {!open && (
-        <Button
-          variant="outline"
-          className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4 absolute"
-          onClick={() => handleSideBarToggle()}
-        >
-          <Bars3Icon className="h-4 w-4" />
-        </Button>
-      )}
+      <div className="py-2 px-4 bg-white sticky top-0 left-0 w-full z-10 border-b">
+        <div className="flex justify-between items-center">
+          {(!open || isMobile) && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="outline"
+                  className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4"
+                  onClick={() => handleSideBarToggle()}
+                >
+                  <Bars3Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-m">Seitenleiste öffnen</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <h1 className="lg:text-2xl text-xl" aria-label={chat.title}>
+            {chat.title}
+          </h1>
+          <ChatSettingsDialog {...chatSettingsProps} />
+        </div>
+      </div>
       {!chat.messages ||
         (chat.messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
@@ -228,6 +278,14 @@ export default function ChatContainer({
             />
           </div>
         )}
+
+        {
+          /**
+           * Consists of messages:
+           * - user submitted messages
+           * - assistant responses after submissions
+           */
+        }
         {submittedMessages.map((message, index) => {
           const isLastAssistantMessage =
             index === submittedMessages.length - 1 &&
@@ -236,7 +294,7 @@ export default function ChatContainer({
           return (
             <div
               key={index}
-              className={`flex items-start space-x-4 w-full ${
+              className={`flex items-start gap-4 w-full mb-4 ${
                 message.role === 'user' ? 'justify-end' : ''
               }`}
             >
@@ -319,7 +377,7 @@ export default function ChatContainer({
                 return (
                   <div
                     key={index}
-                    className={`flex items-start space-x-4 w-full ${
+                    className={`flex items-start gap-4 w-full mb-4 ${
                       message.role === 'user' ? 'justify-end' : ''
                     }`}
                     ref={isLastPage ? ref : null}

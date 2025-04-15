@@ -2,6 +2,10 @@ __pycache__
 .idea
 .git
 .gitignore
-uploads
-notebooks
+venv
 alembic
+alembic.ini
+logs
+migrations
+notebooks
+uploads

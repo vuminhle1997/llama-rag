@@ -7,7 +7,6 @@ import {
   useDeleteFile,
   usePostFile,
   useChat,
-  getChats,
   useDeleteChat,
 } from '@/frontend/queries/chats';
 import { Message, Chat } from '@/frontend/types';
@@ -17,13 +16,11 @@ import {
   selectProfilePicture,
   selectAppState,
   setAppState,
-  setSubmittedMessages,
-  selectSubmittedMessages,
+  selectChats,
+  setChats,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
-import { fetchAvatarOfChat, useGetAvatar } from '@/frontend/queries/avatar';
-import { setChats } from '@/frontend/store/reducer/app_reducer';
 import {
   usePostFavourite,
   useDeleteFavourite,
@@ -45,9 +42,6 @@ import { ChatFormData } from '@/frontend/types';
 import ChatFileManager, {
   ChatFileManagerProps,
 } from '@/components/pages/chat/components/ChatFileManager';
-import ChatSettingsDialog, {
-  ChatSettingsDialogProps,
-} from '@/components/pages/chat/components/ChatSettingsDialog';
 import ChatFavouriteAlertDialog, {
   ChatFavouriteAlertDialogProps,
 } from '@/components/pages/chat/components/ChatFavouriteAlertDialog';
@@ -58,6 +52,7 @@ import ChatEditAlertDialog, {
   ChatEditAlertDialogProps,
 } from '@/components/pages/chat/components/ChatEditAlertDialog';
 import AuthProvider from '@/components/AuthProvider';
+import _ from 'lodash';
 
 /**
  * SlugChatPage component renders the chat page for a specific chat identified by the slug.
@@ -127,6 +122,7 @@ export default function SlugChatPage({
   const { slug } = React.use(params);
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const chats = useAppSelector(selectChats);
 
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
@@ -190,11 +186,8 @@ export default function SlugChatPage({
 
   useEffect(() => {
     dispatch(setAppState('loading'));
+    // @eslint-disable-next-line
   }, []);
-
-  useEffect(() => {
-    // TODO: reload chats for side navigation on input submission
-  }, [handleFormSubmit]);
 
   useEffect(() => {
     if (chat) {
@@ -202,6 +195,7 @@ export default function SlugChatPage({
       dispatch(setChat(chat));
       dispatch(setAppState('idle'));
     }
+    // @eslint-disable-next-line
   }, [chat]);
 
   useEffect(() => {
@@ -335,6 +329,19 @@ export default function SlugChatPage({
 
       await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
+
+      const updatedChats = _.cloneDeep(chats);
+      const chatToUpdate = _.find(updatedChats, { id: slug });
+
+      if (chatToUpdate) {
+        chatToUpdate.last_interacted_at = new Date().toISOString();
+        const sortedChats = _.orderBy(
+          updatedChats,
+          ['last_interacted_at'],
+          ['desc']
+        );
+        dispatch(setChats(sortedChats));
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -376,6 +383,15 @@ export default function SlugChatPage({
     profilePicture,
     handleMessageLoad,
     submittedMessages,
+    deleteFavourite,
+    handleDelete,
+    isSettingsDialogOpen,
+    postFavourite,
+    setFavouriteAlert,
+    setIsDialogOpen,
+    setIsSettingsDialogOpen,
+    setSelectedChat,
+    slug,
   };
 
   const chatTextFieldAreaProps: ChatTextFieldAreaProps = {
@@ -401,19 +417,6 @@ export default function SlugChatPage({
     isFileDialogOpen,
     handleDeleteFile,
     deleteFileMutation,
-  };
-
-  const chatSettingsProps: ChatSettingsDialogProps = {
-    chat: chat!,
-    deleteFavourite,
-    handleDelete,
-    isSettingsDialogOpen,
-    postFavourite,
-    setFavouriteAlert,
-    setIsDialogOpen,
-    setIsSettingsDialogOpen,
-    setSelectedChat,
-    slug,
   };
 
   const favouriteAlertProps: ChatFavouriteAlertDialogProps = {
@@ -464,9 +467,6 @@ export default function SlugChatPage({
 
               {/* File Management Dialog */}
               <ChatFileManager {...fileManagerProps} />
-
-              {/* Settings Button */}
-              <ChatSettingsDialog {...chatSettingsProps} />
 
               {/* Favourite Alert Dialog */}
               <ChatFavouriteAlertDialog {...favouriteAlertProps} />

@@ -2,11 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Logo from '@/static/globalLogo.png';
-import Image from 'next/image';
 import {
-  HeartIcon,
   MagnifyingGlassCircleIcon,
   PencilSquareIcon,
   XMarkIcon,
@@ -16,20 +12,12 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
   useSidebar,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarMenuAction,
 } from '@/components/ui/sidebar';
 import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
-  selectFavouriteChats,
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -37,18 +25,6 @@ import {
 } from '@/frontend';
 import { Tooltip, TooltipProvider } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipTrigger } from '../ui/tooltip';
-import { ChevronDown, MoreHorizontal } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '../ui/collapsible';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
 import FavouritesNavigation from './FavouritesNavigation';
 
 /**
@@ -61,9 +37,8 @@ import FavouritesNavigation from './FavouritesNavigation';
 export default function SideBarNavigation() {
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
-  const favouriteChats = useAppSelector(selectFavouriteChats);
 
-  const { open, toggleSidebar } = useSidebar();
+  const { toggleSidebar } = useSidebar();
 
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
@@ -90,7 +65,7 @@ export default function SideBarNavigation() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Neuen Chat erstellen</p>
+                  <p>Seitenleiste minimieren</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
               </Tooltip>
@@ -130,7 +105,7 @@ export default function SideBarNavigation() {
                   <p>Bisherigen Chat suchen.</p>
                   <div className="flex items-center justify-center text-center">
                     <p>
-                      Drücke <br /> ⌘+J (macOS) <br /> Strg+J (Windows/Linux){' '}
+                      Drücke <br /> ⌘+K (macOS) <br /> Strg+K (Windows/Linux){' '}
                       <br />
                       um die Suche zu öffnen.
                     </p>
