@@ -11,7 +11,6 @@ import { useForm } from 'react-hook-form';
 import { Chat } from '@/frontend/types';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ScrollArea } from '../ui/scroll-area';
 import { useAppSelector } from '@/frontend/store/hooks/hooks';
 import {
   selectChats,
@@ -26,6 +25,17 @@ import FavouritesChatNavigation from './subnavigation/FavouritesChatNavigation';
 import TemplatesChatNavigation from './subnavigation/TemplatesChatNavigation';
 import UsersChatNavigation from './subnavigation/UsersChatNavigation';
 import ChatSettingsForm, { ChatSettingsFormProps } from './ChatSettingsForm';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../ui/accordion';
+import {
+  ArchiveBoxIcon,
+  ChatBubbleOvalLeftIcon,
+  HeartIcon,
+} from '@heroicons/react/24/solid';
 
 type FormData = {
   title: string;
@@ -44,8 +54,8 @@ interface ChatEntryFormProps {
 
 /**
  * ChatEntryForm component allows users to create or update chat entries with customizable settings.
- * It provides a form interface for managing chat details, including title, description, context, 
- * temperature, model, and avatar. The component also supports using predefined templates or 
+ * It provides a form interface for managing chat details, including title, description, context,
+ * temperature, model, and avatar. The component also supports using predefined templates or
  * existing chats as a base for new entries.
  *
  * @param {ChatEntryFormProps} props - The properties for the ChatEntryForm component.
@@ -226,7 +236,7 @@ export default function ChatEntryForm({
         }, 3000);
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
       setShowError(true);
       setShowSuccess(false);
       setTimeout(() => {
@@ -250,14 +260,14 @@ export default function ChatEntryForm({
     handleAvatarClick,
     isCreating,
     isUpdating,
-  }
+  };
 
   return (
     <>
-      <DialogContent className="sm:max-w-[425px] md:max-w-[1000px] flex h-[80vh]">
-        <div className="flex flex-1 gap-4">
+      <DialogContent className="sm:max-w-[425px] md:max-w-[1000px] flex h-[95vh] lg:h-[80vh]">
+        <div className="md:flex md:flex-1 md:flex-row gap-4 overflow-y-auto">
           {/* Template List */}
-          <div className="w-1/3 border-r flex flex-col pr-4">
+          <div className="md:w-1/3 lg:border-r block lg:flex flex-col pr-4">
             <DialogHeader>
               <DialogTitle>Vorlagen</DialogTitle>
               <DialogDescription>
@@ -265,35 +275,66 @@ export default function ChatEntryForm({
                 als Vorlage.
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="items-stretch flex-1 overflow-auto">
+            <div className="items-stretch flex-1 overflow-y-auto">
               <div className="space-y-2 py-4">
-                {/* Default Templates */}
-                <TemplatesChatNavigation useAsTemplate={useAsTemplate} />
+                <Accordion type="single" collapsible defaultValue={mode === 'create' ? 'templates' : ''}>
+                  {/* Default Templates */}
+                  <AccordionItem value="templates">
+                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                      <div className="flex flex-row gap-2">
+                        <ArchiveBoxIcon className="h-5 w-5" />
+                        <span>Standardvorlagen</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <TemplatesChatNavigation useAsTemplate={useAsTemplate} />
+                    </AccordionContent>
+                  </AccordionItem>
 
-                {/* User's Favourite Chats */}
-                {favouriteChats && favouriteChats.length > 0 && (
-                  <FavouritesChatNavigation favouriteChats={favouriteChats} useAsTemplate={useAsTemplate} />
-                )}
+                  {/* User's Favourite Chats */}
+                  <AccordionItem value="favourites">
+                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                      <div className="flex flex-row gap-2">
+                        <HeartIcon className="text-sm h-5 w-5" />
+                        <span>Ihre favorisierten Chats </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {favouriteChats && favouriteChats.length > 0 && (
+                        <FavouritesChatNavigation
+                          favouriteChats={favouriteChats}
+                          useAsTemplate={useAsTemplate}
+                        />
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
 
-                {/* User's Existing Chats */}
-                {existingChats && existingChats.length > 0 && (
-                  <UsersChatNavigation 
-                    existingChats={existingChats}
-                    useAsTemplate={useAsTemplate}
-                  />
-                )}
+                  {/* User's Existing Chats */}
+                  <AccordionItem value="users">
+                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                      <div className="flex flex-row gap-2">
+                        <ChatBubbleOvalLeftIcon className="h-5 w-5" />
+                        <span>Ihre Chats</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className=''>
+                      {existingChats && existingChats.length > 0 && (
+                        <UsersChatNavigation
+                          existingChats={existingChats}
+                          useAsTemplate={useAsTemplate}
+                        />
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
-            </ScrollArea>
+            </div>
           </div>
-
-  
           {/* Form */}
           <ChatSettingsForm {...chatSettingsFormProps} />
         </div>
       </DialogContent>
-      {showSuccess && (
-        <ChatAlertSuccess mode={mode} />
-      )}
+      {showSuccess && <ChatAlertSuccess mode={mode} />}
       {showError && <ChatAlertError mode={mode} />}
     </>
   );
