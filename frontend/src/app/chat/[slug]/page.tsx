@@ -183,7 +183,7 @@ export default function SlugChatPage({
 
   const messageText = watch('message');
 
-  useEffect(() => { 
+  useEffect(() => {
     dispatch(setAppState('loading'));
     // @eslint-disable-next-line
   }, []);
@@ -374,6 +374,15 @@ export default function SlugChatPage({
     profilePicture,
     handleMessageLoad,
     submittedMessages,
+    deleteFavourite,
+    handleDelete,
+    isSettingsDialogOpen,
+    postFavourite,
+    setFavouriteAlert,
+    setIsDialogOpen,
+    setIsSettingsDialogOpen,
+    setSelectedChat,
+    slug,
   };
 
   const chatTextFieldAreaProps: ChatTextFieldAreaProps = {
@@ -399,19 +408,6 @@ export default function SlugChatPage({
     isFileDialogOpen,
     handleDeleteFile,
     deleteFileMutation,
-  };
-
-  const chatSettingsProps: ChatSettingsDialogProps = {
-    chat: chat!,
-    deleteFavourite,
-    handleDelete,
-    isSettingsDialogOpen,
-    postFavourite,
-    setFavouriteAlert,
-    setIsDialogOpen,
-    setIsSettingsDialogOpen,
-    setSelectedChat,
-    slug,
   };
 
   const favouriteAlertProps: ChatFavouriteAlertDialogProps = {
@@ -462,9 +458,6 @@ export default function SlugChatPage({
 
               {/* File Management Dialog */}
               <ChatFileManager {...fileManagerProps} />
-
-              {/* Settings Button */}
-              <ChatSettingsDialog {...chatSettingsProps} />
 
               {/* Favourite Alert Dialog */}
               <ChatFavouriteAlertDialog {...favouriteAlertProps} />
