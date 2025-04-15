@@ -118,6 +118,7 @@ export const useGetChat = (id: string) => {
       );
       return response.data;
     },
+    enabled: !!id, // Only fetch if id is provided
   });
 };
 
@@ -276,7 +277,7 @@ export const useChat = (chatId: string) => {
   const chatQuery = useQuery({
     queryKey: ['chat', chatId],
     queryFn: fetchChat,
-    enabled: !!chatId, // Only fetch if chatId exists
+    enabled: false,
   });
 
   // Mutation: Submit a search query
