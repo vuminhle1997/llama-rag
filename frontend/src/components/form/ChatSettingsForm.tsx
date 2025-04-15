@@ -30,7 +30,6 @@ import {
 import { Chat } from '@/frontend/types';
 import { defaultModels } from './templates';
 import { RefObject } from 'react';
-import { ScrollArea } from '../ui/scroll-area';
 
 type FormData = {
   title: string;
@@ -98,27 +97,27 @@ export default function ChatSettingsForm({
 }: ChatSettingsFormProps) {
   const isPending = mode === 'create' ? isCreating : isUpdating;
   return (
-    <ScrollArea className="flex-1 overflow-auto">
-      <DialogHeader>
-        <DialogTitle>
-          {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
-        </DialogTitle>
-        <DialogDescription>
-          {mode === 'create'
-            ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
-            : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
-          <p className="text-gray-400 mt-4">
-            Markierte Felder mit * sind verpflichtend.
-          </p>
-        </DialogDescription>
-      </DialogHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid gap-4 py-4 md:max-h-[calc(100vh-300px)] overflow-y-auto my-4 px-4">
+    <>
+      <form className='overflow-y-auto relative flex-1' onSubmit={handleSubmit(onSubmit)}>
+        <DialogHeader>
+          <DialogTitle>
+            {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
+          </DialogTitle>
+          <DialogDescription>
+            {mode === 'create'
+              ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
+              : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
+            <p className="text-gray-400 mt-4">
+              Markierte Felder mit * sind verpflichtend.
+            </p>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 my-4 px-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="avatar" className="text-right">
               Avatar
             </Label>
-            <div className="col-span-3">
+            <div className="lg:col-span-3 col-span-full">
               <div className="flex flex-col items-center gap-4">
                 <div
                   onClick={handleAvatarClick}
@@ -193,7 +192,7 @@ export default function ChatSettingsForm({
             <Label htmlFor="title" className="text-right">
               Titel *
             </Label>
-            <div className="col-span-3 space-y-2">
+            <div className="lg:col-span-3 col-span-full space-y-2">
               <Input
                 id="title"
                 className={errors.title ? 'border-red-500' : ''}
@@ -212,7 +211,7 @@ export default function ChatSettingsForm({
             </Label>
             <Textarea
               id="description"
-              className="col-span-3"
+              className="lg:col-span-3 col-span-full"
               {...register('description')}
             />
           </div>
@@ -220,7 +219,7 @@ export default function ChatSettingsForm({
             <Label htmlFor="context" className="text-right">
               Kontext *
             </Label>
-            <div className="col-span-3 space-y-2">
+            <div className="lg:col-span-3 col-span-full space-y-2">
               <Textarea
                 id="context"
                 className={errors.context ? 'border-red-500' : ''}
@@ -255,7 +254,7 @@ export default function ChatSettingsForm({
             <Label htmlFor="model" className="text-right">
               Sprachmodell *
             </Label>
-            <div className="col-span-3 space-y-2">
+            <div className="lg:col-span-3 col-span-full space-y-2">
               <Select
                 defaultValue={watch('model')}
                 onValueChange={value => setValue('model', value)}
@@ -292,7 +291,7 @@ export default function ChatSettingsForm({
             <Label htmlFor="temperature" className="text-right">
               Temperatur
             </Label>
-            <div className="col-span-3 space-y-2">
+            <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
                 className={errors.temperature ? 'border-red-500' : ''}
@@ -322,7 +321,7 @@ export default function ChatSettingsForm({
             </div>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className='sticky bg-white border-t py-4 bottom-0'>
           <div className="grid grid-cols-2 gap-4">
             <Button type="reset" className="bg-gray-400" disabled={isPending}>
               Zurücksetzen
@@ -339,6 +338,6 @@ export default function ChatSettingsForm({
           </div>
         </DialogFooter>
       </form>
-    </ScrollArea>
+    </>
   );
 }

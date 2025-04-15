@@ -1,7 +1,6 @@
 'use client';
 
 import { Chat } from '@/frontend/types';
-import { ArchiveBoxIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { templates } from '../templates';
@@ -40,12 +39,6 @@ export default function TemplatesChatNavigation({
 }: TemplatesChatNavigationProps) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium text-muted-foreground px-2">
-        <div className="flex flex-row gap-2">
-          <ArchiveBoxIcon className="h-5 w-5" />
-          <span>Standardvorlagen</span>
-        </div>
-      </h3>
       {templates.map(template => (
         <div
           key={uuidv4()}

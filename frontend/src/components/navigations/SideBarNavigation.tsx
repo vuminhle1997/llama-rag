@@ -66,7 +66,7 @@ export default function SideBarNavigation() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Neuen Chat erstellen</p>
+                  <p>Seitenleiste minimieren</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
               </Tooltip>
