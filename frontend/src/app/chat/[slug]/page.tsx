@@ -185,13 +185,19 @@ export default function SlugChatPage({
   }, []);
 
   useEffect(() => {
-    if (chat) {
+    if (chat && !isStreaming) {
       window.document.title = `global CT InsightChat - ${chat?.title}`;
       dispatch(setChat(chat));
       dispatch(setAppState('idle'));
+    } else if (isStreaming) {
+      if (response.length < 1) {
+        window.document.title = `🤔 agentic RAG denkt ...`;
+      } else {
+        window.document.title = `🤖 agentic RAG chattet ...`;
+      }
     }
     // @eslint-disable-next-line
-  }, [chat]);
+  }, [chat, isStreaming, response]);
 
   useEffect(() => {
     scrollToBottom();
