@@ -50,6 +50,7 @@ origins = [
     "http://localhost",
     "http://localhost:3000",  # Default Next.js dev server
     "http://localhost:4000",  # Make sure this is included
+    "http://localhost:5173",
     FRONTEND_URL,
 ]
 

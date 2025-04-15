@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
-from llama_index.core.chat_engine.types import AgentChatResponse
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
@@ -36,9 +35,13 @@ from services import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
+    stream_agent_response,
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
+
+from fastapi.responses import StreamingResponse
+from llama_index.core.chat_engine.types import AgentChatResponse
 
 from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.llms.groq import Groq
@@ -164,6 +167,106 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
         'favourite': favorite.model_dump() if favorite else None
     }
 
+
+@router.post("/{chat_id}/chat/stream")
+async def chat_stream(chat_id: str, chat: ChatQuery,
+                      db_client: Session = Depends(get_db_session),
+                      request: Request = Request,
+                      redis_client: Redis = Depends(get_redis_client),
+                      chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
+    """
+    Handles the chat streaming endpoint for a specific chat session.
+
+    This endpoint allows users to send a chat query and receive a streaming response
+    from the chat agent. It validates the chat session, checks user permissions, and
+    processes the chat query using a language model and associated tools.
+
+    Args:
+        chat_id (str): The unique identifier of the chat session.
+        chat (ChatQuery): The chat query object containing the user's input text.
+        db_client (Session): Database session dependency for interacting with the database.
+        request (Request): The HTTP request object.
+        redis_client (Redis): Redis client dependency for caching and session management.
+        chroma_vector_store (ChromaVectorStore): Dependency for vector-based storage and retrieval.
+
+    Raises:
+        HTTPException: If the chat parameter is missing.
+        HTTPException: If the chat session is not found in the database.
+        HTTPException: If the chat session does not belong to the authenticated user.
+
+    Returns:
+        StreamingResponse: A streaming response containing the chat agent's output in
+        "text/event-stream" format.
+    """
+    if not chat:
+        logger.error("Missing chat parameter")
+        raise HTTPException(status_code=404, detail="Body: text is required")
+
+    db_chat = db_client.get(Chat, chat_id)
+    if not db_chat:
+        logger.error(f"Chat {chat_id} not found")
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
+    if not belongs_to_user:
+        logger.error(f"Chat {chat_id} does not belong to user")
+        raise HTTPException(status_code=404, detail="Chat does not belong to user")
+
+    user_message = ChatMessage(
+        id=str(uuid.uuid4()),
+        role=MessageRole.USER,
+        text=chat.text,
+        block_type='text',
+        additional_kwargs={},
+        chat_id=chat_id,
+        created_at=datetime.now(),
+    )
+
+    old_messages = (db_client.query(ChatMessage)
+                    .filter(ChatMessage.chat_id == chat_id)
+                    .order_by(ChatMessage.created_at.desc()).all())[:25]
+
+    chat_history = [
+        LLMChatMessage(
+            role=message.role,
+            content=message.text,
+            additional_kwargs=message.additional_kwargs,
+        )
+        for message in old_messages
+    ]
+
+    # Now the fun is getting started
+    chat_memory = ChatMemoryBuffer.from_defaults(
+        chat_history=chat_history,
+        token_limit=3000,
+    )
+
+    files = db_chat.files
+    tools = create_query_engine_tools(files=files, chroma_vector_store=chroma_vector_store)
+    pd_tools = create_pandas_engines_tools_from_files(files=files)
+    sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
+
+    scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+    search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+
+    tools = tools + pd_tools
+    tools = tools + sql_tools
+    tools = tools + [scrape_tool]
+    tools = tools + [search_engine_tool]
+
+    if db_chat.model:
+        model_from_chat = db_chat.model
+    else:
+        model_from_chat = "llama3.1"
+
+    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
+
+
+    streaming_generator = stream_agent_response(agent=agent, user_input=chat.text, db_client=db_client,
+                                                chat_id=db_chat.id, user_message=user_message)
+
+    return StreamingResponse(streaming_generator, media_type="text/event-stream")
 
 @router.post("/{chat_id}/chat")
 async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,

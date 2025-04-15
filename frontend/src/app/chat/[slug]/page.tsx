@@ -6,8 +6,8 @@ import {
   useGetChat,
   useDeleteFile,
   usePostFile,
-  useChat,
   useDeleteChat,
+  useChatStream,
 } from '@/frontend/queries/chats';
 import { Message, Chat } from '@/frontend/types';
 import { useRouter } from 'next/navigation';
@@ -97,7 +97,6 @@ import _ from 'lodash';
  * @state {boolean} isCreateChatDialogOpen - State for managing create chat dialog visibility.
  * @state {boolean} isSubmitting - State for managing form submission.
  * @state {boolean} isFileDialogOpen - State for managing file dialog visibility.
- * @state {boolean} lastMessageIsTyping - State for managing typing indicator for the last message.
  * @state {boolean} isSettingsDialogOpen - State for managing settings dialog visibility.
  * @state {boolean} isTyping - State for managing typing indicator.
  * @state {boolean} isUploading - State for managing file upload status.
@@ -139,15 +138,11 @@ export default function SlugChatPage({
     React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
-  const [lastMessageIsTyping, setLastMessageIsTyping] = React.useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [pendingMessage, setPendingMessage] = React.useState<string | null>(
     null
-  );
-  const [submittedMessages, setSubmittedMessages] = React.useState<Message[]>(
-    []
   );
   const [alert, setAlert] = React.useState<{
     show: boolean;
@@ -162,7 +157,7 @@ export default function SlugChatPage({
   }>({ show: false, success: false });
 
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
-  const { searchMutation } = useChat(slug);
+  const [response, isStreaming, sendMessageStream] = useChatStream(slug);
 
   const deleteFileMutation = useDeleteFile(slug);
   const uploadFileMutation = usePostFile(slug);
@@ -312,22 +307,16 @@ export default function SlugChatPage({
         created_at: new Date().toDateString(),
       };
       setMessages([...messages, userMessage]);
-      const response = await searchMutation.mutateAsync(data.message);
+      await sendMessageStream.mutateAsync(data.message);
 
       const newMessage: Message = {
         role: 'assistant',
-        text: response.message!.response.response,
+        text: response,
         block_type: 'text',
         created_at: new Date().toDateString(),
       };
 
-      const messagesToSubmit = [newMessage, userMessage];
-
-      setSubmittedMessages([...messagesToSubmit, ...submittedMessages]);
       setMessages(prevMessages => [...prevMessages, newMessage]);
-      setLastMessageIsTyping(true);
-
-      await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
 
       const updatedChats = _.cloneDeep(chats);
@@ -347,13 +336,8 @@ export default function SlugChatPage({
     } finally {
       setIsSubmitting(false);
       setIsTyping(false);
-      setPendingMessage(null);
       scrollToBottom();
     }
-  };
-
-  const handleMessageLoad = () => {
-    setLastMessageIsTyping(false);
   };
 
   const handleDelete = () => {
@@ -375,14 +359,10 @@ export default function SlugChatPage({
   const chatProps: ChatContainerProps = {
     reset,
     chat: chat!,
-    lastMessageIsTyping,
     chatContainerRef,
     messageText,
     pendingMessage,
-    isTyping,
     profilePicture,
-    handleMessageLoad,
-    submittedMessages,
     deleteFavourite,
     handleDelete,
     isSettingsDialogOpen,
@@ -392,6 +372,9 @@ export default function SlugChatPage({
     setIsSettingsDialogOpen,
     setSelectedChat,
     slug,
+    response,
+    isStreaming: isStreaming,
+    scrollToBottom,
   };
 
   const chatTextFieldAreaProps: ChatTextFieldAreaProps = {
