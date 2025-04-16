@@ -14,9 +14,7 @@ from services import (
 )
 
 from dotenv import load_dotenv
-from deepeval.prompt import Prompt
 from deepeval.test_case import LLMTestCase
-from deepeval.dataset import EvaluationDataset
 from deepeval.metrics import (
     AnswerRelevancyMetric,
     FaithfulnessMetric,
@@ -24,14 +22,6 @@ from deepeval.metrics import (
     SummarizationMetric,
     BiasMetric,
     ToxicityMetric,
-)
-from deepeval.integrations.llama_index import (
-    DeepEvalAnswerRelevancyEvaluator,
-    DeepEvalFaithfulnessEvaluator,
-    DeepEvalContextualRelevancyEvaluator,
-    DeepEvalSummarizationEvaluator,
-    DeepEvalBiasEvaluator,
-    DeepEvalToxicityEvaluator,
 )
 from deepeval import assert_test, evaluate
 from dependencies import logger
@@ -48,8 +38,8 @@ try:
         sys.exit(os.EX_CONFIG)
     os.system(f"deepeval set-ollama {model}")
 
-    model = Ollama(model=model)
-    embedding = OllamaEmbedding(model_name="mxbai-embed-large")
+    model = Ollama(model=model, request_timeout=42069)
+    embedding = OllamaEmbedding(model_name="mxbai-embed-large", request_timeout=42069)
     Settings.llm = model
     Settings.embed_model = embedding
     Settings.chunk_size = 512

@@ -6,44 +6,44 @@ on:
   push:
     branches:
       - dev # Only run on pushes to the 'dev' branch
-    paths:
-      # --- Backend Files ---
-      # Python source files
-      - 'backend/**/*.py'
-      # Common config/dependency files
-      - 'backend/requirements*.txt'
-      - 'backend/pyproject.toml'
-      - 'backend/**.ini'
-      - 'backend/**.toml'
-      # Dockerfile for backend
-      - 'backend/Dockerfile'
+    # paths:
+    #   # --- Backend Files ---
+    #   # Python source files
+    #   - 'backend/**/*.py'
+    #   # Common config/dependency files
+    #   - 'backend/requirements*.txt'
+    #   - 'backend/pyproject.toml'
+    #   - 'backend/**.ini'
+    #   - 'backend/**.toml'
+    #   # Dockerfile for backend
+    #   - 'backend/Dockerfile'
 
-      # --- Frontend Files ---
-      - 'frontend/**/*.ts'
-      - 'frontend/**/*.tsx'
-      - 'frontend/**/*.js'
-      - 'frontend/**/*.jsx'
-      - 'frontend/**/*.css'
-      - 'frontend/**/*.scss'
-      - 'frontend/**/*.sass'
-      - 'frontend/**/*.less'
-      - 'frontend/package.json'
-      - 'frontend/yarn.lock'
-      - 'frontend/package-lock.json'
-      - 'frontend/pnpm-lock.yaml'
-      - 'frontend/**.json' # Covers tsconfig.json, etc.
-      - 'frontend/**.yaml'
-      - 'frontend/**.yml'
-      - 'frontend/**.html'
-      - 'frontend/tailwind.config.*' # .js, .ts, .cjs
-      - 'frontend/postcss.config.*'  # .js, .ts, .cjs
-      - 'frontend/next.config.*'     # .js, .mjs
-      - 'frontend/Dockerfile'
+    #   # --- Frontend Files ---
+    #   - 'frontend/**/*.ts'
+    #   - 'frontend/**/*.tsx'
+    #   - 'frontend/**/*.js'
+    #   - 'frontend/**/*.jsx'
+    #   - 'frontend/**/*.css'
+    #   - 'frontend/**/*.scss'
+    #   - 'frontend/**/*.sass'
+    #   - 'frontend/**/*.less'
+    #   - 'frontend/package.json'
+    #   - 'frontend/yarn.lock'
+    #   - 'frontend/package-lock.json'
+    #   - 'frontend/pnpm-lock.yaml'
+    #   - 'frontend/**.json' # Covers tsconfig.json, etc.
+    #   - 'frontend/**.yaml'
+    #   - 'frontend/**.yml'
+    #   - 'frontend/**.html'
+    #   - 'frontend/tailwind.config.*' # .js, .ts, .cjs
+    #   - 'frontend/postcss.config.*'  # .js, .ts, .cjs
+    #   - 'frontend/next.config.*'     # .js, .mjs
+    #   - 'frontend/Dockerfile'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_BASENAME: ${{ github.repository }}
-  OLLAMA_MODEL: llama3.2
+  OLLAMA_MODEL: llama3.1
 
 jobs:
   test-build:
@@ -71,7 +71,7 @@ jobs:
         run: echo "commit_id=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Set OLLAMA_MODEL environment variable
-        run: echo "OLLAMA_MODEL=llama3.2" >> $GITHUB_ENV
+        run: echo "OLLAMA_MODEL=llama3.1" >> $GITHUB_ENV
       
       - uses: actions/cache@v4
         with:
@@ -82,7 +82,7 @@ jobs:
         uses: ai-action/setup-ollama@v1
 
       - name: Pull LLM
-        run: ollama pull llama3.2
+        run: ollama pull llama3.1
       
       - name: Pull Embedding Model
         run: ollama pull mxbai-embed-large
