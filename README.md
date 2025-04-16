@@ -9,6 +9,7 @@ A powerful application combining local Large Language Models with Retrieval-Augm
 - Interactive chat interface
 - Azure API integration for additional capabilities
 - Modern, responsive UI built with NextJS and Tailwind
+- **Arize Phoenix integration for tracing and monitoring**
 
 ## 🛠️ Tech Stack
 
@@ -25,6 +26,7 @@ A powerful application combining local Large Language Models with Retrieval-Augm
 - [LlamaIndex](https://gpt-index.readthedocs.io/): A library for RAG implementation
 - Local LLM integration (compatible with various models, e.g., [Ollama](https://ollama.ai/))
 - [Redis](https://redis.io/): An in-memory data structure store for session management and caching
+- **[Arize Phoenix](https://arize.com/): A platform for tracing and monitoring application performance**
 
 ### Storage & Caching
 - Local file system for document and image storage
@@ -84,6 +86,7 @@ A powerful application combining local Large Language Models with Retrieval-Augm
    ```bash
    docker-compose up --build
    ```
+   - The `docker-compose.yml` file includes an **Arize Phoenix** container for tracing and monitoring application performance.
 3. Access the application:
    - Frontend: [http://localhost:3000](http://localhost:3000)
    - Backend: [http://localhost:4000](http://localhost:4000)

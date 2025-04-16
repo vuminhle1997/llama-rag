@@ -15,6 +15,8 @@ import os
 import uvicorn
 import uuid
 import requests
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from phoenix.otel import register
 
 # LLM
 from llama_index.core.settings import Settings
@@ -23,9 +25,19 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.groq import Groq
 from llama_index.llms.google_genai import GoogleGenAI
 
-load_dotenv()
-
-groq = os.getenv("GROQ_API_KEY")
+try:
+    load_dotenv()
+    phoenix_key = os.getenv('PHOENIX_API_KEY')
+    if phoenix_key is None:
+        logger.error(f"Phoenix API key not found in .env file. Please paste the API Key into the .env file.")
+    logger.info(f"Setting up Arize Phoenix Tracing at: {os.getenv('PHOENIX_URL', 'http://127.0.0.1:6006/')}")
+    tracer_provider = register(project_name="llama-rag",
+                               endpoint=f"{os.getenv('PHOENIX_URL', 'http://127.0.0.1:6006')}/v1/traces",
+                               set_global_tracer_provider=False,
+                               batch=True)
+    LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
+except Exception as e:
+    logger.error(f"Startup error: {e}")
 
 # LLM
 llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url)
