@@ -147,7 +147,7 @@ export default function ChatsNavigation() {
                 </svg>
               </div>
             ) : chats.length > 0 ? (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-white">
                 Keine weiteren Chats verfügbar 😢
               </span>
             ) : null}

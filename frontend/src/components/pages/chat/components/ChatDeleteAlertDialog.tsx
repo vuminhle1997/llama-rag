@@ -42,7 +42,7 @@ export default function ChatDeleteAlertDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => setIsDeleteDialogOpen(false)}>
+          <AlertDialogAction className="dark:bg-accent" onClick={() => setIsDeleteDialogOpen(false)}>
             Abbrechen
           </AlertDialogAction>
           <AlertDialogAction

@@ -60,7 +60,7 @@ export default function ChatsCollectionElement({
       {chats.map(chat => (
         <SidebarMenuItem
           className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
-            chat.id === currentChatId ? 'bg-primary/20' : ''
+            chat.id === currentChatId ? 'bg-primary/10 dark:bg-accent/50' : ''
           }`}
           key={`chat-${chat.id}`}
         >
@@ -103,7 +103,7 @@ export default function ChatsCollectionElement({
                       <EllipsisHorizontalIcon className="h-4 w-4" />
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
                     <p>Chat editieren</p>
                   </TooltipContent>
                 </Tooltip>

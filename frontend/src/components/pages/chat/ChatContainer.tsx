@@ -166,20 +166,20 @@ export default function ChatContainer({
 
   return (
     <div ref={chatContainerRef} className="flex-1 overflow-y-auto">
-      <div className="py-2 px-4 bg-white sticky top-0 left-0 w-full z-10 border-b">
+      <div className="py-2 px-4 bg-background sticky top-0 left-0 w-full z-10 border-b">
         <div className="flex justify-between items-center">
           {(!open || isMobile) && (
             <Tooltip>
               <TooltipTrigger>
                 <Button
                   variant="outline"
-                  className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4"
+                  className="bg-primary dark:bg-background hover:bg-background/10 top-4 left-4"
                   onClick={() => handleSideBarToggle()}
                 >
-                  <Bars3Icon className="h-4 w-4" />
+                  <Bars3Icon className="h-4 w-4 text-white" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
                 <p className="text-m">Seitenleiste öffnen</p>
               </TooltipContent>
             </Tooltip>
@@ -194,7 +194,7 @@ export default function ChatContainer({
         (chat.messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800">
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
                 Willkommen im Chat!
               </h2>
               <p className="text-gray-600">
@@ -203,17 +203,17 @@ export default function ChatContainer({
             </div>
             <div className="space-y-4 w-full max-w-md">
               <div
-                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   if (messageText === '') {
                     reset({ message: 'Hallo, wie heißt du?' });
                   }
                 }}
               >
-                <p className="text-gray-700">👋 "Hallo, wie heißt du?"</p>
+                <p className="text-gray-700 dark:text-white">👋 "Hallo, wie heißt du?"</p>
               </div>
               <div
-                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   if (messageText === '') {
                     reset({
@@ -223,13 +223,13 @@ export default function ChatContainer({
                   }
                 }}
               >
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-white">
                   🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein Problem zu
                   lösen?"
                 </p>
               </div>
               <div
-                className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   if (messageText === '') {
                     reset({
@@ -238,7 +238,7 @@ export default function ChatContainer({
                   }
                 }}
               >
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-white">
                   💡 "Wie kannst du mir bei meiner Aufgabe helfen?"
                 </p>
               </div>
@@ -256,11 +256,11 @@ export default function ChatContainer({
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+              className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
               width={40}
               height={40}
             />
-            <div className="flex-1 bg-white rounded-lg shadow-sm p-4">
+            <div className="flex-1 bg-background rounded-lg shadow-sm p-4">
               <div className="flex space-x-2">
                 <div
                   className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
@@ -290,17 +290,17 @@ export default function ChatContainer({
                     : '/ai.jpeg'
                 }
                 alt="The AI assistant's avatar typing indicator"
-                className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                 width={40}
                 height={40}
               />
               <div
-                className={`flex-1 rounded-lg shadow-sm p-4 bg-white prose py-0`}
+                className={`flex-1 rounded-lg shadow-sm p-4 bg-background dark:prose-invert dark:[&_strong]:text-white py-0`}
               >
                 {
                   <div
                     key={v4()}
-                    className={'text-gray-800'
+                    className={'text-gray-800 dark:text-white'
                     }
                   >
                     {
@@ -323,14 +323,14 @@ export default function ChatContainer({
         {/* Pending Message */}
         {isStreaming && pendingMessage && (
           <div className="flex items-start space-x-4 justify-end">
-            <div className="flex-1 bg-primary rounded-lg shadow-sm p-4">
-              <p className="text-white">{pendingMessage}</p>
+            <div className="flex-1 bg-background rounded-lg shadow-sm p-4">
+              <p>{pendingMessage}</p>
             </div>
 
             <img
               src={profilePicture ? profilePicture : ''}
               alt="User Profile Picture"
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+              className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
             />
           </div>
         )}
@@ -341,10 +341,6 @@ export default function ChatContainer({
          * - assistant responses after submissions
          */}
         {submittedMessages.map((message, index) => {
-          const isLastAssistantMessage =
-            index === submittedMessages.length - 1 &&
-            message.role === 'assistant';
-
           return (
             <div
               key={index}
@@ -364,26 +360,26 @@ export default function ChatContainer({
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
-                      className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                      className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                       width={40}
                       height={40}
                     />
                   ) : (
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-background flex items-center justify-center ">
                       S
                     </div>
                   )}
                 </>
               )}
               <div
-                className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user' ? 'bg-primary' : 'bg-white prose py-0'
+                className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user' ? 'bg-background' : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
                   }`}
               >
                 {
                   <div
                     key={v4()}
                     className={
-                      message.role === 'user' ? 'text-white' : 'text-gray-800'
+                      message.role === 'user' ? '' : 'text-gray-800 dark:text-white'
                     }
                   >
 
@@ -402,7 +398,7 @@ export default function ChatContainer({
                 <img
                   src={profilePicture ? profilePicture : ''}
                   alt="User Profile Picture"
-                  className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                  className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                 />
               )}
             </div>
@@ -434,12 +430,12 @@ export default function ChatContainer({
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
-                            className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                            className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                             width={40}
                             height={40}
                           />
                         ) : (
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-background flex items-center justify-center ">
                             S
                           </div>
                         )}
@@ -447,8 +443,8 @@ export default function ChatContainer({
                     )}
                     <div
                       className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user'
-                        ? 'bg-primary'
-                        : 'bg-white prose py-0'
+                        ? 'bg-background'
+                        : 'bg-background prose py-0'
                         }`}
                     >
                       {
@@ -456,8 +452,8 @@ export default function ChatContainer({
                           key={v4()}
                           className={
                             message.role === 'user'
-                              ? 'text-white'
-                              : 'text-gray-800'
+                              ? ''
+                              : 'text-gray-800 dark:text-white'
                           }
                         >
                           {message.text && (
@@ -476,7 +472,7 @@ export default function ChatContainer({
                       <img
                         src={profilePicture ? profilePicture : ''}
                         alt="User Profile Picture"
-                        className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white object-cover"
+                        className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                       />
                     )}
                   </div>

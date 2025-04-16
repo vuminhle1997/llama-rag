@@ -152,7 +152,7 @@ body {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.185 0.075 264.564);
+  --primary: white;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.544 0.153 155.227);
   --secondary-foreground: oklch(0.985 0 0);
@@ -170,7 +170,7 @@ body {
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.185 0.075 264.564);
+  --sidebar: #0a0a0a;
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.544 0.153 155.227);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -225,5 +225,18 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .dark .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    color: white;
+    font-weight: 600;
+    font-size: .875em;
+  }
+
+  .dark .prose :where(strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    color: white;
+    font-weight: 600;
   }
 }

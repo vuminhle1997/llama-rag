@@ -78,7 +78,7 @@ export default function FavouritesNavigation() {
           <SidebarGroupLabel asChild>
             <CollapsibleTrigger>
               <div className="flex gap-2">
-                <HeartIcon className="h-4 w-4 text-primary" />
+                <HeartIcon className="h-4 w-4" />
                 <span className="text-md">Ihre favorisierten Chats</span>
               </div>
               <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
@@ -92,7 +92,7 @@ export default function FavouritesNavigation() {
                     return (
                       <SidebarMenuItem
                         className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
-                          chat.id === slug ? 'bg-primary/20' : ''
+                          chat.id === slug ? 'bg-primary/10 dark:bg-accent/50' : ''
                         }`}
                         key={`favourite-${index}`}
                       >
@@ -133,7 +133,7 @@ export default function FavouritesNavigation() {
                                     <EllipsisHorizontalIcon className="h-4 w-4" />
                                   </DropdownMenuTrigger>
                                 </TooltipTrigger>
-                                <TooltipContent>
+                                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
                                   <p>Chat editieren</p>
                                 </TooltipContent>
                               </Tooltip>

@@ -1,3 +1,6 @@
+'use client';
+import React from 'react';
+
 import { DialogTrigger } from '../ui/dialog';
 
 import { Link, TrashIcon } from 'lucide-react';
@@ -100,7 +103,7 @@ export const ChatNavigationItem = ({
                     <EllipsisHorizontalIcon className="h-4 w-4" />
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
                   <p>Chat editieren</p>
                 </TooltipContent>
               </Tooltip>
