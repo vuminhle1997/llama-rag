@@ -66,6 +66,7 @@ origins = [
     FRONTEND_URL,
 ]
 
+
 azure_app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, AUTHORITY)
 
 app = FastAPI()
