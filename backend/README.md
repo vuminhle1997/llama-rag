@@ -11,6 +11,7 @@ The backend is a robust and scalable system designed to provide a REST API for i
 - **Redis**: Used for caching and session management.
 - **Azure Entra ID**: Enables secure authentication and authorization.
 - **Database Support**: Communicates with PostgreSQL and MySQL for data persistence.
+- **Opentelemetry and Arize Phoenix**: Provides tracing and observability for local LLM operations.
 
 ## Architecture
 
@@ -74,6 +75,9 @@ MYSQL_PASSWORD=password
 
 # ChromaDB configuration
 CHROMA_COLLECTION_NAME=llama-rage-TEST
+
+# Arize Phoenix Provider
+PHOENIX_API_KEY=<taken from the Phoenix Service API KEY Provider>
 ```
 
 ### 4. Start the FastAPI Server
