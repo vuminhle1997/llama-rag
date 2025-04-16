@@ -98,7 +98,7 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           pip install -r requirements.dev.txt
-          deepeval test ./tests/test_llm_app.py
+          deepeval test run ./tests/test_llm_app.py 
           cd ..
 
       - name: Build and tag fastapi Docker image
