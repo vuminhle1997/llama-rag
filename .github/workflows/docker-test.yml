@@ -1,6 +1,8 @@
 name: Test Build Docker Images on Dev
 
 on:
+  # Allows you to run this workflow manually from the Actions tab (optional)
+  workflow_dispatch:
   push:
     branches:
       - dev # Only run on pushes to the 'dev' branch
