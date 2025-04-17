@@ -41,7 +41,7 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.dev.txt
 
-      - name: Set up Python virtual environment and install dependencies. Run unit tests.
+      - name: Set up Python virtual environment. Run unit tests.
         run: |
           cd backend
           python3 -m venv venv
