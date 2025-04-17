@@ -11,7 +11,7 @@ export type UserProfile = {
   mobilePhone: string;
   officeLocation: string;
   preferredLanguage: string;
-}
+};
 
 export type Group = {
   '@odata.type': string;
@@ -20,17 +20,17 @@ export type Group = {
   description: string | null;
   uniqueName: string | null;
   [key: string]: any | null;
-}
+};
 
 export type Groups = {
   '@odata.context': string;
   value: Group[];
-}
+};
 
 export type AzureProfileResponse = {
   user: UserProfile;
   groups: Groups;
-}
+};
 
 export type AzureClaims = {
   exp: number;

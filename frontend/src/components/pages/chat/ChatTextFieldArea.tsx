@@ -71,7 +71,7 @@ export default function ChatTextFieldArea({
   uploadFileMutation,
 }: ChatTextFieldAreaProps) {
   return (
-    <div className="border-t bg-white p-4">
+    <div className="border-t bg-background p-4">
       <div className="max-w-3xl mx-auto">
         <form
           onSubmit={handleFormSubmit(handleSubmit)}
@@ -145,7 +145,7 @@ export default function ChatTextFieldArea({
                 type="submit"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-primary hover:text-primary/80"
+                className="h-8 w-8 text-gray-500 hover:text-gray-700"
                 title="Nachricht senden"
                 disabled={!messageText?.trim() || isSubmitting || isTyping}
               >

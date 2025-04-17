@@ -46,13 +46,13 @@ export default function WelcomeScreen() {
           <TooltipTrigger>
             <Button
               variant="outline"
-              className="bg-primary text-primary-foreground hover:bg-primary/10 top-4 left-4 absolute"
+              className="bg-primary dark:bg-accent hover:bg-primary/10 top-4 left-4 absolute"
               onClick={() => handleSideBarToggle()}
             >
               <Bars3Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
             <p>Seitenleiste öffnen</p>
           </TooltipContent>
         </Tooltip>
@@ -71,7 +71,7 @@ export default function WelcomeScreen() {
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="bg-primary text-primary-foreground hover:bg-primary/10"
+                className="bg-primary dark:bg-accent text-white hover:bg-primary/10"
               >
                 <PencilSquareIcon className="h-4 w-4 mr-2" />
                 Neuen Chat erstellen

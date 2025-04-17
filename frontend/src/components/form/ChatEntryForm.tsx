@@ -52,24 +52,29 @@ interface ChatEntryFormProps {
   mode?: 'create' | 'update';
 }
 
+
 /**
- * ChatEntryForm component allows users to create or update chat entries with customizable settings.
- * It provides a form interface for managing chat details, including title, description, context,
- * temperature, model, and avatar. The component also supports using predefined templates or
- * existing chats as a base for new entries.
+ * A React component for creating or updating chat entries. This component provides
+ * a form interface for managing chat details, including title, description, context,
+ * avatar, temperature, and model. It also allows users to use predefined templates
+ * or existing chats as a base for creating new chats.
  *
+ * @component
  * @param {ChatEntryFormProps} props - The properties for the ChatEntryForm component.
- * @param {Chat | undefined} props.chat - The chat object to edit, or undefined for creating a new chat.
- * @param {() => void} props.onSuccess - Callback function to execute upon successful form submission.
- * @param {'create' | 'update'} [props.mode] - The mode of the form, either 'create' or 'update'. Defaults to 'create' if no chat is provided.
+ * @param {Chat | undefined} props.chat - The chat object to edit. If undefined, the form
+ * initializes in "create" mode.
+ * @param {() => void} [props.onSuccess] - A callback function to execute after a successful
+ * form submission.
+ * @param {'create' | 'update'} [props.mode] - The mode of the form, either "create" or "update".
+ * Defaults to "create" if no chat is provided.
  *
  * @returns {JSX.Element} The rendered ChatEntryForm component.
  *
  * @remarks
  * - The form uses `react-hook-form` for managing form state and validation.
- * - Avatar handling includes preview generation and file input management.
- * - Templates can be used to pre-fill form fields with data from predefined or existing chats.
- * - The component integrates with backend APIs for creating or updating chat entries.
+ * - Supports avatar uploads and previews.
+ * - Allows users to select predefined templates or existing chats as a base for new chats.
+ * - Displays success and error alerts based on the outcome of form submission.
  *
  * @example
  * ```tsx
@@ -78,6 +83,17 @@ interface ChatEntryFormProps {
  *   onSuccess={() => console.log('Chat saved successfully!')}
  * />
  * ```
+ *
+ * @dependencies
+ * - `useForm` from `react-hook-form` for form handling.
+ * - `usePostChat` and `useUpdateChat` for API interactions.
+ * - `useAppSelector` for accessing Redux state.
+ * - `useRouter` from `next/router` for navigation.
+ * - `axios` for fetching avatar data.
+ *
+ * @internal
+ * This component is designed to be used within the chat management system and
+ * assumes the presence of specific Redux selectors and API hooks.
  */
 export default function ChatEntryForm({
   chat,
@@ -277,10 +293,14 @@ export default function ChatEntryForm({
             </DialogHeader>
             <div className="items-stretch flex-1 overflow-y-auto">
               <div className="space-y-2 py-4">
-                <Accordion type="single" collapsible defaultValue={mode === 'create' ? 'templates' : ''}>
+                <Accordion
+                  type="single"
+                  collapsible
+                  defaultValue={mode === 'create' ? 'templates' : ''}
+                >
                   {/* Default Templates */}
                   <AccordionItem value="templates">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <ArchiveBoxIcon className="h-5 w-5" />
                         <span>Standardvorlagen</span>
@@ -293,7 +313,7 @@ export default function ChatEntryForm({
 
                   {/* User's Favourite Chats */}
                   <AccordionItem value="favourites">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <HeartIcon className="text-sm h-5 w-5" />
                         <span>Ihre favorisierten Chats </span>
@@ -311,7 +331,7 @@ export default function ChatEntryForm({
 
                   {/* User's Existing Chats */}
                   <AccordionItem value="users">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <ChatBubbleOvalLeftIcon className="h-5 w-5" />
                         <span>Ihre Chats</span>

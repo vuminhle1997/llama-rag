@@ -10,49 +10,67 @@ import {
 } from '../ui/dropdown-menu';
 import { SidebarSeparator } from '../ui/sidebar';
 import { Settings2Icon, LogOutIcon } from 'lucide-react';
-import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import {
   selectUser,
   selectProfilePicture,
+  setAppTheme,
+  selectAppTheme,
 } from '@/frontend/store/reducer/app_reducer';
 import Link from 'next/link';
+import { MoonIcon, SunIcon } from '@heroicons/react/24/solid';
+import { Switch } from '../ui/switch';
 
 /**
- * FooterNavigation component renders the footer section of the application.
- * It displays the user's profile picture, name, and email, along with a settings dropdown menu.
+ * FooterNavigation component renders a footer section with user information,
+ * theme toggle, and a logout option. It utilizes Redux for state management
+ * and provides a responsive UI with dropdown menus and switches.
  *
  * @component
- * @returns {JSX.Element} The rendered footer navigation component.
- *
- * @example
- * // Usage example:
- * <FooterNavigation />
+ * @returns {JSX.Element} The rendered FooterNavigation component.
  *
  * @remarks
- * This component uses the `useAppSelector` hook to retrieve the user and profile picture from the Redux store.
- * It also includes a logout link that redirects to the backend logout URL.
+ * - This component uses `useAppSelector` to access the Redux store for theme,
+ *   user, and profile picture data.
+ * - The `handleThemeChange` function dispatches a Redux action to update the
+ *   application theme.
+ * - The component includes a dropdown menu with options to toggle the theme
+ *   and log out.
  *
  * @dependencies
- * - Avatar
- * - AvatarImage
- * - AvatarFallback
- * - SidebarSeparator
- * - DropdownMenu
- * - DropdownMenuTrigger
- * - DropdownMenuContent
- * - DropdownMenuItem
- * - Button
- * - Link
- * - Settings2Icon
- * - LogOutIcon
+ * - `useAppSelector` and `useAppDispatch` for Redux state management.
+ * - `Avatar`, `DropdownMenu`, `Button`, and other UI components for layout and styling.
+ * - Environment variable `NEXT_PUBLIC_BACKEND_URL` for logout URL.
  *
- * @hooks
- * - useAppSelector
+ * @example
+ * ```tsx
+ * import FooterNavigation from './FooterNavigation';
+ *
+ * function App() {
+ *   return (
+ *     <div className="app-container">
+ *       <FooterNavigation />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 export default function FooterNavigation() {
+  const theme = useAppSelector(selectAppTheme);
+  const dispatch = useAppDispatch();
+
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);
-  
+
+  /**
+   * Handles the theme change for the application.
+   *
+   * @param value - The new theme to be applied. Can be either 'dark' or 'light'.
+   */
+  const handleThemeChange = (value: 'dark' | 'light') => {
+    dispatch(setAppTheme(value));
+  };
+
   return (
     <div className="mt-auto">
       <SidebarSeparator className="mx-0" />
@@ -70,7 +88,8 @@ export default function FooterNavigation() {
               {user?.mail || 'john.doe@example.com'}
             </span>
             <span className="text-xs text-muted-foreground">
-              {`${user?.officeLocation} - ${user?.jobTitle}` || 'john.doe@example.com'}
+              {`${user?.officeLocation} - ${user?.jobTitle}` ||
+                'john.doe@example.com'}
             </span>
           </div>
         </div>
@@ -81,6 +100,23 @@ export default function FooterNavigation() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <div className="flex flex-row w-full justify-between">
+                <SunIcon className="mr-2 h-4 w-4" />
+                <Switch
+                  checked={theme === 'dark'}
+                  onCheckedChange={checked => {
+                    handleThemeChange(checked ? 'dark' : 'light');
+                  }}
+                  id="theme-switch"
+                  aria-label="Theme switch"
+                  aria-describedby="theme-switch-description"
+                  aria-labelledby="theme-switch-label"
+                  name="theme-switch"
+                />
+                <MoonIcon className="ml-2 h-4 w-4" />
+              </div>
+            </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive">
               <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
                 <div className="flex flex-row">

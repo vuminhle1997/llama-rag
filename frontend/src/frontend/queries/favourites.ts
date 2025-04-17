@@ -37,26 +37,6 @@ export const useGetFavourites = (size: number, page: number) => {
 };
 
 /**
- * Fetches a paginated list of favourite items from the backend.
- *
- * @param size - The number of items per page.
- * @param page - The current page number.
- * @returns A promise that resolves to a `Page<Favourite>` object containing the favourite items.
- *
- * @throws Will throw an error if the request fails.
- */
-export const getFavourites = async (size: number, page: number) => {
-  const response = await axios.get<Page<Favourite>>(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/favourites`,
-    {
-      withCredentials: true,
-      params: { size, page },
-    }
-  );
-  return response.data;
-};
-
-/**
  * Custom hook to fetch a favourite item by its ID.
  *
  * This hook uses the `useQuery` hook from React Query to fetch a favourite item
@@ -90,7 +70,7 @@ export const useGetFavourite = (id: string) => {
  *
  * @example
  * const { mutate, isLoading, error } = usePostFavourite();
- * 
+ *
  * const handleAddFavourite = (id: string) => {
  *   mutate(id);
  * };

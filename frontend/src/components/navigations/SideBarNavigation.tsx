@@ -40,10 +40,27 @@ export default function SideBarNavigation() {
 
   const { toggleSidebar } = useSidebar();
 
+  /**
+   * Toggles the visibility of the command dialog by dispatching an action
+   * to update the `showCommands` state.
+   *
+   * @remarks
+   * This function uses the `useCallback` hook to memoize the callback,
+   * ensuring it only changes when `showCommands` or `dispatch` changes.
+   *
+   * @dependencies
+   * - `showCommands`: The current state of the command dialog visibility.
+   * - `dispatch`: The Redux dispatch function to trigger state updates.
+   */
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
   }, [showCommands, dispatch]);
 
+  /**
+   * Toggles the state of the sidebar.
+   * This function is memoized using `useCallback` to prevent unnecessary re-renders.
+   * It depends on the `toggleSidebar` function provided as a dependency.
+   */
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
@@ -58,13 +75,13 @@ export default function SideBarNavigation() {
                 <TooltipTrigger>
                   <Button
                     variant="outline"
-                    className="bg-primary text-primary-foreground hover:bg-primary/10"
+                    className="bg-primary dark:bg-background hover:bg-primary/10"
                     onClick={() => handleSideBarToggle()}
                   >
-                    <XMarkIcon className="h-4 w-4" />
+                    <XMarkIcon className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Seitenleiste minimieren</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
@@ -79,15 +96,15 @@ export default function SideBarNavigation() {
                     <DialogTrigger>
                       <Button
                         variant="outline"
-                        className="mx-4 bg-primary text-primary-foreground hover:bg-primary/10"
+                        className="mx-4 bg-primary dark:bg-background hover:bg-primary/10"
                       >
-                        <PencilSquareIcon className="h-4 w-4" />
+                        <PencilSquareIcon className="h-4 w-4 text-white" />
                       </Button>
                     </DialogTrigger>
                     <ChatEntryForm />
                   </Dialog>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Neuen Chat erstellen</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
@@ -96,12 +113,13 @@ export default function SideBarNavigation() {
                 <TooltipTrigger>
                   <Button
                     onClick={handleShowCommandDialog}
-                    className="bg-primary text-primary-foreground hover:bg-primary/50"
+                    variant="outline"
+                    className="bg-primary dark:bg-background hover:bg-primary/10"
                   >
-                    <MagnifyingGlassCircleIcon className="h-4 w-4" />
+                    <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Bisherigen Chat suchen.</p>
                   <div className="flex items-center justify-center text-center">
                     <p>

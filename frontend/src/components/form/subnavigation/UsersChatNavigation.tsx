@@ -16,7 +16,6 @@ export interface UsersChatNavigationProps {
   useAsTemplate: (chat: Chat) => void;
 }
 
-
 /**
  * A React component that renders a user interface for navigating and searching through
  * existing chat templates. Users can filter chats by title and select a chat to use as a template.
@@ -35,7 +34,7 @@ export default function UsersChatNavigation({
   existingChats,
   useAsTemplate,
 }: UsersChatNavigationProps) {
-    const {
+  const {
     register,
     watch,
     formState: { errors },
@@ -62,7 +61,7 @@ export default function UsersChatNavigation({
         </div>
         {existingChats
           .filter(chats =>
-            chats.title.toLowerCase().includes(searchTerm.toLowerCase()),
+            chats.title.toLowerCase().includes(searchTerm.toLowerCase())
           )
           .map(existingChat => (
             <div

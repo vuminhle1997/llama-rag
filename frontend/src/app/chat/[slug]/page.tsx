@@ -6,13 +6,12 @@ import {
   useGetChat,
   useDeleteFile,
   usePostFile,
-  useChat,
   useDeleteChat,
+  useChatStream,
 } from '@/frontend/queries/chats';
 import { Message, Chat } from '@/frontend/types';
 import { useRouter } from 'next/navigation';
 import {
-  setChat,
   selectProfilePicture,
   selectAppState,
   setAppState,
@@ -55,64 +54,31 @@ import AuthProvider from '@/components/AuthProvider';
 import _ from 'lodash';
 
 /**
- * SlugChatPage component renders the chat page for a specific chat identified by the slug.
- *
- * @param {Object} props - The component props.
- * @param {Promise<{ slug: string }>} props.params - The parameters containing the slug.
- *
- * @returns {JSX.Element} The rendered chat page component.
- *
- * @component
- *
+ * Component that renders a chat page for a specific chat identified by a slug.
+ * 
+ * This component handles:
+ * - Chat message display and scrolling
+ * - File uploads and management
+ * - Message sending and streaming responses
+ * - Chat deletion and editing
+ * - Favorite status management
+ * - Various dialog states for different actions
+ * 
+ * @param {Object} props - Component props
+ * @param {Promise<{slug: string}>} props.params - Object containing the chat slug from URL params
+ * 
+ * @returns {JSX.Element} A complete chat interface with messages, input area, and various dialogs
+ * 
  * @example
- * // Usage example:
- * <SlugChatPage params={params} />
+ * <SlugChatPage params={Promise.resolve({slug: "chat-123"})} />
  *
  * @remarks
- * This component handles various states and actions related to chat functionality, including:
- * - Fetching and displaying chat messages.
- * - Handling file uploads and deletions.
- * - Managing chat settings and alerts.
- * - Submitting new messages and handling typing indicators.
- *
- * @requires useRouter - Next.js router hook for navigation.
- * @requires useAppDispatch - Redux dispatch hook for dispatching actions.
- * @requires useAppSelector - Redux selector hook for selecting state.
- * @requires useRef - React hook for creating references.
- * @requires useEffect - React hook for side effects.
- * @requires useForm - React Hook Form hook for managing form state.
- * @requires useGetChat - Custom hook for fetching chat data.
- * @requires useGetAvatar - Custom hook for fetching avatar data.
- * @requires useChat - Custom hook for chat-related mutations.
- * @requires useDeleteFile - Custom hook for deleting files.
- * @requires usePostFile - Custom hook for uploading files.
- * @requires useDeleteChat - Custom hook for deleting chat.
- * @requires usePostFavourite - Custom hook for posting favourite.
- * @requires useDeleteFavourite - Custom hook for deleting favourite.
- *
- * @state {Chat | null} selectedChat - The currently selected chat.
- * @state {Message[]} messages - The list of chat messages.
- * @state {boolean} isDialogOpen - State for managing dialog visibility.
- * @state {boolean} isDeleteDialogOpen - State for managing delete dialog visibility.
- * @state {boolean} isCreateChatDialogOpen - State for managing create chat dialog visibility.
- * @state {boolean} isSubmitting - State for managing form submission.
- * @state {boolean} isFileDialogOpen - State for managing file dialog visibility.
- * @state {boolean} lastMessageIsTyping - State for managing typing indicator for the last message.
- * @state {boolean} isSettingsDialogOpen - State for managing settings dialog visibility.
- * @state {boolean} isTyping - State for managing typing indicator.
- * @state {boolean} isUploading - State for managing file upload status.
- * @state {string | null} pendingMessage - The pending message being typed.
- * @state {Object | null} alert - The alert state for displaying notifications.
- * @state {Object} favouriteAlert - The alert state for displaying favourite notifications.
- *
- * @function handleDeleteFile - Handles file deletion.
- * @function handleUploadClick - Handles file upload click.
- * @function handleFileChange - Handles file input change.
- * @function scrollToBottom - Scrolls the chat container to the bottom.
- * @function handleSubmit - Handles form submission for sending messages.
- * @function handleMessageLoad - Handles message load event.
- * @function handleDelete - Handles delete action.
- * @function confirmDelete - Confirms chat deletion.
+ * The component uses several custom hooks for data fetching and state management:
+ * - useGetChat - Fetches chat data
+ * - useChatStream - Handles message streaming
+ * - useDeleteFile/usePostFile - Manages file operations
+ * - useDeleteChat - Handles chat deletion
+ * - usePostFavourite/useDeleteFavourite - Manages favorite status
  */
 export default function SlugChatPage({
   params,
@@ -139,15 +105,11 @@ export default function SlugChatPage({
     React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isFileDialogOpen, setIsFileDialogOpen] = React.useState(false);
-  const [lastMessageIsTyping, setLastMessageIsTyping] = React.useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = React.useState(false);
   const [isTyping, setIsTyping] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [pendingMessage, setPendingMessage] = React.useState<string | null>(
     null
-  );
-  const [submittedMessages, setSubmittedMessages] = React.useState<Message[]>(
-    []
   );
   const [alert, setAlert] = React.useState<{
     show: boolean;
@@ -162,7 +124,7 @@ export default function SlugChatPage({
   }>({ show: false, success: false });
 
   const { data: chat, refetch: refetchChat } = useGetChat(slug);
-  const { searchMutation } = useChat(slug);
+  const [response, isStreaming, sendMessageStream] = useChatStream(slug);
 
   const deleteFileMutation = useDeleteFile(slug);
   const uploadFileMutation = usePostFile(slug);
@@ -181,27 +143,20 @@ export default function SlugChatPage({
       message: '',
     },
   });
-
-  const messageText = watch('message');
-
-  useEffect(() => {
-    dispatch(setAppState('loading'));
-    // @eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    if (chat) {
-      window.document.title = `global CT InsightChat - ${chat?.title}`;
-      dispatch(setChat(chat));
-      dispatch(setAppState('idle'));
-    }
-    // @eslint-disable-next-line
-  }, [chat]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [chat?.messages, pendingMessage, isTyping]);
-
+  
+  /**
+   * Handles the deletion of a file by its ID.
+   *
+   * This function performs the following steps:
+   * 1. Calls the `deleteFileMutation.mutateAsync` method to delete the file.
+   * 2. Refetches the chat data using `refetchChat` to update the UI.
+   * 3. Displays a success alert if the file is deleted successfully.
+   * 4. Displays an error alert if the deletion fails.
+   *
+   * @param fileId - The unique identifier of the file to be deleted.
+   *
+   * @throws Will log an error to the console and display an error alert if the deletion fails.
+   */
   const handleDeleteFile = async (fileId: string) => {
     try {
       await deleteFileMutation.mutateAsync(fileId);
@@ -226,10 +181,36 @@ export default function SlugChatPage({
     }
   };
 
+  /**
+   * Handles the click event for triggering the file input element.
+   * This function programmatically clicks the file input element referenced
+   * by `fileInputRef` to open the file selection dialog.
+   */
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
+  /**
+   * Handles the file input change event, validates the file type, and uploads the file.
+   *
+   * @param event - The change event triggered by the file input element.
+   *
+   * The function performs the following steps:
+   * 1. Retrieves the selected file from the input element.
+   * 2. Validates the file type against a list of allowed MIME types:
+   *    - PDF
+   *    - CSV
+   *    - Excel (both `.xls` and `.xlsx`)
+   *    - Plain text
+   *    - SQL files
+   * 3. If the file type is invalid, it displays an error alert and resets the input value.
+   * 4. If the file type is valid, it uploads the file using the `uploadFileMutation` function.
+   * 5. After a successful upload, it refetches the chat data and displays a success alert.
+   * 6. Handles errors during the upload process by displaying an error alert.
+   * 7. Ensures the `isUploading` state is properly managed during the upload process.
+   *
+   * @throws Will display an error alert if the file upload fails.
+   */
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -292,6 +273,12 @@ export default function SlugChatPage({
     }
   };
 
+  /**
+   * Scrolls the chat container to the bottom.
+   * This function checks if the `chatContainerRef` is defined and sets its
+   * `scrollTop` property to its `scrollHeight`, effectively scrolling
+   * the container to its lowest point.
+   */
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -299,6 +286,22 @@ export default function SlugChatPage({
     }
   };
 
+  /**
+   * Handles the submission of a chat message.
+   * 
+   * @param data - The chat form data containing the message to be sent
+   * @throws {Error} When there is an error sending the message
+   * 
+   * This function:
+   * - Sets submission and typing states
+   * - Creates and adds user message to messages list
+   * - Sends message through stream mutation
+   * - Creates and adds assistant response to messages list
+   * - Resets the form
+   * - Updates chat interaction timestamp
+   * - Re-sorts chats by last interaction
+   * - Handles cleanup of states after completion
+   */
   const handleSubmit = async (data: ChatFormData) => {
     try {
       setIsSubmitting(true);
@@ -312,22 +315,16 @@ export default function SlugChatPage({
         created_at: new Date().toDateString(),
       };
       setMessages([...messages, userMessage]);
-      const response = await searchMutation.mutateAsync(data.message);
+      await sendMessageStream.mutateAsync(data.message);
 
       const newMessage: Message = {
         role: 'assistant',
-        text: response.message!.response.response,
+        text: response,
         block_type: 'text',
         created_at: new Date().toDateString(),
       };
 
-      const messagesToSubmit = [newMessage, userMessage];
-
-      setSubmittedMessages([...messagesToSubmit, ...submittedMessages]);
       setMessages(prevMessages => [...prevMessages, newMessage]);
-      setLastMessageIsTyping(true);
-
-      await refetchChat(); // Refresh chat data to show new messages
       reset(); // Clear the form after sending
 
       const updatedChats = _.cloneDeep(chats);
@@ -347,19 +344,30 @@ export default function SlugChatPage({
     } finally {
       setIsSubmitting(false);
       setIsTyping(false);
-      setPendingMessage(null);
       scrollToBottom();
     }
   };
 
-  const handleMessageLoad = () => {
-    setLastMessageIsTyping(false);
-  };
-
+  /**
+   * Opens the delete confirmation dialog by setting the isDeleteDialogOpen state to true.
+   * @function handleDelete
+   * @returns {void}
+   */
   const handleDelete = () => {
     setIsDeleteDialogOpen(true);
   };
 
+  /**
+   * Initiates the deletion of the current chat session.
+   * Makes a mutation request to delete the chat and handles the response.
+   * On successful deletion, redirects to the home page and refreshes the window.
+   * On error, logs the failure message to the console.
+   * 
+   * @remarks
+   * This function uses the deleteChat mutation from a query client and the Next.js router for navigation.
+   * 
+   * @throws {Error} Logs any errors that occur during the deletion process
+   */
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
@@ -372,17 +380,39 @@ export default function SlugChatPage({
     });
   };
 
+
+  useEffect(() => {
+    dispatch(setAppState('loading'));
+    // @eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    if (chat && !isStreaming) {
+      window.document.title = `global CT InsightChat - ${chat?.title}`;
+      dispatch(setAppState('idle'));
+    } else if (isStreaming) {
+      if (response.length < 1) {
+        window.document.title = `🤔 agentic RAG denkt ...`;
+      } else {
+        window.document.title = `🤖 agentic RAG chattet ...`;
+      }
+    }
+    // @eslint-disable-next-line
+  }, [chat, isStreaming, response]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chat?.messages, pendingMessage, isTyping]);
+
+  const messageText = watch('message');
+
   const chatProps: ChatContainerProps = {
     reset,
     chat: chat!,
-    lastMessageIsTyping,
     chatContainerRef,
     messageText,
     pendingMessage,
-    isTyping,
     profilePicture,
-    handleMessageLoad,
-    submittedMessages,
     deleteFavourite,
     handleDelete,
     isSettingsDialogOpen,
@@ -392,6 +422,9 @@ export default function SlugChatPage({
     setIsSettingsDialogOpen,
     setSelectedChat,
     slug,
+    response,
+    isStreaming: isStreaming,
+    scrollToBottom,
   };
 
   const chatTextFieldAreaProps: ChatTextFieldAreaProps = {
@@ -443,7 +476,7 @@ export default function SlugChatPage({
       errorFallback={<ChatNotFoundScreen />}
     >
       {appState === 'idle' && (
-        <main className="flex flex-col h-screen w-screen bg-gray-50">
+        <main className="flex flex-col h-screen w-screen bg-gray-50 dark:bg-accent">
           {alert && <ChatAlertDialog {...alert} />}
 
           {(isUploading || deleteFileMutation.isPending) && (

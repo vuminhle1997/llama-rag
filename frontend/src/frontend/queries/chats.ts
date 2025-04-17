@@ -1,8 +1,9 @@
 'use client';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Chat, Page } from '../types';
-import { th } from 'date-fns/locale';
+import { useState } from 'react';
 
 /**
  * Custom hook to post chat data to the backend.
@@ -29,40 +30,6 @@ export const usePostChat = () => {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- * Custom hook to fetch chat data with pagination.
- *
- * @param size - The number of chat items to fetch per page.
- * @param page - The current page number to fetch.
- * @returns The result of the `useQuery` hook, which includes the chat data and query status.
- *
- * @example
- * const { data, error, isLoading } = useGetChats(10, 1);
- *
- * @remarks
- * This hook uses Axios to make a GET request to the backend API endpoint for chats.
- * The backend URL is retrieved from the environment variable `NEXT_PUBLIC_BACKEND_URL`.
- * The request includes credentials and pagination parameters.
- */
-export const useGetChats = (size: number, page: number) => {
-  return useQuery({
-    queryKey: ['chats', size, page],
-    queryFn: async () => {
-      const response = await axios.get<Page<Chat>>(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
-        {
-          withCredentials: true,
-          params: {
-            size,
-            page,
           },
         }
       );
@@ -195,7 +162,7 @@ export const useUpdateChat = (id: string) => {
  * @example
  * ```typescript
  * const { mutate: uploadFile } = usePostFile(chatId);
- * 
+ *
  * const handleFileUpload = (file: File) => {
  *   const formData = new FormData();
  *   formData.append('file', file);
@@ -243,79 +210,130 @@ export const useDeleteFile = (chatId: string) => {
 };
 
 /**
- * Custom hook to manage chat data and search functionality.
+ * Custom hook to handle streaming chat messages for a specific chat session.
  *
- * @param {string} chatId - The ID of the chat to fetch.
- * @returns {object} An object containing the chat query and search mutation.
- * @returns {object.chatQuery} The query object for fetching chat data.
- * @returns {object.searchMutation} The mutation object for submitting a search query.
+ * @param chatId - The unique identifier of the chat session.
+ * @returns A tuple containing:
+ * - `response`: The accumulated response text from the chat stream.
+ * - `isStreaming`: A boolean indicating whether the chat stream is currently active.
+ * - `sendMessageStream`: A mutation object to send a message and handle the streaming response.
  *
- * @example
- * const { chatQuery, searchMutation } = useChat('chat-id');
+ * The `sendMessageStream` mutation sends a message to the backend and processes the server-sent events (SSE)
+ * to update the `response` state with the streamed data. It also manages the streaming state and refreshes
+ * the chat data upon successful completion.
  *
- * // Access chat data
- * const chatData = chatQuery.data;
+ * The server is expected to send data in SSE format, where each message is prefixed with `data: ` and ends
+ * with a double newline (`\n\n`). The hook handles parsing and appending the streamed data to the response.
  *
- * // Submit a search query
- * searchMutation.mutate('search text');
+ * Example usage:
+ * ```typescript
+ * const [response, isStreaming, sendMessageStream] = useChatStream(chatId);
+ *
+ * const handleSendMessage = () => {
+ *   sendMessageStream.mutate('Hello, world!');
+ * };
+ * ```
  */
-export const useChat = (chatId: string) => {
+export const useChatStream = (chatId: string) => {
   const queryClient = useQueryClient();
 
-  // Fetch chat by ID
-  const fetchChat = async () => {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}`,
-      {
-        withCredentials: true,
-      }
-    );
-    return response.data;
-  };
+  const [response, setResponse] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
 
-  // Query: Fetch chat
-  const chatQuery = useQuery({
-    queryKey: ['chat', chatId],
-    queryFn: fetchChat,
-    enabled: false,
-  });
-
-  // Mutation: Submit a search query
-  const searchMutation = useMutation({
+  const sendMessageStream = useMutation({
     mutationFn: async (text: string) => {
-      const response = await axios.post<Chat>(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat`,
-        {
-          text: text,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            'Accept': 'application/json'
+      setResponse('');
+      setIsStreaming(true);
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/${chatId}/chat/stream`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text }),
+            credentials: 'include',
+          }
+        );
+        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.body) throw new Error('Response body is null');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value);
+
+          // Process SSE format (data: {...}\n\n)
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonStr = line.substring(6).trim();
+                if (jsonStr === '') continue;
+
+                const data = JSON.parse(jsonStr);
+                if (data.status === 'done') {
+                  return; // Stream completed
+                } else if (data.value) {
+                  setResponse(prev => {
+                    console.log(prev);
+                    return prev + data.value;
+                  });
+                }
+              } catch (error) {
+                console.error('Error parsing SSE data:', error);
+              }
+            }
           }
         }
-      );
-      return response.data;
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsStreaming(false);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat', chatId] }); // Refresh chat data
     },
   });
 
-  return { chatQuery, searchMutation };
+  return [response, isStreaming, sendMessageStream] as const;
 };
 
+/**
+ * Fetches a list of chats filtered by the given title.
+ *
+ * This function sends a GET request to the backend API to retrieve chats
+ * that match the specified title. It includes credentials in the request
+ * and expects a JSON response.
+ *
+ * @param title - The title to filter chats by.
+ * @returns A promise that resolves to an array of chats if the request is successful,
+ *          or an empty array if the response status is not 200.
+ * @throws An error if the request fails.
+ */
 export const getChatsByTitle = async (title: string) => {
   try {
-    const res = await axios.get<Chat[]>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/search`, {
-      withCredentials: true,
-      params: {
-        title,
-      },
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
+    const res = await axios.get<Chat[]>(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats/search`,
+      {
+        withCredentials: true,
+        params: {
+          title,
+        },
+        headers: {
+          Accept: 'application/json',
+        },
+      }
+    );
     if (res.status === 200) {
       return res.data;
     }
@@ -323,4 +341,4 @@ export const getChatsByTitle = async (title: string) => {
   } catch (error) {
     throw new Error('Failed to fetch chats');
   }
-}
+};
