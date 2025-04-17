@@ -103,7 +103,7 @@ export default function ChatsCollectionElement({
                       <EllipsisHorizontalIcon className="h-4 w-4" />
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
-                  <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+                  <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
                     <p>Chat editieren</p>
                   </TooltipContent>
                 </Tooltip>

@@ -49,20 +49,34 @@ export interface ChatContainerProps {
   scrollToBottom: () => void;
 }
 
+
 /**
- * ChatContainer component renders the chat interface.
+ * ChatContainer component is responsible for rendering the chat interface, 
+ * including the chat messages, user interactions, and chat settings. It 
+ * handles fetching messages, managing the chat state, and rendering the 
+ * appropriate UI elements based on the chat's current state.
  *
- * @param {Object} props - The properties object.
- * @param {React.RefObject<HTMLDivElement>} props.chatContainerRef - Reference to the chat container div.
- * @param {Object} props.chat - The chat object containing messages.
- * @param {string} props.messageText - The current message text.
- * @param {Function} props.reset - Function to reset the chat input.
- * @param {string} props.avatar - URL of the assistant's avatar image.
- * @param {string} props.profilePicture - URL of the user's profile picture.
- * @param {string} props.pendingMessage - The pending message text.
- * @param {boolean} props.isTyping - Indicates if the assistant is typing.
+ * @param {ChatContainerProps} props - The properties passed to the ChatContainer component.
+ * @param {React.RefObject<HTMLDivElement>} props.chatContainerRef - A reference to the chat container DOM element.
+ * @param {Chat} props.chat - The current chat object containing chat details and messages.
+ * @param {string} props.messageText - The current text of the user's message input.
+ * @param {() => void} props.reset - A function to reset the chat input with a predefined message.
+ * @param {string} props.profilePicture - The URL of the user's profile picture.
+ * @param {string} props.pendingMessage - The message currently being typed by the user.
+ * @param {(id: string) => void} props.deleteFavourite - A function to delete a favorite chat.
+ * @param {(id: string) => void} props.handleDelete - A function to handle the deletion of a chat.
+ * @param {boolean} props.isSettingsDialogOpen - A flag indicating whether the chat settings dialog is open.
+ * @param {(id: string) => void} props.postFavourite - A function to mark a chat as favorite.
+ * @param {(alert: string) => void} props.setFavouriteAlert - A function to set an alert for favorite actions.
+ * @param {(isOpen: boolean) => void} props.setIsDialogOpen - A function to toggle the dialog's open state.
+ * @param {(isOpen: boolean) => void} props.setIsSettingsDialogOpen - A function to toggle the settings dialog's open state.
+ * @param {(chat: Chat) => void} props.setSelectedChat - A function to set the currently selected chat.
+ * @param {string} props.slug - A unique identifier for the chat.
+ * @param {boolean} props.isStreaming - A flag indicating whether the assistant is currently streaming a response.
+ * @param {string} props.response - The assistant's response text.
+ * @param {() => void} props.scrollToBottom - A function to scroll the chat container to the bottom.
  *
- * @returns {JSX.Element} The rendered chat container component.
+ * @returns {JSX.Element} The rendered ChatContainer component.
  */
 export default function ChatContainer({
   chatContainerRef,
@@ -106,6 +120,14 @@ export default function ChatContainer({
     enabled: !!chat.id,
   });
 
+  /**
+   * Toggles the state of the sidebar by invoking the `toggleSidebar` function.
+   * This function is memoized using `useCallback` to prevent unnecessary re-renders.
+   */
+  const handleSideBarToggle = useCallback(() => {
+    toggleSidebar();
+  }, [toggleSidebar]);
+
   useEffect(() => {
     if (inView && hasNextPage) {
       fetchNextPage();
@@ -147,10 +169,6 @@ export default function ChatContainer({
     }
   }, [isStreaming, response]);
 
-  const handleSideBarToggle = useCallback(() => {
-    toggleSidebar();
-  }, [toggleSidebar]);
-
   const chatSettingsProps: ChatSettingsDialogProps = {
     chat: chat!,
     deleteFavourite,
@@ -179,7 +197,7 @@ export default function ChatContainer({
                   <Bars3Icon className="h-4 w-4 text-white" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+              <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
                 <p className="text-m">Seitenleiste öffnen</p>
               </TooltipContent>
             </Tooltip>

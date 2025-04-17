@@ -47,7 +47,6 @@ import { useRouter } from 'next/navigation';
  * - `useAppSelector` to select the authorization state from the Redux store.
  * - `useAuth` to fetch authentication data.
  * - `useGetProfilePicture` to fetch the user's profile picture.
- * - `useGetChats` to fetch chat data.
  * - `useGetFavourites` to fetch favourite chats data.
  *
  * The component uses `useEffect` hooks to dispatch actions when the fetched data changes:
@@ -92,11 +91,32 @@ export default function LayoutProvider({
     }
   }, [value]);
 
+  /**
+   * Toggles the visibility of the commands and resets the input value.
+   *
+   * This function uses the `useCallback` hook to memoize the callback,
+   * ensuring it only changes when `dispatch` or `showCommands` dependencies change.
+   *
+   * @remarks
+   * - Dispatches an action to update the `showCommands` state in the global store.
+   * - Resets the local input value to an empty string.
+   *
+   * @dependencies
+   * - `dispatch`: The Redux dispatch function to trigger state updates.
+   * - `showCommands`: A boolean indicating the current visibility state of commands.
+   */
   const handleShowCommand = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
     setValue('');
   }, [dispatch, showCommands]);
 
+  /**
+   * Handles the click event for a chat item.
+   * Clears the current input value and navigates to the chat page
+   * corresponding to the selected chat's ID.
+   *
+   * @param chat - The selected chat object containing the chat ID.
+   */
   const handleClick = (chat: Chat) => {
     setValue('');
     router.push(`/chat/${chat.id}`);

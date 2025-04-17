@@ -91,7 +91,7 @@ const FavouritesDialog = () => {
               </DialogContent>
             </Dialog>
           </TooltipTrigger>
-          <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+          <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
             <p>Favorisierte Chats</p>
           </TooltipContent>
         </Tooltip>

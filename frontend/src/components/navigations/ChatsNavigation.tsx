@@ -27,6 +27,13 @@ import { useState } from 'react';
  * @returns {JSX.Element} The rendered ChatsNavigation component.
  */
 export default function ChatsNavigation() {
+  const dispatch = useAppDispatch();
+  const chats = useAppSelector(selectChats) || [];
+  const appState = useAppSelector(selectAppState);
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+
   const { ref, inView } = useInView({
     threshold: 0.1,
   });
@@ -34,14 +41,10 @@ export default function ChatsNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
-  const appState = useAppSelector(selectAppState);
-  const dispatch = useAppDispatch();
-  const chats = useAppSelector(selectChats) || [];
-  const [chatToDelete, setChatToDelete] = useState<string | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
   const deleteChat = useDeleteChat(chatToDelete || '');
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
+  const { fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useInfiniteQuery({
       queryKey: ['chats'],
       queryFn: ({ pageParam = 1 }) => getChats(10, pageParam),
@@ -51,8 +54,6 @@ export default function ChatsNavigation() {
       },
       initialPageParam: 1,
     });
-
-  const isLoading = appState === 'loading' || status === 'pending';
 
   /**
    * Handles the deletion of a chat by setting the chat ID to be deleted
@@ -90,12 +91,10 @@ export default function ChatsNavigation() {
     }
   }, [inView, hasNextPage, fetchNextPage, isFetchingNextPage, dispatch]);
 
-  /**
-   * Sorts the chats array based on the last interaction date in descending order.
-   */
   const sortedChats: Chat[] = chats;
-
   const groupedChats = groupChatsByDate(sortedChats as Chat[]);
+  const isLoading = appState === 'loading' || status === 'pending';
+  
   return (
     <SidebarGroup className="p-0">
       <SidebarGroupContent>

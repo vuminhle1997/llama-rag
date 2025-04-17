@@ -20,40 +20,40 @@ import {
 import Link from 'next/link';
 import { MoonIcon, SunIcon } from '@heroicons/react/24/solid';
 import { Switch } from '../ui/switch';
-import { useCallback, useEffect } from 'react';
-import { useTheme } from 'next-themes';
 
 /**
- * FooterNavigation component renders the footer section of the application.
- * It displays the user's profile picture, name, and email, along with a settings dropdown menu.
+ * FooterNavigation component renders a footer section with user information,
+ * theme toggle, and a logout option. It utilizes Redux for state management
+ * and provides a responsive UI with dropdown menus and switches.
  *
  * @component
- * @returns {JSX.Element} The rendered footer navigation component.
- *
- * @example
- * // Usage example:
- * <FooterNavigation />
+ * @returns {JSX.Element} The rendered FooterNavigation component.
  *
  * @remarks
- * This component uses the `useAppSelector` hook to retrieve the user and profile picture from the Redux store.
- * It also includes a logout link that redirects to the backend logout URL.
+ * - This component uses `useAppSelector` to access the Redux store for theme,
+ *   user, and profile picture data.
+ * - The `handleThemeChange` function dispatches a Redux action to update the
+ *   application theme.
+ * - The component includes a dropdown menu with options to toggle the theme
+ *   and log out.
  *
  * @dependencies
- * - Avatar
- * - AvatarImage
- * - AvatarFallback
- * - SidebarSeparator
- * - DropdownMenu
- * - DropdownMenuTrigger
- * - DropdownMenuContent
- * - DropdownMenuItem
- * - Button
- * - Link
- * - Settings2Icon
- * - LogOutIcon
+ * - `useAppSelector` and `useAppDispatch` for Redux state management.
+ * - `Avatar`, `DropdownMenu`, `Button`, and other UI components for layout and styling.
+ * - Environment variable `NEXT_PUBLIC_BACKEND_URL` for logout URL.
  *
- * @hooks
- * - useAppSelector
+ * @example
+ * ```tsx
+ * import FooterNavigation from './FooterNavigation';
+ *
+ * function App() {
+ *   return (
+ *     <div className="app-container">
+ *       <FooterNavigation />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 export default function FooterNavigation() {
   const theme = useAppSelector(selectAppTheme);
@@ -62,9 +62,15 @@ export default function FooterNavigation() {
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);
 
+  /**
+   * Handles the theme change for the application.
+   *
+   * @param value - The new theme to be applied. Can be either 'dark' or 'light'.
+   */
   const handleThemeChange = (value: 'dark' | 'light') => {
     dispatch(setAppTheme(value));
   };
+
   return (
     <div className="mt-auto">
       <SidebarSeparator className="mx-0" />

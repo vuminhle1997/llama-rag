@@ -52,7 +52,7 @@ export default function WelcomeScreen() {
               <Bars3Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+          <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
             <p>Seitenleiste öffnen</p>
           </TooltipContent>
         </Tooltip>

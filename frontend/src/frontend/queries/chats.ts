@@ -1,4 +1,5 @@
 'use client';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Chat, Page } from '../types';
@@ -29,40 +30,6 @@ export const usePostChat = () => {
           withCredentials: true,
           headers: {
             'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      return response.data;
-    },
-  });
-};
-
-/**
- * Custom hook to fetch chat data with pagination.
- *
- * @param size - The number of chat items to fetch per page.
- * @param page - The current page number to fetch.
- * @returns The result of the `useQuery` hook, which includes the chat data and query status.
- *
- * @example
- * const { data, error, isLoading } = useGetChats(10, 1);
- *
- * @remarks
- * This hook uses Axios to make a GET request to the backend API endpoint for chats.
- * The backend URL is retrieved from the environment variable `NEXT_PUBLIC_BACKEND_URL`.
- * The request includes credentials and pagination parameters.
- */
-export const useGetChats = (size: number, page: number) => {
-  return useQuery({
-    queryKey: ['chats', size, page],
-    queryFn: async () => {
-      const response = await axios.get<Page<Chat>>(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chats`,
-        {
-          withCredentials: true,
-          params: {
-            size,
-            page,
           },
         }
       );
@@ -341,6 +308,18 @@ export const useChatStream = (chatId: string) => {
   return [response, isStreaming, sendMessageStream] as const;
 };
 
+/**
+ * Fetches a list of chats filtered by the given title.
+ *
+ * This function sends a GET request to the backend API to retrieve chats
+ * that match the specified title. It includes credentials in the request
+ * and expects a JSON response.
+ *
+ * @param title - The title to filter chats by.
+ * @returns A promise that resolves to an array of chats if the request is successful,
+ *          or an empty array if the response status is not 200.
+ * @throws An error if the request fails.
+ */
 export const getChatsByTitle = async (title: string) => {
   try {
     const res = await axios.get<Chat[]>(

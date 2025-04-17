@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { setIsAuthorized, setUser, useAppDispatch } from '../store';
-import { AzureClaims, AzureProfileResponse } from '../types';
+import { AzureProfileResponse } from '../types';
 
 /**
  * Custom hook to handle user authentication.
@@ -56,23 +56,5 @@ export const useAuth = () => {
         throw new Error('Unauthorized');
       }
     },
-  });
-};
-
-export const getAuth = () => {
-  return new Promise<{ error?: string; data?: AzureClaims }>(resolve => {
-    axios
-      .get<AzureClaims>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/me`, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      .then(res => {
-        resolve({ data: res.data });
-      })
-      .catch(() => {
-        resolve({ error: 'Unauthorized' });
-      });
   });
 };

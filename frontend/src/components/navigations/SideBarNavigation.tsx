@@ -40,10 +40,27 @@ export default function SideBarNavigation() {
 
   const { toggleSidebar } = useSidebar();
 
+  /**
+   * Toggles the visibility of the command dialog by dispatching an action
+   * to update the `showCommands` state.
+   *
+   * @remarks
+   * This function uses the `useCallback` hook to memoize the callback,
+   * ensuring it only changes when `showCommands` or `dispatch` changes.
+   *
+   * @dependencies
+   * - `showCommands`: The current state of the command dialog visibility.
+   * - `dispatch`: The Redux dispatch function to trigger state updates.
+   */
   const handleShowCommandDialog = useCallback(() => {
     dispatch(setShowCommands(!showCommands));
   }, [showCommands, dispatch]);
 
+  /**
+   * Toggles the state of the sidebar.
+   * This function is memoized using `useCallback` to prevent unnecessary re-renders.
+   * It depends on the `toggleSidebar` function provided as a dependency.
+   */
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
@@ -64,7 +81,7 @@ export default function SideBarNavigation() {
                     <XMarkIcon className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Seitenleiste minimieren</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
@@ -87,7 +104,7 @@ export default function SideBarNavigation() {
                     <ChatEntryForm />
                   </Dialog>
                 </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Neuen Chat erstellen</p>
                   <div className="flex items-center justify-center text-center"></div>
                 </TooltipContent>
@@ -102,7 +119,7 @@ export default function SideBarNavigation() {
                     <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                   <p>Bisherigen Chat suchen.</p>
                   <div className="flex items-center justify-center text-center">
                     <p>

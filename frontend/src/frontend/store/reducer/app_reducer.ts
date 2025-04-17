@@ -2,21 +2,18 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
-import { Message, UserProfile } from '@/frontend/types';
+import { UserProfile } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
 
 // Define a type for the slice state
 interface AppState {
   isAuthorized: boolean;
   user: UserProfile | null;
-  chat: Chat | null;
   chats: Chat[] | null;
   favouriteChats: Chat[] | null;
   profilePicture: string | null;
   appState: 'idle' | 'loading' | 'failed';
   showCommands: boolean;
-  messages: Message[] | null;
-  submittedMessages: Message[];
   theme: 'system' | 'dark' | 'light';
 }
 
@@ -24,14 +21,11 @@ interface AppState {
 const initialState: AppState = {
   isAuthorized: true,
   user: null,
-  chat: null,
   chats: null,
   profilePicture: null,
   favouriteChats: null,
   appState: 'loading',
   showCommands: false,
-  messages: null,
-  submittedMessages: [],
   theme: 'system',
 };
 
@@ -49,7 +43,6 @@ const initialState: AppState = {
  *
  * @property {function} setIsAuthorized - Sets the authorization status of the user.
  * @property {function} setUser - Sets the user information.
- * @property {function} setChat - Sets the current chat.
  * @property {function} setChats - Sets the list of chats.
  * @property {function} setProfilePicture - Sets the profile picture URL.
  * @property {function} setFavouriteChats - Sets the list of favourite chats.
@@ -67,9 +60,6 @@ export const appSlice = createSlice({
     setUser: (state, action: PayloadAction<UserProfile>) => {
       state.user = action.payload;
     },
-    setChat: (state, action: PayloadAction<Chat>) => {
-      state.chat = action.payload;
-    },
     setChats: (state, action: PayloadAction<Chat[]>) => {
       state.chats = action.payload;
     },
@@ -85,12 +75,6 @@ export const appSlice = createSlice({
     setShowCommands: (state, action: PayloadAction<boolean>) => {
       state.showCommands = action.payload;
     },
-    setMessages: (state, action: PayloadAction<Message[]>) => {
-      state.messages = action.payload;
-    },
-    setSubmittedMessages: (state, action: PayloadAction<Message[]>) => {
-      state.submittedMessages = action.payload;
-    },
     setAppTheme: (state, action: PayloadAction<AppState['theme']>) => {
       state.theme = action.payload;
       localStorage.setItem('theme', action.payload);
@@ -101,21 +85,17 @@ export const appSlice = createSlice({
 export const {
   setIsAuthorized,
   setUser,
-  setChat,
   setChats,
   setProfilePicture,
   setFavouriteChats,
   setAppState,
   setShowCommands,
-  setMessages,
-  setSubmittedMessages,
   setAppTheme,
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
 export const selectAuthorized = (state: RootState) => state.app.isAuthorized;
 export const selectUser = (state: RootState) => state.app.user;
-export const selectChat = (state: RootState) => state.app.chat;
 export const selectChats = (state: RootState) => state.app.chats;
 export const selectProfilePicture = (state: RootState) =>
   state.app.profilePicture;
@@ -123,9 +103,6 @@ export const selectFavouriteChats = (state: RootState) =>
   state.app.favouriteChats;
 export const selectAppState = (state: RootState) => state.app.appState;
 export const selectShowCommands = (state: RootState) => state.app.showCommands;
-export const selectMessages = (state: RootState) => state.app.messages;
-export const selectSubmittedMessages = (state: RootState) =>
-  state.app.submittedMessages;
 export const selectAppTheme = (state: RootState) => state.app.theme;
 
 export default appSlice.reducer;
