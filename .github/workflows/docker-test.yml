@@ -43,7 +43,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_BASENAME: ${{ github.repository }}
-  OLLAMA_MODEL: llama3.1
+  OLLAMA_MODEL: llama3.2
 
 jobs:
   test-build:
@@ -71,13 +71,13 @@ jobs:
         run: echo "commit_id=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Set OLLAMA_MODEL environment variable
-        run: echo "OLLAMA_MODEL=llama3.1" >> $GITHUB_ENV
+        run: echo "OLLAMA_MODEL=llama3.2" >> $GITHUB_ENV
 
       - name: Setup Ollama
         uses: ai-action/setup-ollama@v1
 
       - name: Pull LLM
-        run: ollama pull llama3.1
+        run: ollama pull llama3.2
       
       - name: Pull Embedding Model
         run: ollama pull mxbai-embed-large
