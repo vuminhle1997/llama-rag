@@ -107,7 +107,7 @@ export default function FavouritesNavigation() {
                               .split('/')
                               .pop()}`}
                             alt={`Avatar of ${chat.title}`}
-                            className="h-10 w-10 rounded-full mr-2 border-2 border-primary"
+                            className="h-10 w-10 rounded-full mr-2 border-2 dark:border-0 border-primary"
                             width={40}
                             height={40}
                           />
@@ -133,7 +133,7 @@ export default function FavouritesNavigation() {
                                     <EllipsisHorizontalIcon className="h-4 w-4" />
                                   </DropdownMenuTrigger>
                                 </TooltipTrigger>
-                                <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
+                                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
                                   <p>Chat editieren</p>
                                 </TooltipContent>
                               </Tooltip>

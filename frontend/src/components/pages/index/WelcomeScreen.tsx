@@ -71,7 +71,7 @@ export default function WelcomeScreen() {
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="bg-primary dark:bg-accent hover:bg-primary/10"
+                className="bg-primary dark:bg-accent text-white hover:bg-primary/10"
               >
                 <PencilSquareIcon className="h-4 w-4 mr-2" />
                 Neuen Chat erstellen

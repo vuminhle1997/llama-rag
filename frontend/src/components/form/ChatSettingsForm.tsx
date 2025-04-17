@@ -107,9 +107,9 @@ export default function ChatSettingsForm({
             {mode === 'create'
               ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
               : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
-            <p className="text-gray-400 mt-4">
+            <span className="text-gray-400 mt-4">
               Markierte Felder mit * sind verpflichtend.
-            </p>
+            </span>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 my-4 px-4">

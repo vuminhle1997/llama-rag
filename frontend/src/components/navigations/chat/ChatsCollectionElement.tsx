@@ -76,7 +76,7 @@ export default function ChatsCollectionElement({
                 aiHelper.src
               }
               alt={`Avatar of ${chat.title}`}
-              className="h-10 w-10 rounded-full mr-2 border-2 border-primary"
+              className="h-10 w-10 rounded-full mr-2 border-2 dark:border-0 border-primary"
               width={40}
               height={40}
             />

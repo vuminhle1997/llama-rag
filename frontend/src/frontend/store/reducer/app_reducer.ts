@@ -1,3 +1,5 @@
+'use client';
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '../store';
 import { Message, UserProfile } from '@/frontend/types';
@@ -15,6 +17,7 @@ interface AppState {
   showCommands: boolean;
   messages: Message[] | null;
   submittedMessages: Message[];
+  theme: 'system' | 'dark' | 'light';
 }
 
 // Define the initial state using that type
@@ -29,20 +32,21 @@ const initialState: AppState = {
   showCommands: false,
   messages: null,
   submittedMessages: [],
+  theme: 'system',
 };
 
 /**
  * A slice for the app state management.
- * 
+ *
  * @remarks
  * This slice contains reducers to manage the state of the application, including authorization status, user information, chat data, profile picture, favourite chats, and the overall app state.
- * 
+ *
  * @public
- * 
+ *
  * @param {string} name - The name of the slice.
  * @param {object} initialState - The initial state of the slice.
  * @param {object} reducers - The reducers to handle state changes.
- * 
+ *
  * @property {function} setIsAuthorized - Sets the authorization status of the user.
  * @property {function} setUser - Sets the user information.
  * @property {function} setChat - Sets the current chat.
@@ -50,6 +54,7 @@ const initialState: AppState = {
  * @property {function} setProfilePicture - Sets the profile picture URL.
  * @property {function} setFavouriteChats - Sets the list of favourite chats.
  * @property {function} setAppState - Sets the overall app state.
+ * @property {function} setAppTheme - Sets the theming state.
  */
 export const appSlice = createSlice({
   name: 'app',
@@ -86,6 +91,10 @@ export const appSlice = createSlice({
     setSubmittedMessages: (state, action: PayloadAction<Message[]>) => {
       state.submittedMessages = action.payload;
     },
+    setAppTheme: (state, action: PayloadAction<AppState['theme']>) => {
+      state.theme = action.payload;
+      localStorage.setItem('theme', action.payload);
+    },
   },
 });
 
@@ -100,6 +109,7 @@ export const {
   setShowCommands,
   setMessages,
   setSubmittedMessages,
+  setAppTheme
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
@@ -109,11 +119,13 @@ export const selectChat = (state: RootState) => state.app.chat;
 export const selectChats = (state: RootState) => state.app.chats;
 export const selectProfilePicture = (state: RootState) =>
   state.app.profilePicture;
-export const selectFavouriteChats = (state: RootState) => state.app.favouriteChats;
+export const selectFavouriteChats = (state: RootState) =>
+  state.app.favouriteChats;
 export const selectAppState = (state: RootState) => state.app.appState;
 export const selectShowCommands = (state: RootState) => state.app.showCommands;
 export const selectMessages = (state: RootState) => state.app.messages;
 export const selectSubmittedMessages = (state: RootState) =>
   state.app.submittedMessages;
+export const selectAppTheme = (state: RootState) => state.app.theme;
 
 export default appSlice.reducer;

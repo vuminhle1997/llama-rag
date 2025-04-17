@@ -178,6 +178,7 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.185 0.075 264.564);
+  --tw-prose-links: white !important;
 }
 
 @theme inline {
@@ -238,5 +239,15 @@ body {
   .dark .prose :where(strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
     color: white;
     font-weight: 600;
+  }
+
+  .dark .prose :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    color: white;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .dark .data-\[state\=checked\]\:bg-primary[data-state="checked"] {
+    background-color: #555;
   }
 }

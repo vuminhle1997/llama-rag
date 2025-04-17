@@ -10,12 +10,18 @@ import {
 } from '../ui/dropdown-menu';
 import { SidebarSeparator } from '../ui/sidebar';
 import { Settings2Icon, LogOutIcon } from 'lucide-react';
-import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import {
   selectUser,
   selectProfilePicture,
+  setAppTheme,
+  selectAppTheme,
 } from '@/frontend/store/reducer/app_reducer';
 import Link from 'next/link';
+import { MoonIcon, SunIcon } from '@heroicons/react/24/solid';
+import { Switch } from '../ui/switch';
+import { useCallback, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 /**
  * FooterNavigation component renders the footer section of the application.
@@ -50,9 +56,18 @@ import Link from 'next/link';
  * - useAppSelector
  */
 export default function FooterNavigation() {
+  const theme = useAppSelector(selectAppTheme);
+  const dispatch = useAppDispatch();
+
+  
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);
-  
+
+  const handleThemeChange = (value: 'dark' | 'light') => {
+    dispatch(setAppTheme(value));
+  }
+;
+
   return (
     <div className="mt-auto">
       <SidebarSeparator className="mx-0" />
@@ -81,6 +96,24 @@ export default function FooterNavigation() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <div className="flex flex-row w-full justify-between">
+                <SunIcon className="mr-2 h-4 w-4" />
+                <Switch
+                  checked={theme === 'dark'}
+                  onCheckedChange={checked => {
+                      handleThemeChange(checked ? 'dark' : 'light');
+                    }
+                  }
+                  id="theme-switch"
+                  aria-label="Theme switch"
+                  aria-describedby="theme-switch-description"
+                  aria-labelledby="theme-switch-label"
+                  name="theme-switch"
+                />
+                <MoonIcon className="ml-2 h-4 w-4" />
+              </div>
+            </DropdownMenuItem>
             <DropdownMenuItem className="text-destructive">
               <Link href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/logout`}>
                 <div className="flex flex-row">

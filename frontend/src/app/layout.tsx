@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { use, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { selectAppTheme, useAppDispatch, useAppSelector } from '@/frontend';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,25 +32,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { setTheme, theme } = useTheme();
-  useEffect(() => {
-
-    setTheme('dark');
-  }, [])
-
-  useEffect(() => {
-    console.log(theme)
-  }, [theme]);
   return (
     <html lang="de-DE" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={cn(`${geistSans.variable} ${geistMono.variable} antialiased`)}
       >
         <AppProvider>
           <ThemeProvider
             attribute="class"
-             defaultTheme="dark"
-            themes={['light', 'dark']}
+            defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
