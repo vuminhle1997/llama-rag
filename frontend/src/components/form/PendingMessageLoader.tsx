@@ -5,10 +5,10 @@ import React from 'react';
 
 /**
  * A functional component that displays a pending message loader overlay.
- * 
+ *
  * @param {Object} props - The component props.
  * @param {string} props.message - The message to display while loading.
- * 
+ *
  * @returns {JSX.Element} The JSX element representing the pending message loader.
  */
 const PendingMessageLoader = ({ message }: { message: string }) => (

@@ -5,7 +5,9 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-Thin.eot');
-  src: url('../static/fonts/AmpleSoftPro-Thin.eot?#iefix') format('embedded-opentype'),
+  src:
+    url('../static/fonts/AmpleSoftPro-Thin.eot?#iefix')
+      format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-Thin.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-Thin.woff') format('woff'),
     url('../static/fonts/AmpleSoftPro-Thin.ttf') format('truetype');
@@ -16,7 +18,8 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-ExtraLight.eot');
-  src: url('../static/fonts/AmpleSoftPro-ExtraLight.eot?#iefix')
+  src:
+    url('../static/fonts/AmpleSoftPro-ExtraLight.eot?#iefix')
       format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-ExtraLight.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-ExtraLight.woff') format('woff'),
@@ -28,7 +31,9 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-Light.eot');
-  src: url('../static/fonts/AmpleSoftPro-Light.eot?#iefix') format('embedded-opentype'),
+  src:
+    url('../static/fonts/AmpleSoftPro-Light.eot?#iefix')
+      format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-Light.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-Light.woff') format('woff'),
     url('../static/fonts/AmpleSoftPro-Light.ttf') format('truetype');
@@ -39,7 +44,8 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-Regular.eot');
-  src: url('../static/fonts/AmpleSoftPro-Regular.eot?#iefix')
+  src:
+    url('../static/fonts/AmpleSoftPro-Regular.eot?#iefix')
       format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-Regular.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-Regular.woff') format('woff'),
@@ -51,7 +57,9 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-Medium.eot');
-  src: url('../static/fonts/AmpleSoftPro-Medium.eot?#iefix') format('embedded-opentype'),
+  src:
+    url('../static/fonts/AmpleSoftPro-Medium.eot?#iefix')
+      format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-Medium.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-Medium.woff') format('woff'),
     url('../static/fonts/AmpleSoftPro-Medium.ttf') format('truetype');
@@ -62,7 +70,9 @@
 @font-face {
   font-family: 'AmpleSoftPro';
   src: url('../static/fonts/AmpleSoftPro-Bold.eot');
-  src: url('../static/fonts/AmpleSoftPro-Bold.eot?#iefix') format('embedded-opentype'),
+  src:
+    url('../static/fonts/AmpleSoftPro-Bold.eot?#iefix')
+      format('embedded-opentype'),
     url('../static/fonts/AmpleSoftPro-Bold.woff2') format('woff2'),
     url('../static/fonts/AmpleSoftPro-Bold.woff') format('woff'),
     url('../static/fonts/AmpleSoftPro-Bold.ttf') format('truetype');
@@ -230,24 +240,30 @@ body {
 }
 
 @layer utilities {
-  .dark .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  .dark
+    .prose
+    :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     color: white;
     font-weight: 600;
-    font-size: .875em;
+    font-size: 0.875em;
   }
 
-  .dark .prose :where(strong):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  .dark
+    .prose
+    :where(strong):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     color: white;
     font-weight: 600;
   }
 
-  .dark .prose :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  .dark
+    .prose
+    :where(a):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
     color: white;
     text-decoration: underline;
     font-weight: 500;
   }
 
-  .dark .data-\[state\=checked\]\:bg-primary[data-state="checked"] {
+  .dark .data-\[state\=checked\]\:bg-primary[data-state='checked'] {
     background-color: #555;
   }
 }

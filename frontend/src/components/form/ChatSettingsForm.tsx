@@ -98,7 +98,10 @@ export default function ChatSettingsForm({
   const isPending = mode === 'create' ? isCreating : isUpdating;
   return (
     <>
-      <form className='overflow-y-auto relative flex-1' onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="overflow-y-auto relative flex-1"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
@@ -121,10 +124,11 @@ export default function ChatSettingsForm({
               <div className="flex flex-col items-center gap-4">
                 <div
                   onClick={handleAvatarClick}
-                  className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${!avatarPreview
+                  className={`w-32 h-32 rounded-full overflow-hidden cursor-pointer relative group ${
+                    !avatarPreview
                       ? 'border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50'
                       : ''
-                    }`}
+                  }`}
                 >
                   {avatarPreview ? (
                     <>
@@ -240,7 +244,10 @@ export default function ChatSettingsForm({
                 <br />- Ausgabeformat und zusätzliche Regeln
                 <p className=" mt-2">
                   Wenn Sie sich unsicher sind, besuchen Sie bitte{' '}
-                  <a href="/faq" className="text-blue-500 dark:text-white underline">
+                  <a
+                    href="/faq"
+                    className="text-blue-500 dark:text-white underline"
+                  >
                     unsere FAQ-Seite
                   </a>
                   , um mehr darüber zu erfahren, wie Sie gute
@@ -319,12 +326,22 @@ export default function ChatSettingsForm({
             </div>
           </div>
         </div>
-        <DialogFooter className='sticky bg-background border-t py-4 bottom-0'>
+        <DialogFooter className="sticky bg-background border-t py-4 bottom-0">
           <div className="grid grid-cols-2 gap-4">
-            <Button type="reset" variant="outline" className="bg-gray-400 dark:bg-accent text-white" disabled={isPending}>
+            <Button
+              type="reset"
+              variant="outline"
+              className="bg-gray-400 dark:bg-accent text-white"
+              disabled={isPending}
+            >
               Zurücksetzen
             </Button>
-            <Button type="submit" variant="outline" className="bg-primary dark:bg-transparent text-white" disabled={isPending}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="bg-primary dark:bg-transparent text-white"
+              disabled={isPending}
+            >
               {isPending
                 ? mode === 'create'
                   ? 'Erstellen...'

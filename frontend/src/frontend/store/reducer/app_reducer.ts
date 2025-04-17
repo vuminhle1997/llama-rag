@@ -109,7 +109,7 @@ export const {
   setShowCommands,
   setMessages,
   setSubmittedMessages,
-  setAppTheme
+  setAppTheme,
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type

@@ -277,10 +277,14 @@ export default function ChatEntryForm({
             </DialogHeader>
             <div className="items-stretch flex-1 overflow-y-auto">
               <div className="space-y-2 py-4">
-                <Accordion type="single" collapsible defaultValue={mode === 'create' ? 'templates' : ''}>
+                <Accordion
+                  type="single"
+                  collapsible
+                  defaultValue={mode === 'create' ? 'templates' : ''}
+                >
                   {/* Default Templates */}
                   <AccordionItem value="templates">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <ArchiveBoxIcon className="h-5 w-5" />
                         <span>Standardvorlagen</span>
@@ -293,7 +297,7 @@ export default function ChatEntryForm({
 
                   {/* User's Favourite Chats */}
                   <AccordionItem value="favourites">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <HeartIcon className="text-sm h-5 w-5" />
                         <span>Ihre favorisierten Chats </span>
@@ -311,7 +315,7 @@ export default function ChatEntryForm({
 
                   {/* User's Existing Chats */}
                   <AccordionItem value="users">
-                    <AccordionTrigger className='text-sm font-medium text-muted-foreground px-2'>
+                    <AccordionTrigger className="text-sm font-medium text-muted-foreground px-2">
                       <div className="flex flex-row gap-2">
                         <ChatBubbleOvalLeftIcon className="h-5 w-5" />
                         <span>Ihre Chats</span>

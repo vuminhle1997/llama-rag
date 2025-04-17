@@ -317,8 +317,8 @@ export const useChatStream = (chatId: string) => {
                   return; // Stream completed
                 } else if (data.value) {
                   setResponse(prev => {
-                    console.log(prev)
-                    return prev + data.value
+                    console.log(prev);
+                    return prev + data.value;
                   });
                 }
               } catch (error) {

@@ -19,10 +19,12 @@ export default function Home() {
     window.document.title = 'global CT InsightChat - Startseite';
   }, []);
 
-  return <AuthProvider
-    fallback={<DashboardLoadingSkeleton />}
-    errorFallback={<SignInPage />}
-  >
-    <WelcomeScreen />
-  </AuthProvider>
+  return (
+    <AuthProvider
+      fallback={<DashboardLoadingSkeleton />}
+      errorFallback={<SignInPage />}
+    >
+      <WelcomeScreen />
+    </AuthProvider>
+  );
 }

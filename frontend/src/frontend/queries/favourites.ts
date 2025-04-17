@@ -90,7 +90,7 @@ export const useGetFavourite = (id: string) => {
  *
  * @example
  * const { mutate, isLoading, error } = usePostFavourite();
- * 
+ *
  * const handleAddFavourite = (id: string) => {
  *   mutate(id);
  * };

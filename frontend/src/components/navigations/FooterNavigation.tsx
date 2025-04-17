@@ -59,15 +59,12 @@ export default function FooterNavigation() {
   const theme = useAppSelector(selectAppTheme);
   const dispatch = useAppDispatch();
 
-  
   const user = useAppSelector(selectUser);
   const profilePicture = useAppSelector(selectProfilePicture);
 
   const handleThemeChange = (value: 'dark' | 'light') => {
     dispatch(setAppTheme(value));
-  }
-;
-
+  };
   return (
     <div className="mt-auto">
       <SidebarSeparator className="mx-0" />
@@ -85,7 +82,8 @@ export default function FooterNavigation() {
               {user?.mail || 'john.doe@example.com'}
             </span>
             <span className="text-xs text-muted-foreground">
-              {`${user?.officeLocation} - ${user?.jobTitle}` || 'john.doe@example.com'}
+              {`${user?.officeLocation} - ${user?.jobTitle}` ||
+                'john.doe@example.com'}
             </span>
           </div>
         </div>
@@ -102,9 +100,8 @@ export default function FooterNavigation() {
                 <Switch
                   checked={theme === 'dark'}
                   onCheckedChange={checked => {
-                      handleThemeChange(checked ? 'dark' : 'light');
-                    }
-                  }
+                    handleThemeChange(checked ? 'dark' : 'light');
+                  }}
                   id="theme-switch"
                   aria-label="Theme switch"
                   aria-describedby="theme-switch-description"

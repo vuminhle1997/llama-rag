@@ -38,10 +38,7 @@ import {
 } from '../ui/tooltip';
 import ChatEntryForm from '../form/ChatEntryForm';
 import { useDeleteChat } from '@/frontend/queries/chats';
-import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import DeleteChatDialog from './chat/DeleteChatDialog';
 import Image from 'next/image';
 
@@ -92,7 +89,9 @@ export default function FavouritesNavigation() {
                     return (
                       <SidebarMenuItem
                         className={`flex flex-row items-start justify-center px-4 py-2 min-h-[50px] ${
-                          chat.id === slug ? 'bg-primary/10 dark:bg-accent/50' : ''
+                          chat.id === slug
+                            ? 'bg-primary/10 dark:bg-accent/50'
+                            : ''
                         }`}
                         key={`favourite-${index}`}
                       >

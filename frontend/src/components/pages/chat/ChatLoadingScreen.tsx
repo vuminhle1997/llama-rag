@@ -11,7 +11,6 @@ import React from 'react';
 export default function ChatLoadingScreen() {
   return (
     <div className="flex h-screen w-screen">
-     
       <div className="flex-1 flex flex-col">
         <div className="flex-1 p-6">
           <div className="max-w-3xl mx-auto space-y-4">

@@ -14,9 +14,7 @@ import {
   useAppSelector,
 } from '@/frontend';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import {
-  useGetProfilePicture,
-} from '@/frontend/queries/avatar';
+import { useGetProfilePicture } from '@/frontend/queries/avatar';
 import { useGetFavourites } from '@/frontend/queries/favourites';
 import { useAuth } from '@/frontend/queries';
 import SideBarNavigation from '../navigations/SideBarNavigation';
@@ -30,7 +28,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
-import { Chat} from '@/frontend/types';
+import { Chat } from '@/frontend/types';
 import { v4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 

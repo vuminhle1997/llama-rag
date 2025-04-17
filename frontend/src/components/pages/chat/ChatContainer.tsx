@@ -131,21 +131,21 @@ export default function ChatContainer({
           text: pendingMessage,
           created_at: new Date().toISOString(),
           block_type: 'text',
-        }
+        };
         const assistantMessage: Message = {
           id: v4(),
           role: 'assistant',
           text: response,
           created_at: new Date().toISOString(),
           block_type: 'text',
-        }
+        };
         setSubmittedMessages(prev => [assistantMessage, userMessage, ...prev]);
         setTimeout(() => {
           scrollToBottom();
-        }, 750)
+        }, 750);
       }
     }
-  }, [isStreaming, response])
+  }, [isStreaming, response]);
 
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
@@ -210,7 +210,9 @@ export default function ChatContainer({
                   }
                 }}
               >
-                <p className="text-gray-700 dark:text-white">👋 "Hallo, wie heißt du?"</p>
+                <p className="text-gray-700 dark:text-white">
+                  👋 "Hallo, wie heißt du?"
+                </p>
               </div>
               <div
                 className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
@@ -251,8 +253,9 @@ export default function ChatContainer({
             <Image
               src={
                 chat.avatar_path
-                  ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
@@ -279,47 +282,38 @@ export default function ChatContainer({
           </div>
         )}
         {/* Assistant Response */}
-        {
-          isStreaming && response.length > 0 && (
-            <div className="flex items-start space-x-4">
-              <Image
-                src={
-                  chat.avatar_path
-                    ? `${process.env.NEXT_PUBLIC_BACKEND_URL
+        {isStreaming && response.length > 0 && (
+          <div className="flex items-start space-x-4">
+            <Image
+              src={
+                chat.avatar_path
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
                     }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
-                    : '/ai.jpeg'
-                }
-                alt="The AI assistant's avatar typing indicator"
-                className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
-                width={40}
-                height={40}
-              />
-              <div
-                className={`flex-1 rounded-lg shadow-sm p-4 bg-background dark:prose-invert dark:[&_strong]:text-white py-0`}
-              >
-                {
-                  <div
-                    key={v4()}
-                    className={'text-gray-800 dark:text-white'
-                    }
-                  >
-                    {
-                      response && (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: marked(
-                              response.replaceAll('\n', '<br />')
-                            ),
-                          }}
-                        ></div>
-                      )
-                    }
-                  </div>
-                }
-              </div>
+                  : '/ai.jpeg'
+              }
+              alt="The AI assistant's avatar typing indicator"
+              className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
+              width={40}
+              height={40}
+            />
+            <div
+              className={`flex-1 rounded-lg shadow-sm p-4 bg-background dark:prose-invert dark:[&_strong]:text-white py-0`}
+            >
+              {
+                <div key={v4()} className={'text-gray-800 dark:text-white'}>
+                  {response && (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(response.replaceAll('\n', '<br />')),
+                      }}
+                    ></div>
+                  )}
+                </div>
+              }
             </div>
-          )
-        }
+          </div>
+        )}
         {/* Pending Message */}
         {isStreaming && pendingMessage && (
           <div className="flex items-start space-x-4 justify-end">
@@ -344,8 +338,9 @@ export default function ChatContainer({
           return (
             <div
               key={index}
-              className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
-                }`}
+              className={`flex items-start gap-4 w-full mb-4 ${
+                message.role === 'user' ? 'justify-end' : ''
+              }`}
             >
               {message.role !== 'user' && (
                 <>
@@ -353,10 +348,11 @@ export default function ChatContainer({
                     <Image
                       src={
                         chat.avatar_path
-                          ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                          }/uploads/avatars/${chat.avatar_path
-                            .split('/')
-                            .pop()}`
+                          ? `${
+                              process.env.NEXT_PUBLIC_BACKEND_URL
+                            }/uploads/avatars/${chat.avatar_path
+                              .split('/')
+                              .pop()}`
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
@@ -372,25 +368,26 @@ export default function ChatContainer({
                 </>
               )}
               <div
-                className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user' ? 'bg-background' : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
-                  }`}
+                className={`flex-1 rounded-lg shadow-sm p-4 ${
+                  message.role === 'user'
+                    ? 'bg-background'
+                    : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
+                }`}
               >
                 {
                   <div
                     key={v4()}
                     className={
-                      message.role === 'user' ? '' : 'text-gray-800 dark:text-white'
+                      message.role === 'user'
+                        ? ''
+                        : 'text-gray-800 dark:text-white'
                     }
                   >
-
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: marked(
-                          message.text.replaceAll('\n', '<br />')
-                        ),
+                        __html: marked(message.text.replaceAll('\n', '<br />')),
                       }}
                     ></div>
-
                   </div>
                 }
               </div>
@@ -413,8 +410,9 @@ export default function ChatContainer({
                 return (
                   <div
                     key={index}
-                    className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
-                      }`}
+                    className={`flex items-start gap-4 w-full mb-4 ${
+                      message.role === 'user' ? 'justify-end' : ''
+                    }`}
                     ref={isLastPage ? ref : null}
                   >
                     {message.role !== 'user' && (
@@ -423,10 +421,11 @@ export default function ChatContainer({
                           <Image
                             src={
                               chat.avatar_path
-                                ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                                }/uploads/avatars/${chat.avatar_path
-                                  .split('/')
-                                  .pop()}`
+                                ? `${
+                                    process.env.NEXT_PUBLIC_BACKEND_URL
+                                  }/uploads/avatars/${chat.avatar_path
+                                    .split('/')
+                                    .pop()}`
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
@@ -442,10 +441,11 @@ export default function ChatContainer({
                       </>
                     )}
                     <div
-                      className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user'
-                        ? 'bg-background'
-                        : 'bg-background prose py-0'
-                        }`}
+                      className={`flex-1 rounded-lg shadow-sm p-4 ${
+                        message.role === 'user'
+                          ? 'bg-background'
+                          : 'bg-background prose py-0'
+                      }`}
                     >
                       {
                         <div
