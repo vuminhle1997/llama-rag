@@ -7,7 +7,7 @@ import { selectAppState, selectAuthorized, useAppSelector } from '@/frontend';
 export default function AuthProvider({
   children,
   errorFallback,
-  fallback
+  fallback,
 }: {
   children: React.ReactNode;
   fallback?: React.ReactNode;

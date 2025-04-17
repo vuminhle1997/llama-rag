@@ -60,7 +60,7 @@ export const useAuth = () => {
 };
 
 export const getAuth = () => {
-  return new Promise<{ error?: string; data?: AzureClaims }>((resolve) => {
+  return new Promise<{ error?: string; data?: AzureClaims }>(resolve => {
     axios
       .get<AzureClaims>(`${process.env.NEXT_PUBLIC_BACKEND_URL}/me`, {
         withCredentials: true,
@@ -68,7 +68,7 @@ export const getAuth = () => {
           'Content-Type': 'application/json',
         },
       })
-      .then((res) => {
+      .then(res => {
         resolve({ data: res.data });
       })
       .catch(() => {

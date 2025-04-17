@@ -432,7 +432,7 @@ export default function SlugChatPage({
       errorFallback={<ChatNotFoundScreen />}
     >
       {appState === 'idle' && (
-        <main className="flex flex-col h-screen w-screen bg-gray-50">
+        <main className="flex flex-col h-screen w-screen bg-gray-50 dark:bg-accent">
           {alert && <ChatAlertDialog {...alert} />}
 
           {(isUploading || deleteFileMutation.isPending) && (

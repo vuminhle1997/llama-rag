@@ -98,7 +98,10 @@ export default function ChatSettingsForm({
   const isPending = mode === 'create' ? isCreating : isUpdating;
   return (
     <>
-      <form className='overflow-y-auto relative flex-1' onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className="overflow-y-auto relative flex-1"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Chat erstellen' : 'Chat bearbeiten'}
@@ -107,9 +110,9 @@ export default function ChatSettingsForm({
             {mode === 'create'
               ? 'Erstelle einen neuen Chat mit kontextbezogenen Inhalten. Füllen Sie alle erforderlichen Felder aus, um fortzufahren. Der Titel sollte prägnant sein, die Beschreibung kann zusätzliche Details enthalten, und der Kontext sollte die Rolle und den Kommunikationsstil des Chats definieren.'
               : 'Bearbeite die Einstellungen des bestehenden Chats. Stellen Sie sicher, dass alle Felder korrekt ausgefüllt sind, um die Änderungen zu speichern. Der Titel, die Beschreibung und der Kontext sind entscheidend für die Definition der Chat-Parameter.'}
-            <p className="text-gray-400 mt-4">
+            <span className="text-gray-400 mt-4">
               Markierte Felder mit * sind verpflichtend.
-            </p>
+            </span>
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 my-4 px-4">
@@ -239,9 +242,12 @@ export default function ChatSettingsForm({
                 <br />- Spezifische Fähigkeiten und Expertise
                 <br />- Umgang mit verfügbaren Tools
                 <br />- Ausgabeformat und zusätzliche Regeln
-                <p className="text-black mt-2">
+                <p className=" mt-2">
                   Wenn Sie sich unsicher sind, besuchen Sie bitte{' '}
-                  <a href="/faq" className="text-blue-500 underline">
+                  <a
+                    href="/faq"
+                    className="text-blue-500 dark:text-white underline"
+                  >
                     unsere FAQ-Seite
                   </a>
                   , um mehr darüber zu erfahren, wie Sie gute
@@ -294,7 +300,6 @@ export default function ChatSettingsForm({
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
-                className={errors.temperature ? 'border-red-500' : ''}
                 defaultValue={chat?.temperature ? [chat.temperature] : [0.75]}
                 // @ts-ignore
                 min={0}
@@ -321,19 +326,29 @@ export default function ChatSettingsForm({
             </div>
           </div>
         </div>
-        <DialogFooter className='sticky bg-white border-t py-4 bottom-0'>
+        <DialogFooter className="sticky bg-background border-t py-4 bottom-0">
           <div className="grid grid-cols-2 gap-4">
-            <Button type="reset" className="bg-gray-400" disabled={isPending}>
+            <Button
+              type="reset"
+              variant="outline"
+              className="bg-gray-400 dark:bg-accent text-white"
+              disabled={isPending}
+            >
               Zurücksetzen
             </Button>
-            <Button type="submit" className="bg-primary" disabled={isPending}>
+            <Button
+              type="submit"
+              variant="outline"
+              className="bg-primary dark:bg-transparent text-white"
+              disabled={isPending}
+            >
               {isPending
                 ? mode === 'create'
                   ? 'Erstellen...'
                   : 'Speichern...'
                 : mode === 'create'
-                ? 'Erstellen'
-                : 'Speichern'}
+                  ? 'Erstellen'
+                  : 'Speichern'}
             </Button>
           </div>
         </DialogFooter>

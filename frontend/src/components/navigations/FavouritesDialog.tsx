@@ -23,7 +23,7 @@ import { selectFavouriteChats, useAppSelector } from '@/frontend';
 
 /**
  * FavouritesDialog component renders a button that triggers a dialog displaying a list of favourite chats.
- * 
+ *
  * The component uses the following hooks and components:
  * - `useAppSelector` to select favourite chats from the Redux store.
  * - `TooltipProvider`, `Tooltip`, `TooltipTrigger`, and `TooltipContent` from a tooltip library to provide a tooltip for the button.
@@ -31,10 +31,10 @@ import { selectFavouriteChats, useAppSelector } from '@/frontend';
  * - `Button` component to create a button with specific styles.
  * - `HeartIcon` component to display a heart icon.
  * - `Link` component to create navigable links to individual chat pages.
- * 
+ *
  * The dialog displays a list of favourite chats with their title and last interaction date.
  * If there are no favourite chats, a message indicating no favourite chats are available is displayed.
- * 
+ *
  * @returns {JSX.Element} The rendered FavouritesDialog component.
  */
 const FavouritesDialog = () => {
@@ -91,7 +91,7 @@ const FavouritesDialog = () => {
               </DialogContent>
             </Dialog>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="dark:bg-accent bg-primary border-2 border border-white shadow-sm">
             <p>Favorisierte Chats</p>
           </TooltipContent>
         </Tooltip>

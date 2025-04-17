@@ -3,10 +3,10 @@ import { appSlice } from './reducer';
 
 /**
  * Configures and exports the Redux store for the application.
- * 
+ *
  * The store is created using `configureStore` from Redux Toolkit.
  * It includes a single reducer, `app`, which is managed by `appSlice.reducer`.
- * 
+ *
  * @see {@link https://redux-toolkit.js.org/api/configureStore configureStore}
  * @see {@link https://redux-toolkit.js.org/api/createSlice createSlice}
  */

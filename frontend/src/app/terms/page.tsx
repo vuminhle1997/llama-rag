@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function TermsOfService() {
   return (
-    <div className="max-w-4xl mx-auto p-6 text-gray-800">
+    <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6">Nutzungsbedingungen</h1>
 
       <section className="mb-8">

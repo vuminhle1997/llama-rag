@@ -74,7 +74,7 @@ Du bist Denis Kunz, ein Computer-Ingenieur mit Schwerpunkt auf Softwareentwicklu
 
 ## Aktuelles Gespräch
 [Gesprächsverlauf hier einfügen]
-`
+`;
 
 const constructionWorkerText = `
 Ihre Rolle ist es, bei Bau- und Ingenieurprojekten zu unterstützen.
@@ -103,7 +103,7 @@ Ihre Rolle ist es, bei Bau- und Ingenieurprojekten zu unterstützen.
 - Berücksichtigung ökologischer Auswirkungen und Nachhaltigkeit
 - Fokus auf praktische und umsetzbare Lösungen
 - Pflege klarer Dokumentation und Aufzeichnungen
-`
+`;
 
 const consultantText = `
 Ihre Rolle ist es, Expertenberatung in verschiedenen Geschäftsbereichen anzubieten.
@@ -132,7 +132,7 @@ Ihre Rolle ist es, Expertenberatung in verschiedenen Geschäftsbereichen anzubie
 - Berücksichtigung kurzfristiger und langfristiger Auswirkungen
 - Bereitstellung umsetzbarer Empfehlungen
 - Wahrung professioneller Objektivität
-`
+`;
 
 const hrText = `
 **Anna Pham - HR-Verantwortliche**
@@ -204,7 +204,7 @@ Falls der Nutzer explizit die Nutzung eines Tools verlangt (z. B. "Nutze das HR-
 Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten berücksichtigen solltest:
 
 [Gesprächsverlauf hier einfügen]
-`
+`;
 
 /**
  * Represents a collection of predefined templates for various roles and use cases.
@@ -213,7 +213,7 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
  *
  * @constant
  * @type {Array<Object>}
- * 
+ *
  * @property {string} title - The title or name of the template.
  * @property {string} description - A brief description of the role or purpose of the template.
  * @property {string} avatar_path - The file path or reference to the avatar image associated with the template.
@@ -270,12 +270,12 @@ export const templates = [
 
 /**
  * Represents a collection of default models available in the application.
- * Each model contains metadata such as its unique identifier, name, description, 
+ * Each model contains metadata such as its unique identifier, name, description,
  * and whether it is the default selection.
- * 
+ *
  * @constant
  * @type {Array<{id: string, name: string, description: string, isDefault: boolean}>}
- * 
+ *
  * @property {string} id - The unique identifier for the model.
  * @property {string} name - The display name of the model.
  * @property {string} description - A detailed description of the model, including its purpose and strengths.
@@ -335,27 +335,27 @@ export const defaultModels = [
 
 /**
  * A template string that provides detailed instructions and guidelines for a conversational assistant.
- * 
+ *
  * The template includes the following sections:
- * 
+ *
  * - **Role Description**: Outlines the assistant's responsibilities, such as answering general questions,
  *   creating summaries, and performing HR-related analyses.
- * 
+ *
  * - **Conversation Style**: Specifies how the assistant should conduct conversations, including when to use tools
  *   and how to respond to user requests.
- * 
+ *
  * - **Tools**: Describes the tools available to the assistant, their usage, and how to decide when to use them.
  *   Includes placeholders for tool descriptions (`{tool_desc}`) and tool names (`{tool_names}`).
- * 
+ *
  * - **Output Format**: Defines a structured format for interacting with tools, including the use of thoughts,
  *   actions, and observations. Provides examples of valid JSON input and expected response formats.
- * 
+ *
  * - **Additional Rules**: Lists specific rules for answering questions, following tool signatures, and structuring
  *   responses, especially for complex queries.
- * 
+ *
  * - **Current Conversation**: Includes a placeholder for the conversation history (`[Gesprächsverlauf hier einfügen]`)
  *   to provide context for the assistant's responses.
- * 
+ *
  * This template is designed to guide the assistant in providing accurate, structured, and context-aware responses
  * while adhering to user instructions and leveraging available tools effectively.
  */
