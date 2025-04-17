@@ -1,44 +1,10 @@
 name: Test Build Docker Images on Dev
 
 on:
-  # Allows you to run this workflow manually from the Actions tab (optional)
   workflow_dispatch:
   push:
     branches:
-      - dev # Only run on pushes to the 'dev' branch
-    # paths:
-    #   # --- Backend Files ---
-    #   # Python source files
-    #   - 'backend/**/*.py'
-    #   # Common config/dependency files
-    #   - 'backend/requirements*.txt'
-    #   - 'backend/pyproject.toml'
-    #   - 'backend/**.ini'
-    #   - 'backend/**.toml'
-    #   # Dockerfile for backend
-    #   - 'backend/Dockerfile'
-
-    #   # --- Frontend Files ---
-    #   - 'frontend/**/*.ts'
-    #   - 'frontend/**/*.tsx'
-    #   - 'frontend/**/*.js'
-    #   - 'frontend/**/*.jsx'
-    #   - 'frontend/**/*.css'
-    #   - 'frontend/**/*.scss'
-    #   - 'frontend/**/*.sass'
-    #   - 'frontend/**/*.less'
-    #   - 'frontend/package.json'
-    #   - 'frontend/yarn.lock'
-    #   - 'frontend/package-lock.json'
-    #   - 'frontend/pnpm-lock.yaml'
-    #   - 'frontend/**.json' # Covers tsconfig.json, etc.
-    #   - 'frontend/**.yaml'
-    #   - 'frontend/**.yml'
-    #   - 'frontend/**.html'
-    #   - 'frontend/tailwind.config.*' # .js, .ts, .cjs
-    #   - 'frontend/postcss.config.*'  # .js, .ts, .cjs
-    #   - 'frontend/next.config.*'     # .js, .mjs
-    #   - 'frontend/Dockerfile'
+      - dev
 
 env:
   REGISTRY: ghcr.io
@@ -46,25 +12,11 @@ env:
   OLLAMA_MODEL: llama3.2
 
 jobs:
-  test-build:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} 
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 
+        uses: actions/checkout@v4
 
       - name: Extract Git Commit ID
         id: vars
@@ -98,13 +50,36 @@ jobs:
           deepeval test run ./tests/test_llm_app.py 
           rm -rf venv
           cd ..
+    
+    outputs:
+      commit_id: ${{ env.commit_id }}
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and tag fastapi Docker image
         run: |
-          docker build -t fastapi:${{ env.commit_id }} ./backend
-          echo "FastAPI build successful for commit ${{ env.commit_id }}"
+          docker build -t fastapi:${{ needs.test.outputs.commit_id }} ./backend
+          echo "FastAPI build successful for commit ${{ needs.test.outputs.commit_id }}"
 
       - name: Build and tag nextjs Docker image
         run: |
-          docker build -t nextjs:${{ env.commit_id }} ./frontend
-          echo "Next.js build successful for commit ${{ env.commit_id }}"
+          docker build -t nextjs:${{ needs.test.outputs.commit_id }} ./frontend
+          echo "Next.js build successful for commit ${{ needs.test.outputs.commit_id }}"
