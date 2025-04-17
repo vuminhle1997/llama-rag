@@ -72,11 +72,6 @@ jobs:
 
       - name: Set OLLAMA_MODEL environment variable
         run: echo "OLLAMA_MODEL=llama3.1" >> $GITHUB_ENV
-      
-      - uses: actions/cache@v4
-        with:
-          path: ~/.ollama
-          key: ${{ runner.os }}-ollama
 
       - name: Setup Ollama
         uses: ai-action/setup-ollama@v1
@@ -101,6 +96,7 @@ jobs:
           source venv/bin/activate
           pip install -r requirements.dev.txt
           deepeval test run ./tests/test_llm_app.py 
+          rm -rf venv
           cd ..
 
       - name: Build and tag fastapi Docker image
