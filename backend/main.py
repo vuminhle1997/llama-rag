@@ -25,6 +25,8 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.groq import Groq
 from llama_index.llms.google_genai import GoogleGenAI
 
+from utils import decode_jwt
+
 try:
     load_dotenv()
     phoenix_key = os.getenv('PHOENIX_API_KEY')
@@ -207,6 +209,17 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
 
+    claims = decode_jwt(token)
+    if claims['isDev'] in claims and claims['isDev'] == True:
+        user = {
+            **claims,
+        }
+        response = {
+            "user": user,
+            "groups": ALLOWED_GROUPS_IDS,
+        }
+        return response
+
     headers = {
         'Authorization': f"Bearer {token}",
     }
@@ -223,6 +236,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         "user": user_info,
         "groups": group_info,
     }
+
 
 @app.get("/profile-picture")
 async def get_profile_picture(request: Request,
