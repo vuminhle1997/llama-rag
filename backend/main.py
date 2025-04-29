@@ -58,7 +58,7 @@ AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("REACT_URL", "http://localhost:3000")
 
 origins = [
     "http://localhost",
@@ -141,7 +141,7 @@ def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Reque
     if not session_id:
         raise HTTPException(status_code=401, detail="Not logged in")
     redis_client.delete(f"session:{session_id}")
-    return RedirectResponse(url=REDIRECT_URI)
+    return RedirectResponse(url=FRONTEND_URL)
 
 @app.get("/redirect")
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
@@ -210,7 +210,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
     token = redis_client.get(f"session:{session_id}")
 
     claims = decode_jwt(token)
-    if claims['isDev'] in claims and claims['isDev'] == True:
+    if 'isDev' in claims and claims['isDev'] == True:
         user = {
             **claims,
         }
