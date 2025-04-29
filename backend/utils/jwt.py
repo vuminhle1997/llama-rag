@@ -1,6 +1,11 @@
 import jwt
+import datetime
+import os
 from fastapi import HTTPException
 from dependencies import logger
+
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ALGORITHM = "HS256"
 
 def decode_jwt(token: str):
     """Decodes and verifies the JWT token.
@@ -26,3 +31,25 @@ def decode_jwt(token: str):
     except jwt.InvalidTokenError:
         logger.error(f"Invalid token {token}")
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def create_jwt(oid: str, name: str, last_name: str, email: str) -> str:
+    expiration = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+
+    payload = {
+        "id": oid,
+        "oid": oid,
+        "name": name,
+        "surname": last_name,
+        "displayName": f"{name} {last_name}",
+        "givenName": f"{name} {last_name}",
+        "officeLocation": "Berlin",
+        "jobTitle": "Tester",
+        "email": email,
+        "userPrincipalName": email,
+        "isDev": True,
+        "exp": expiration
+    }
+
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return token

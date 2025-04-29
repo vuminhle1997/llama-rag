@@ -8,6 +8,7 @@ export type UserProfile = {
   surname: string;
   jobTitle: string;
   mail: string;
+  email?: string;
   mobilePhone: string;
   officeLocation: string;
   preferredLanguage: string;

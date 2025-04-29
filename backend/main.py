@@ -25,6 +25,8 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.groq import Groq
 from llama_index.llms.google_genai import GoogleGenAI
 
+from utils import decode_jwt
+
 try:
     load_dotenv()
     phoenix_key = os.getenv('PHOENIX_API_KEY')
@@ -56,7 +58,7 @@ AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("REACT_URL", "http://localhost:3000")
 
 origins = [
     "http://localhost",
@@ -139,7 +141,7 @@ def azure_logout(redis_client: Redis = Depends(get_redis_client), request: Reque
     if not session_id:
         raise HTTPException(status_code=401, detail="Not logged in")
     redis_client.delete(f"session:{session_id}")
-    return RedirectResponse(url=REDIRECT_URI)
+    return RedirectResponse(url=FRONTEND_URL)
 
 @app.get("/redirect")
 def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_client)):
@@ -207,6 +209,17 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         return JSONResponse({"error": "Failed to retrieve access token"}, status_code=400)
     token = redis_client.get(f"session:{session_id}")
 
+    claims = decode_jwt(token)
+    if 'isDev' in claims and claims['isDev'] == True:
+        user = {
+            **claims,
+        }
+        response = {
+            "user": user,
+            "groups": ALLOWED_GROUPS_IDS,
+        }
+        return response
+
     headers = {
         'Authorization': f"Bearer {token}",
     }
@@ -223,6 +236,7 @@ async def get_user_claims(request: Request, redis_client: Redis = Depends(get_re
         "user": user_info,
         "groups": group_info,
     }
+
 
 @app.get("/profile-picture")
 async def get_profile_picture(request: Request,
