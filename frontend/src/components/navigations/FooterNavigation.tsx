@@ -78,14 +78,14 @@ export default function FooterNavigation() {
         <div className="flex items-center gap-2">
           <Avatar>
             <AvatarImage src={profilePicture ? profilePicture : ''} />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarFallback>{`${user?.givenName[0]}${user?.surname[0]}`}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {user?.displayName || ''}
             </span>
             <span className="text-xs text-muted-foreground">
-              {user?.mail || 'john.doe@example.com'}
+              {user?.mail || user?.email || 'john.doe@example.com'}
             </span>
             <span className="text-xs text-muted-foreground">
               {`${user?.officeLocation} - ${user?.jobTitle}` ||
