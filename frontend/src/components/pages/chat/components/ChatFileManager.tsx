@@ -82,11 +82,22 @@ export default function ChatFileManager({
                   {format(new Date(file.created_at), 'PPpp', { locale: de })}
                 </TableCell>
                 <TableCell>
+                  {
+                    file.indexed && 'Ja'
+                  }
+                  {
+                    file.indexed === false && 'Nein'
+                  }
+                  {
+                    file.indexed === null && '-'
+                  }
+                </TableCell>
+                <TableCell>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDeleteFile(file.id)}
-                    disabled={deleteFileMutation.isPending}
+                    disabled={deleteFileMutation.isPending || file.indexed === false}
                     className="h-8"
                   >
                     {deleteFileMutation.isPending ? (
