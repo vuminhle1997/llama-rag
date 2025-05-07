@@ -57,7 +57,6 @@ export interface ChatSettingsFormProps {
   isUpdating: boolean;
 }
 
-
 /**
  * A React component for rendering a chat settings form. This form allows users to create or edit chat configurations,
  * including uploading an avatar, setting a title, description, context, selecting a language model, and adjusting the temperature.
@@ -263,7 +262,8 @@ export default function ChatSettingsForm({
             </Label>
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Select
-                defaultValue={watch('model')}
+                defaultValue={'llama3.3:70b'}
+                value={watch('model')}
                 onValueChange={value => setValue('model', value)}
               >
                 <SelectTrigger className="w-full h-[60px]">
