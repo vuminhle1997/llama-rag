@@ -63,6 +63,7 @@ export default function ChatFileManager({
               <TableHead>Tabellen</TableHead>
               <TableHead>Datenbanktyp</TableHead>
               <TableHead>Hochgeladen am</TableHead>
+              <TableHead>Indexiert</TableHead>
               <TableHead>Aktionen</TableHead>
             </TableRow>
           </TableHeader>

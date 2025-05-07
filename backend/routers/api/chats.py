@@ -4,7 +4,7 @@ import uuid
 import os
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
 from llama_index.core import PromptTemplate
 from llama_index.core.agent import ReActAgent
 from llama_index.core.memory import ChatMemoryBuffer
@@ -16,7 +16,8 @@ from redis import Redis
 from chromadb import Collection
 from typing import Optional, AsyncGenerator
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url
+from dependencies import (get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url,
+                          SessionDep)
 from sqlmodel import Session
 
 from models import ChatMessage
@@ -470,8 +471,8 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
 
 
 @router.post("/{chat_id}/upload")
-def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
-                              db_client: Session = Depends(get_db_session),
+async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
+                              db_client: SessionDep = SessionDep,
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
                               redis_session: Redis = Depends(get_redis_client),
@@ -545,15 +546,17 @@ def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         # indexes file
         db_chat.last_interacted_at = datetime.now()
         db_chat.files.append(db_file)
+        db_client.commit()
         if not any(ext in file.content_type.lower() or ext in file.filename.lower()
                    for ext in ["sql", "xlsx", "spreadsheet", "csv"]):
             background_tasks.add_task(index_uploaded_file, path=str(file_path), chat_file=db_file,
                                       chroma_collection=chroma_collection)
         if any(ext in file.content_type.lower() or ext in file.filename.lower()
                    for ext in ["sql", "xlsx", "spreadsheet", "csv"]):
+            md_id = str(uuid.uuid4())
             md_file_path = f"{os.getcwd()}/uploads/{db_chat.id}/{file.filename.split('.')[0]}.md"
             md_file = ChatFile(
-                id=id,
+                id=md_id,
                 file_name=f"{db_file.file_name.split('.')[0]}.md",
                 path_name=md_file_path,
                 indexed=False,
@@ -563,15 +566,13 @@ def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
             try:
                 db_chat.files.append(md_file)
                 db_client.commit()
-                db_client.refresh(db_chat)
                 logger.info(f"Created temporary markdown file, that is not indexed yet: {md_file.file_name}")
             except Exception as e:
                 logger.error(e)
                 db_client.rollback()
             background_tasks.add_task(index_spreadsheet, chroma_collection=chroma_collection,
-                                      chat_id=db_chat.id, file=md_file,
+                                      file=md_file,
                                       db_client=db_client)
-        db_client.commit()
         db_client.refresh(db_chat)
         return {
             **db_chat.model_dump(),
@@ -586,7 +587,7 @@ def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
 def create_chat(
     chat: str = Form(...),
     file: Optional[UploadFile] = None,
-    db_client: Session = Depends(get_db_session),
+    db_client: SessionDep = SessionDep,
     request: Request = Request,
     redis_client: Redis = Depends(get_redis_client)
 ):
@@ -644,9 +645,15 @@ def create_chat(
         id=chat_id,
         avatar_path=str(avatar_path)
     )
-    db_client.add(db_chat)
-    db_client.commit()
-    db_client.refresh(db_chat)
+
+    try:
+        db_client.add(db_chat)
+        db_client.commit()
+        db_client.refresh(db_chat)
+    except Exception as e:
+        logger.error(e)
+        db_client.rollback()
+        return Response(status_code=500, content="Chat create error.")
 
     return {
         **db_chat.model_dump(),

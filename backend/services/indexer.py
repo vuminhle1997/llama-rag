@@ -14,12 +14,11 @@ from markitdown import MarkItDown
 
 from models import ChatFile, Chat
 from utils import initialize_pg_url
-from dependencies import logger
+from dependencies import logger, SessionDep
 
 import os
-import uuid
 
-def index_spreadsheet(chroma_collection: Collection, file: ChatFile, db_client: Session, chat_id: str):
+def index_spreadsheet(chroma_collection: Collection, file: ChatFile, db_client: SessionDep):
     """
     Indexes a spreadsheet file by converting it to Markdown, processing it into documents,
     and storing it in a vector store for retrieval. Updates the database with the new file metadata.
@@ -44,7 +43,9 @@ def index_spreadsheet(chroma_collection: Collection, file: ChatFile, db_client: 
         - Logs the successful addition of the Markdown file to the spreadsheet.
         - Logs any errors encountered during the database transaction.
     """
-    id = str(uuid.uuid4())
+
+    id = file.id
+    logger.info(f"Start indexing markdown for: {id}")
 
     if os.path.exists(file.path_name) is False:
         md = MarkItDown(enable_plugins=True)
@@ -77,7 +78,7 @@ def index_spreadsheet(chroma_collection: Collection, file: ChatFile, db_client: 
         db_client.rollback()
 
 
-def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection, db_client: Session):
+def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection, db_client: SessionDep):
     """
     Indexes an uploaded file into a ChromaDB collection for vector search capabilities.
 

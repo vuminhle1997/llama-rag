@@ -9,9 +9,9 @@ from utils import (
 )
 from services import index_sql_dump
 from chromadb import Collection
-from dependencies import logger
+from dependencies import logger, SessionDep
 
-def process_dump_to_persist(db_client: Session, chat_id: str, chat_file_id: str, 
+def process_dump_to_persist(db_client: SessionDep, chat_id: str, chat_file_id: str,
                             sql_dump_path: str, database_type: str, db_name: str, 
                             chroma_collection: Collection):
     """
