@@ -45,8 +45,8 @@ if not os.path.exists("uploads/avatars"):
     logger.info("Created directory uploads/avatars")
 
 # LLM
-llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url)
-embed_model = OllamaEmbedding(model_name="mxbai-embed-large", base_url=base_url)
+llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url, request_timeout=420)
+embed_model = OllamaEmbedding(model_name=os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large'), base_url=base_url)
 
 Settings.llm = llm
 Settings.embed_model = embed_model
