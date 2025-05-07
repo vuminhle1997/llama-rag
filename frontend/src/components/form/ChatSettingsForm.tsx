@@ -235,7 +235,7 @@ export default function ChatSettingsForm({
               {errors.context && (
                 <p className="text-red-500 text-sm">{errors.context.message}</p>
               )}
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 Der Kontext muss die folgenden Elemente enthalten:
                 <br />- Persönlichkeit und Rolle des KI-Assistenten
                 <br />- Kommunikationsstil und Verhaltensmuster
@@ -253,7 +253,7 @@ export default function ChatSettingsForm({
                   , um mehr darüber zu erfahren, wie Sie gute
                   Eingabeaufforderungen schreiben können.
                 </p>
-              </p>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
