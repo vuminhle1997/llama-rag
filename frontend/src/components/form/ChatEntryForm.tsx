@@ -52,7 +52,6 @@ interface ChatEntryFormProps {
   mode?: 'create' | 'update';
 }
 
-
 /**
  * A React component for creating or updating chat entries. This component provides
  * a form interface for managing chat details, including title, description, context,
@@ -114,10 +113,10 @@ export default function ChatEntryForm({
           context: chat.context || '',
           avatar: undefined,
           temperature: chat.temperature || 0.75,
-          model: chat.model || 'llama3.1',
+          model: chat.model || 'llama3.3:70b',
         }
       : {
-          model: 'llama3.1',
+          model: 'llama3.3:70b',
         },
   });
   const [showSuccess, setShowSuccess] = useState(false);
@@ -150,7 +149,7 @@ export default function ChatEntryForm({
     setValue('description', templateChat.description || '');
     setValue('context', templateChat.context || '');
     setValue('temperature', templateChat.temperature || 0.75);
-    setValue('model', templateChat.model || 'llama3.1');
+    setValue('model', templateChat.model || 'llama3.3:70b');
 
     // Handle avatar based on template type
     if ('id' in templateChat) {
