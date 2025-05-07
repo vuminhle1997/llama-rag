@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import List
 
@@ -21,8 +22,11 @@ from llama_index.core import (
 )
 from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
 from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.readers.web import BeautifulSoupWebReader
+from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import create_engine
+from markitdown import MarkItDown
 from utils import initialize_pg_url
 
 class PandasTool:
@@ -65,7 +69,9 @@ def create_filters_for_files(files: List[ChatFile]):
                     value=file.id,
                 )
             ]
-        ) for file in files if "sql" not in file.mime_type.lower()
+        )
+        for file in files
+        if all(ext not in file.mime_type.lower() for ext in ["sql", "xlsx", "csv"])
     ]
     return filters
 
@@ -94,37 +100,65 @@ def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vec
 
 def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore):
     """
-    Creates a list of QueryEngineTool objects from provided files and a Chroma vector store.
-
-    The function filters out SQL files, creates appropriate filters for remaining files,
-    and generates query engines with associated metadata for each file.
+    Creates a list of query engine tools for analyzing and retrieving information 
+    from a collection of files, excluding certain file types based on their MIME types.
 
     Args:
-        files (List[ChatFile]): List of ChatFile objects containing file information.
-        chroma_vector_store (ChromaVectorStore): A ChromaVectorStore instance for vector storage.
+        files (List[ChatFile]): A list of `ChatFile` objects representing the files 
+            to be processed.
+        chroma_vector_store (ChromaVectorStore): An instance of `ChromaVectorStore` 
+            used for creating query engines.
 
     Returns:
-        List[QueryEngineTool]: A list of QueryEngineTool objects, each containing a query engine
-        and metadata specific to a file.
+        List[QueryEngineTool]: A list of `QueryEngineTool` objects, each associated 
+        with a query engine and metadata describing its purpose.
 
-    Note:
-        - SQL files are explicitly filtered out from processing
-        - Each QueryEngineTool is named based on the corresponding file name
+    The function performs the following steps:
+        1. Filters out files with MIME types containing specific keywords 
+           (e.g., "sql", "xlsx", "csv").
+        2. Creates filters for the remaining files.
+        3. Generates query engines based on the filters and the provided 
+           `chroma_vector_store`.
+        4. Constructs `QueryEngineTool` objects for each query engine, with 
+           metadata describing the tool's purpose. Special descriptions are 
+           provided for markdown files.
     """
-    files = [file for file in files if "sql" not in file.mime_type.lower()]
-    filters = create_filters_for_files(files=files)
-    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
-    query_engine_tools = [
-        QueryEngineTool(
-            query_engine=query_engine,
-            metadata=ToolMetadata(
-                name=f"QueryEngineTool-{files[i].file_name}",
-                description=f"Query engine for analyzing and retrieving information from the document '{files[i].file_name}'. "
-                            f"Use this tool to perform searches and extract insights from the content of the file.",
-            )
-        ) for i, query_engine in enumerate(query_engines)
+    excluded_mime_keywords = ["sql", "xlsx", "csv"]
+    # Filter out unwanted files
+    filtered_files = [
+        file for file in files
+        if all(ext not in file.mime_type.lower() for ext in excluded_mime_keywords)
     ]
+
+    # Create filters and query engines
+    filters = create_filters_for_files(files=filtered_files)
+    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
+
+    query_engine_tools = []
+    for i, query_engine in enumerate(query_engines):
+        file = filtered_files[i]
+        is_markdown = file.mime_type.lower() == "text/markdown"
+
+        description = (
+            f"Query engine for deeply analyzing the markdown document '{file.file_name}'. "
+            f"This document is structured for natural language understanding—please read and reason over the full text."
+            if is_markdown else
+            f"Query engine for analyzing and retrieving information from the document '{file.file_name}'. "
+            f"Use this tool to perform searches and extract insights from the content of the file."
+        )
+
+        query_engine_tools.append(
+            QueryEngineTool(
+                query_engine=query_engine,
+                metadata=ToolMetadata(
+                    name=f"QueryEngineTool-{file.file_name}",
+                    description=description,
+                )
+            )
+        )
+
     return query_engine_tools
+
 
 def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     """

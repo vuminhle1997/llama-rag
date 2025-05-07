@@ -15,6 +15,7 @@ class BaseChatFile(SQLModel):
     file_name: str = Field(index=True, nullable=False)
     path_name: str = Field(index=True, nullable=False)
     mime_type: str = Field(index=True, nullable=False)
+    indexed: bool = Field(nullable=True)
     chat_id: Optional[str] = Field(default=None, foreign_key="chats.id")
     database_name: Optional[str] = Field(default=None, nullable=True, index=True)
     database_type: Optional[str] = Field(default=None, nullable=True, index=True)

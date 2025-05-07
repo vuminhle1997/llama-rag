@@ -1,9 +1,8 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime
 import os
-from dotenv import load_dotenv
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from llama_index.core import PromptTemplate
@@ -37,18 +36,13 @@ from services import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
+    index_spreadsheet
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
 from fastapi.responses import StreamingResponse
 from llama_index.core.chat_engine.types import AgentChatResponse, StreamingAgentChatResponse
-
-from llama_index.llms.google_genai import GoogleGenAI
-from llama_index.llms.groq import Groq
-
-load_dotenv()
-groq = os.getenv("GROQ_API_KEY")
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -346,9 +340,9 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
-        model_from_chat = "llama3.1"
+        model_from_chat = "llama3.3:70b"
 
-    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
 
 
@@ -476,7 +470,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
 
 
 @router.post("/{chat_id}/upload")
-async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
+def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
                               db_client: Session = Depends(get_db_session),
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
@@ -551,11 +545,34 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         # indexes file
         db_chat.last_interacted_at = datetime.now()
         db_chat.files.append(db_file)
+        if not any(ext in file.content_type.lower() or ext in file.filename.lower()
+                   for ext in ["sql", "xlsx", "spreadsheet", "csv"]):
+            background_tasks.add_task(index_uploaded_file, path=str(file_path), chat_file=db_file,
+                                      chroma_collection=chroma_collection)
+        if any(ext in file.content_type.lower() or ext in file.filename.lower()
+                   for ext in ["sql", "xlsx", "spreadsheet", "csv"]):
+            md_file_path = f"{os.getcwd()}/uploads/{db_chat.id}/{file.filename.split('.')[0]}.md"
+            md_file = ChatFile(
+                id=id,
+                file_name=f"{db_file.file_name.split('.')[0]}.md",
+                path_name=md_file_path,
+                indexed=False,
+                chat_id=chat_id,
+                mime_type="text/markdown"
+            )
+            try:
+                db_chat.files.append(md_file)
+                db_client.commit()
+                db_client.refresh(db_chat)
+                logger.info(f"Created temporary markdown file, that is not indexed yet: {md_file.file_name}")
+            except Exception as e:
+                logger.error(e)
+                db_client.rollback()
+            background_tasks.add_task(index_spreadsheet, chroma_collection=chroma_collection,
+                                      chat_id=db_chat.id, file=md_file,
+                                      db_client=db_client)
         db_client.commit()
         db_client.refresh(db_chat)
-        if "sql" not in file.content_type.lower():
-            index_uploaded_file(path=str(file_path), chat_file=db_file, chroma_collection=chroma_collection)
-
         return {
             **db_chat.model_dump(),
             'files': db_chat.files,
@@ -566,7 +583,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/")
-async def create_chat(
+def create_chat(
     chat: str = Form(...),
     file: Optional[UploadFile] = None,
     db_client: Session = Depends(get_db_session),

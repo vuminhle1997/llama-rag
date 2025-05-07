@@ -1,17 +1,83 @@
+from duckduckgo_search.cli import chat
 from llama_index.core.objects import SQLTableNodeMapping, SQLTableSchema, ObjectIndex
 from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext, SQLDatabase
 from llama_index.core.indices import VectorStoreIndex
-from chromadb import Collection
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.settings import Settings
-from sqlalchemy import create_engine
 
-from models import ChatFile
+from chromadb import Collection
+from sqlalchemy import create_engine
+from sqlmodel import Session
+from markitdown import MarkItDown
+
+from models import ChatFile, Chat
 from utils import initialize_pg_url
 from dependencies import logger
 
-def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection):
+import os
+import uuid
+
+def index_spreadsheet(chroma_collection: Collection, file: ChatFile, db_client: Session, chat_id: str):
+    """
+    Indexes a spreadsheet file by converting it to Markdown, processing it into documents,
+    and storing it in a vector store for retrieval. Updates the database with the new file metadata.
+
+    Args:
+        chroma_collection (Collection): The Chroma collection used for vector storage.
+        chat (Chat): The chat object associated with the file.
+        file (ChatFile): The file object containing details about the spreadsheet.
+        db_client (Session): The database session for committing changes.
+
+    Workflow:
+        1. Converts the spreadsheet file to a Markdown file if it doesn't already exist.
+        2. Loads the Markdown file into documents.
+        3. Assigns metadata to each document and creates a corresponding database file entry.
+        4. Stores the documents in a Chroma vector store with sentence splitting transformations.
+        5. Updates the database with the new file and associates it with the chat.
+
+    Raises:
+        Exception: Logs and rolls back the database transaction in case of an error.
+
+    Logs:
+        - Logs the successful addition of the Markdown file to the spreadsheet.
+        - Logs any errors encountered during the database transaction.
+    """
+    id = str(uuid.uuid4())
+
+    if os.path.exists(file.path_name) is False:
+        md = MarkItDown(enable_plugins=True)
+        result = md.convert(file.path_name)
+        with open(file.path_name, "w") as f:
+            f.write(result.text_content)
+
+    document = SimpleDirectoryReader(input_files=[file.path_name]).load_data()[0]
+    document.metadata = {
+        'file_id': id,
+    }
+
+    chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    storage_context = StorageContext.from_defaults(vector_store=chroma_vector_store)
+    transformations = SentenceSplitter(
+        chunk_size=1024 * 4,
+        chunk_overlap=50,
+    )
+    VectorStoreIndex.from_documents([document], vector_store=chroma_vector_store, storage_context=storage_context,
+                                    transformations=transformations, )
+
+    try:
+        db_file = db_client.get(ChatFile, id)
+        db_file.indexed = True
+        db_client.commit()
+        db_client.refresh(db_file)
+        logger.info(f"Indexed Markdown file of spreadsheet: {db_file.file_name}")
+    except Exception as e:
+        logger.error(e)
+        db_client.rollback()
+
+
+def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Collection, db_client: Session):
     """
     Indexes an uploaded file into a ChromaDB collection for vector search capabilities.
 
@@ -41,6 +107,13 @@ def index_uploaded_file(path: str, chat_file: ChatFile, chroma_collection: Colle
     VectorStoreIndex.from_documents(documents=documents,
                                             storage_context=storage_context,
                                             vector_store=vector_store, show_progress=True, embedding=Settings.embed_model)
+    try:
+        chat_file.indexed = True
+        db_client.commit()
+        db_client.refresh(chat_file)
+        logger.info(f"Indexed file: {chat_file.file_name}")
+    except Exception as e:
+        logger.error(e)
 
 def index_sql_dump(file: ChatFile, chroma_collection: Collection):
     """
