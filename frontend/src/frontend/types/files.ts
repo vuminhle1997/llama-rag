@@ -5,6 +5,7 @@ export type File = {
   file_name: string;
   mime_type: string;
   path: string;
+  indexed: boolean | null;
   tables: string[] | null;
   database_type: string | null;
   database_name: string | null;

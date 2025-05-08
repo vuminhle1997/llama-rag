@@ -218,7 +218,7 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
  * @property {string} description - A brief description of the role or purpose of the template.
  * @property {string} avatar_path - The file path or reference to the avatar image associated with the template.
  * @property {number} [temperature=0.75] - The temperature setting for the model, controlling the randomness of responses.
- * @property {string} [model='llama3.1'] - The specific model version to be used for this template (optional).
+ * @property {string} [model='llama3.3:70b'] - The specific model version to be used for this template (optional).
  * @property {string} context - The context or initial text to be used by the model for this template.
  */
 export const templates = [
@@ -228,6 +228,7 @@ export const templates = [
       'Ein hilfreicher KI-Begleiter für all Ihre Anfragen und Aufgaben',
     avatar_path: aiImage,
     temperature: 0.75,
+    model: 'llama3.3:70b',
     context: aiText,
   },
   {
@@ -236,7 +237,7 @@ export const templates = [
       'Spezialisiert auf Softwareentwicklung und Systemarchitektur mit Spring Boot',
     avatar_path: softwareEngineerImage,
     temperature: 0.75,
-    model: 'llama3.1',
+    model: 'deepseek-r1:70b',
     context: developerText,
   },
   {
@@ -244,7 +245,7 @@ export const templates = [
     description:
       'Expertin für Öffentlichkeitsarbeit, Medienkommunikation und Markenmanagement',
     avatar_path: hrImage,
-    model: 'llama3.1',
+    model: 'llama3.3:70b',
     temperature: 0.75,
     context: hrText,
   },
@@ -254,17 +255,8 @@ export const templates = [
       'Spezialisiert auf Bauprojektmanagement und technische Planung',
     avatar_path: engineerImage,
     temperature: 0.75,
-    model: 'llama3.1',
+    model: 'deepseek-r1:70b',
     context: constructionWorkerText,
-  },
-  {
-    title: 'Senior-Berater: Daniel Dehn',
-    description:
-      'Erfahren in Geschäftsstrategie, Prozessoptimierung und Organisationsentwicklung',
-    avatar_path: consultantImage,
-    temperature: 0.75,
-    model: 'llama3.1',
-    context: consultantText,
   },
 ];
 
@@ -283,54 +275,47 @@ export const templates = [
  */
 export const defaultModels = [
   {
-    id: 'llama3.1',
-    name: 'LLama 3.1',
+    id: 'llama3.3:70b',
+    name: 'LLama 3.3',
     description:
-      'LLama 3.1 von Meta ist ein ausgewogenes Sprachmodell, das eine hervorragende Balance zwischen Leistung und Effizienz bietet. Es ist ideal für allgemeine Anwendungen wie Textgenerierung, Übersetzungen und einfache Konversationsaufgaben. Benutzer können es für die Erstellung präziser und effizienter Kommunikation nutzen.',
+      'LLama 3.3 von Meta ist ein ausgewogenes Sprachmodell mit erweiterten Fähigkeiten zur logischen Schlussfolgerung, Problemlösung und natürlicher Sprachverarbeitung. Es bietet eine hervorragende Balance zwischen Leistung und Effizienz und eignet sich ideal für anspruchsvolle Anwendungen wie komplexe Textgenerierung, detaillierte Analysen und fortgeschrittene Konversationsaufgaben. Es unterstützt mehrere Sprachen und ist besonders gut in der Verarbeitung von Kontext und der Generierung präziser Antworten.',
     isDefault: true,
   },
   {
-    id: 'deepseek-r1',
-    name: 'Deepseek-r1',
+    id: 'deepseek-r1:70b',
+    name: 'Deepseek-r1:70b',
     description:
-      'Deepseek-r1 von Deepseek ist ein spezialisiertes Modell für technische und wissenschaftliche Aufgaben. Es bietet verbesserte Präzision und ist besonders nützlich für Benutzer, die in der Forschung, Datenanalyse und technischen Dokumentation tätig sind.',
+      'Deepseek-r1:70b ist eine erweiterte Version des Deepseek-Modells, das für hochpräzise technische und wissenschaftliche Analysen entwickelt wurde. Es zeichnet sich durch außergewöhnliche Fähigkeiten in der logischen Argumentation und der Verarbeitung technischer Sprache aus. Ideal für Forschung, Datenverarbeitung und wissenschaftliche Berichte, bietet es eine hohe Genauigkeit und Kapazität für komplexe Aufgaben.',
     isDefault: false,
   },
-  // {
-  //   id: 'phi4',
-  //   name: 'Phi 4',
-  //   description:
-  //     'Phi 4 von Microsoft ist ein kompaktes und effizientes Modell, das für schnelle Antworten und alltägliche Konversationen optimiert ist. Es eignet sich hervorragend für den Einsatz in Chatbots und Kundenservice-Anwendungen, wo schnelle und präzise Antworten erforderlich sind.',
-  //   isDefault: false,
-  // },
-  // {
-  //   id: 'qwen2.5-coder:32b',
-  //   name: 'Qwen 2.5 Coder 32B',
-  //   description:
-  //     'Qwen 2.5 Coder 32B von Alibaba ist spezialisiert auf Softwareentwicklung und technische Dokumentation. Es bietet hervorragende Coding-Fähigkeiten und ist ideal für Entwickler, die Unterstützung bei der Codegenerierung und -überprüfung benötigen.',
-  //   isDefault: false,
-  // },
-  // {
-  //   id: 'qwq',
-  //   name: 'QwQ',
-  //   description:
-  //     'QwQ von Anthropic ist ein experimentelles Modell mit einem Fokus auf kreative und innovative Lösungsansätze. Es unterstützt Benutzer bei der Entwicklung neuer und unkonventioneller Strategien, insbesondere in den Bereichen Marketing und Produktentwicklung.',
-  //   isDefault: false,
-  // },
-  // {
-  //   id: 'gemma3:27b',
-  //   name: 'Gemma 3 27B',
-  //   description:
-  //     'Gemma 3 27B von Google ist ein fortschrittliches Allzweckmodell mit besonderer Stärke in der Verarbeitung komplexer Zusammenhänge. Es ist ideal für Benutzer, die mit komplexen Daten und Analysen arbeiten, wie z.B. in der Finanzanalyse und strategischen Planung.',
-  //   isDefault: false,
-  // },
-  // {
-  //   id: 'codellama:34b',
-  //   name: 'CodeLLama 34B',
-  //   description:
-  //     'CodeLLama 34B von Meta ist ein leistungsstarkes Entwicklermodell, das für Programmierung und technische Problemlösung optimiert ist. Es unterstützt Benutzer bei der Entwicklung und Implementierung technischer Lösungen, insbesondere in der Softwareentwicklung und IT-Beratung.',
-  //   isDefault: false,
-  // },
+  {
+    id: 'phi4:latest',
+    name: 'Phi 4',
+    description:
+      'Phi 4 ist ein hochmodernes Sprachmodell, das für kreative Anwendungen und komplexe Textgenerierung optimiert ist. Es bietet außergewöhnliche Fähigkeiten in der Verarbeitung natürlicher Sprache, kreativen Problemlösung und der Generierung innovativer Inhalte. Besonders geeignet für Marketing, kreative Schreibprojekte und interaktive Konversationen, unterstützt es mehrere Sprachen und passt sich flexibel an verschiedene Kontexte an.',
+    isDefault: false,
+  },
+  {
+    id: 'gemma3:27b',
+    name: 'Gemma 3:27b',
+    description:
+      'Gemma 3:27b ist ein kompaktes, aber leistungsstarkes Sprachmodell, das für allgemeine Anwendungen in der Textverarbeitung und Konversation optimiert ist. Es bietet eine gute Balance zwischen Geschwindigkeit und Genauigkeit und eignet sich ideal für alltägliche Aufgaben wie Kundenservice, einfache Analysen und allgemeine Kommunikation. Es unterstützt mehrere Sprachen und ist effizient in der Verarbeitung natürlicher Sprache.',
+    isDefault: false,
+  },
+  {
+    id: 'gemma3:12b',
+    name: 'Gemma 3:12b',
+    description:
+      'Gemma 3:12b ist eine kompakte Version des Gemma-Modells, die für schnelle und effiziente Textverarbeitung optimiert ist. Es eignet sich hervorragend für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es bietet eine solide Leistung bei geringem Ressourcenverbrauch.',
+    isDefault: false,
+  },
+  {
+    id: 'gemma3:1b',
+    name: 'Gemma 3:1b',
+    description:
+      'Gemma 3:1b ist ein leichtgewichtiges Sprachmodell, das für schnelle und effiziente Textverarbeitung konzipiert ist. Es eignet sich ideal für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es ist besonders nützlich für ressourcenbeschränkte Umgebungen.',
+    isDefault: false,
+  },
 ];
 
 /**

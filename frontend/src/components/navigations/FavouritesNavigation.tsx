@@ -27,7 +27,11 @@ import {
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/24/solid';
-import { selectFavouriteChats, useAppSelector } from '@/frontend';
+import {
+  selectAppState,
+  selectFavouriteChats,
+  useAppSelector,
+} from '@/frontend';
 import Link from 'next/link';
 import { Chat } from '@/frontend/types';
 import { Dialog, DialogTrigger } from '../ui/dialog';
@@ -90,8 +94,10 @@ import Image from 'next/image';
 export default function FavouritesNavigation() {
   const router = useRouter();
   const favouriteChats = useAppSelector(selectFavouriteChats);
+  const appState = useAppSelector(selectAppState);
+
   const { slug } = useParams();
-  
+
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
   const [chatToDelete, setChatToDelete] = React.useState<string | null>(null);
@@ -112,11 +118,11 @@ export default function FavouritesNavigation() {
 
   /**
    * Confirms the deletion of a chat and triggers the deleteChat mutation.
-   * 
+   *
    * On successful deletion:
    * - Redirects the user to the home page ('/').
    * - Reloads the browser window to ensure the application state is updated.
-   * 
+   *
    * On error:
    * - Logs the error to the console with a descriptive message.
    */
@@ -138,11 +144,21 @@ export default function FavouritesNavigation() {
         <SidebarGroup className="p-0">
           <SidebarGroupLabel asChild>
             <CollapsibleTrigger>
-              <div className="flex gap-2">
-                <HeartIcon className="h-4 w-4" />
-                <span className="text-md">Ihre favorisierten Chats</span>
-              </div>
-              <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+              {appState === 'idle' ? (
+                <>
+                  <div className="flex gap-2">
+                    <HeartIcon className="h-4 w-4" />
+                    <span className="text-md">Ihre favorisierten Chats</span>
+                  </div>
+                  <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </>
+              ) : (
+                // show loading state with tailwind skeleton
+                <div className="flex gap-2">
+                  <HeartIcon className="h-4 w-4 animate-pulse" />
+                  <div className="h-4 w-50 my-1 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                </div>
+              )}
             </CollapsibleTrigger>
           </SidebarGroupLabel>
           <CollapsibleContent>

@@ -22,8 +22,6 @@ from phoenix.otel import register
 from llama_index.core.settings import Settings
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.llms.groq import Groq
-from llama_index.llms.google_genai import GoogleGenAI
 
 from utils import decode_jwt
 
@@ -40,10 +38,15 @@ try:
     LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
 except Exception as e:
     logger.error(f"Startup error: {e}")
+    
+# Create dir uploads/avatars if it doesn't exist
+if not os.path.exists("uploads/avatars"):
+    os.makedirs("uploads/avatars")
+    logger.info("Created directory uploads/avatars")
 
 # LLM
-llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url)
-embed_model = OllamaEmbedding(model_name="mxbai-embed-large", base_url=base_url)
+llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url, request_timeout=420)
+embed_model = OllamaEmbedding(model_name=os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large'), base_url=base_url)
 
 Settings.llm = llm
 Settings.embed_model = embed_model

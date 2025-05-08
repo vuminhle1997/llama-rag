@@ -8,7 +8,6 @@ import { Message } from '@/frontend/types';
 import { getMessages } from '@/frontend/queries/messages';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery, UseMutationResult } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Bars3Icon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
@@ -49,11 +48,10 @@ export interface ChatContainerProps {
   scrollToBottom: () => void;
 }
 
-
 /**
- * ChatContainer component is responsible for rendering the chat interface, 
- * including the chat messages, user interactions, and chat settings. It 
- * handles fetching messages, managing the chat state, and rendering the 
+ * ChatContainer component is responsible for rendering the chat interface,
+ * including the chat messages, user interactions, and chat settings. It
+ * handles fetching messages, managing the chat state, and rendering the
  * appropriate UI elements based on the chat's current state.
  *
  * @param {ChatContainerProps} props - The properties passed to the ChatContainer component.
@@ -188,14 +186,11 @@ export default function ChatContainer({
         <div className="flex justify-between items-center">
           {(!open || isMobile) && (
             <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  variant="outline"
-                  className="bg-primary dark:bg-background hover:bg-background/10 top-4 left-4"
-                  onClick={() => handleSideBarToggle()}
-                >
-                  <Bars3Icon className="h-4 w-4 text-white" />
-                </Button>
+              <TooltipTrigger
+                className="bg-primary dark:bg-background hover:bg-background/10 border border-white p-4 rounded-sm top-4 left-4"
+                onClick={() => handleSideBarToggle()}
+              >
+                <Bars3Icon className="h-4 w-4 text-white" />
               </TooltipTrigger>
               <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
                 <p className="text-m">Seitenleiste öffnen</p>
@@ -340,7 +335,7 @@ export default function ChatContainer({
             </div>
 
             <img
-              src={profilePicture ? profilePicture : ''}
+              src={profilePicture ? profilePicture : undefined}
               alt="User Profile Picture"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
             />
@@ -411,7 +406,7 @@ export default function ChatContainer({
               </div>
               {message.role === 'user' && (
                 <img
-                  src={profilePicture ? profilePicture : ''}
+                  src={profilePicture ? profilePicture : undefined}
                   alt="User Profile Picture"
                   className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                 />
@@ -488,7 +483,7 @@ export default function ChatContainer({
                     </div>
                     {message.role === 'user' && (
                       <img
-                        src={profilePicture ? profilePicture : ''}
+                        src={profilePicture ? profilePicture : undefined}
                         alt="User Profile Picture"
                         className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                       />

@@ -70,16 +70,13 @@ export default function ChatSettingsDialog({
     <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
+          <TooltipTrigger
+            asChild
+            className="bg-primary dark:bg-background dark:border
+                    text-primary-foreground hover:bg-primary/10 p-4 rounded-sm border-white border dark:border-white"
+          >
             <DialogTrigger>
-              <Button
-                variant="outline"
-                size="icon"
-                className="bg-primary dark:bg-background dark:border
-                    text-primary-foreground hover:bg-primary/10"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              <Settings className="h-4 w-4" />
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent className="dark:bg-accent border border-white bg-primary shadow-sm">

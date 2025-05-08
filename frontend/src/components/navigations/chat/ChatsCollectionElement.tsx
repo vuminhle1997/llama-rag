@@ -93,21 +93,12 @@ export default function ChatsCollectionElement({
             }}
           >
             <DropdownMenu>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <DropdownMenuTrigger
-                      className="hover:bg-accent ml-2 w-[30px] h-[30px] 
+              <DropdownMenuTrigger
+                className="hover:bg-accent ml-2 w-[30px] h-[30px] 
                         flex justify-center items-center rounded-md cursor-pointer mt-1"
-                    >
-                      <EllipsisHorizontalIcon className="h-4 w-4" />
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
-                    <p>Chat editieren</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              >
+                <EllipsisHorizontalIcon className="h-4 w-4" />
+              </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DialogTrigger asChild>
                   <DropdownMenuItem

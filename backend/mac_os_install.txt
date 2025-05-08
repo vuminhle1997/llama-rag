@@ -1,0 +1,27 @@
+pip install llama-index \
+llama-index-llms-ollama \
+llama-index-embeddings-ollama \
+llama-index-experimental \
+llama-index-vector-stores-chroma \
+fastapi \
+redis \
+msal \
+fastapi-pagination \
+dotenv \
+sqlmodel \
+mysql-connector-python \
+psycopg2-binary \
+openpyxl \
+python-multipart \
+deepeval \
+pytest \
+sqlalchemy \
+llama-index-readers-web \
+llama-index-tools-duckduckgo \
+openinference-instrumentation-llama_index \
+granian \
+chromadb \
+arize-phoenix-otel
+
+pip uninstall numpy && \
+pip install "numpy<2.0"

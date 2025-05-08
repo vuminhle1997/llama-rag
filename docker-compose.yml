@@ -5,11 +5,11 @@ services:
     image: arizephoenix/phoenix:latest
     container_name: gct-insight-chat-phoenix
     restart: always
-    env_file:
-      - .env
-    environment:
-      PHOENIX_ENABLE_AUTH: ${PHOENIX_ENABLE_AUTH}
-      PHOENIX_SECRET: ${PHOENIX_SECRET}
+    # env_file:
+    #   - .env
+    # environment:
+    #   PHOENIX_ENABLE_AUTH: ${PHOENIX_ENABLE_AUTH}
+    #   PHOENIX_SECRET: ${PHOENIX_SECRET}
     ports:
       - "6006:6006"  # UI and OTLP HTTP collector
       - "4317:4317"  # OTLP gRPC collector

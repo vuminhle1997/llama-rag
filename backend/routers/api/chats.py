@@ -1,11 +1,10 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime
 import os
-from dotenv import load_dotenv
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
 from llama_index.core import PromptTemplate
 from llama_index.core.agent import ReActAgent
 from llama_index.core.memory import ChatMemoryBuffer
@@ -17,7 +16,8 @@ from redis import Redis
 from chromadb import Collection
 from typing import Optional, AsyncGenerator
 from starlette.requests import Request
-from dependencies import get_db_session, get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url
+from dependencies import (get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url,
+                          SessionDep)
 from sqlmodel import Session
 
 from models import ChatMessage
@@ -37,18 +37,13 @@ from services import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
+    index_spreadsheet
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
 from fastapi.responses import StreamingResponse
 from llama_index.core.chat_engine.types import AgentChatResponse, StreamingAgentChatResponse
-
-from llama_index.llms.google_genai import GoogleGenAI
-from llama_index.llms.groq import Groq
-
-load_dotenv()
-groq = os.getenv("GROQ_API_KEY")
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -59,12 +54,13 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 async def stream_agent_response(
-    agent: ReActAgent,
-    user_input: str,
-    db_client: Session,
-    chat_id: str,
-    user_message: ChatMessage,
+        agent: ReActAgent,
+        user_input: str,
+        db_client: SessionDep,
+        chat_id: str,
+        user_message: ChatMessage,
 ) -> AsyncGenerator[str, None]:
     """
     Asynchronously streams the response from a ReActAgent to the client in a Server-Sent Events (SSE) format.
@@ -96,7 +92,7 @@ async def stream_agent_response(
             delta = None
             if hasattr(chunk, 'delta') and chunk.delta:
                 delta = chunk.delta
-            elif isinstance(chunk, str): # Handle simpler cases if agent streams raw strings
+            elif isinstance(chunk, str):  # Handle simpler cases if agent streams raw strings
                 delta = chunk
 
             if delta:
@@ -147,8 +143,9 @@ async def stream_agent_response(
         else:
             logger.warning(f"No response generated for chat {chat_id}, not saving assistant message.")
 
+
 @router.get("/", response_model=Page[Chat])
-async def get_all_chats(db_client: Session = Depends(get_db_session),
+async def get_all_chats(db_client: SessionDep = SessionDep,
                         request: Request = Request,
                         redis_client: Redis = Depends(get_redis_client)):
     """
@@ -179,8 +176,9 @@ async def get_all_chats(db_client: Session = Depends(get_db_session),
     page = sqlalchemy_pagination(query)
     return page
 
+
 @router.get("/search")
-async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_session),
+async def get_chats_by_title(title: str, db_client: SessionDep = SessionDep,
                              request: Request = Request,
                              redis_client: Redis = Depends(get_redis_client)):
     """
@@ -213,7 +211,7 @@ async def get_chats_by_title(title: str, db_client: Session = Depends(get_db_ses
 
 
 @router.get("/{chat_id}")
-async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
+async def get_chat(chat_id: str, db_client: SessionDep = SessionDep,
                    request: Request = Request,
                    redis_client: Redis = Depends(get_redis_client)):
     """
@@ -239,16 +237,16 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
 
     belongs_to_user = check_property_belongs_to_user(request, redis_client, db_chat)
     messages = (db_client.query(ChatMessage)
-             .filter(ChatMessage.chat_id == chat_id)
-             .order_by(ChatMessage.created_at.desc()).all())[:10]
+                .filter(ChatMessage.chat_id == chat_id)
+                .order_by(ChatMessage.created_at.desc()).all())[:10]
 
     if not belongs_to_user:
         logger.error(f"Chat {chat_id} does not belong to user")
         raise HTTPException(status_code=404, detail="Chat not found")
-    
+
     # Get favorite status
     favorite = db_chat.favourite if db_chat.favourite else None
-    
+
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
@@ -259,7 +257,7 @@ async def get_chat(chat_id: str, db_client: Session = Depends(get_db_session),
 
 @router.post("/{chat_id}/chat/stream")
 async def chat_stream(chat_id: str, chat: ChatQuery,
-                      db_client: Session = Depends(get_db_session),
+                      db_client: SessionDep = SessionDep,
                       request: Request = Request,
                       redis_client: Redis = Depends(get_redis_client),
                       chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
@@ -346,20 +344,20 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
-        model_from_chat = "llama3.1"
+        model_from_chat = "llama3.3:70b"
 
-    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
-
 
     streaming_generator = stream_agent_response(agent=agent, user_input=chat.text, db_client=db_client,
                                                 chat_id=db_chat.id, user_message=user_message)
 
     return StreamingResponse(streaming_generator, media_type="text/event-stream")
 
+
 @router.post("/{chat_id}/chat")
 async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
-                                  db_client: Session = Depends(get_db_session),
+                                  db_client: SessionDep = SessionDep,
                                   request: Request = Request,
                                   redis_client: Redis = Depends(get_redis_client),
                                   chroma_vector_store: ChromaVectorStore = Depends(get_chroma_vector)):
@@ -477,7 +475,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
 
 @router.post("/{chat_id}/upload")
 async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
-                              db_client: Session = Depends(get_db_session),
+                              db_client: SessionDep = SessionDep,
                               request: Request = Request,
                               chroma_collection: Collection = Depends(get_chroma_collection),
                               redis_session: Redis = Depends(get_redis_client),
@@ -534,6 +532,10 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         path_name=str(file_path),
         mime_type=file.content_type,
         file_name=file.filename,
+        indexed=None
+        if any(ext in file.content_type.lower() or ext in file.filename.lower()
+               for ext in ["sql", "xlsx", "spreadsheet", "csv"])
+        else False,
     )
 
     if file.content_type.lower().find("sql") != -1 and db_chat is not None:
@@ -552,10 +554,34 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         db_chat.last_interacted_at = datetime.now()
         db_chat.files.append(db_file)
         db_client.commit()
-        db_client.refresh(db_chat)
-        if "sql" not in file.content_type.lower():
-            index_uploaded_file(path=str(file_path), chat_file=db_file, chroma_collection=chroma_collection)
 
+        if not any(ext in file.content_type.lower() or ext in file.filename.lower()
+                   for ext in ["sql", "xlsx", "spreadsheet", "csv"]):
+            background_tasks.add_task(index_uploaded_file, path=str(file_path), chat_file=db_file,
+                                      chroma_collection=chroma_collection, db_client=db_client)
+        if any(ext in file.content_type.lower() or ext in file.filename.lower()
+               for ext in ["xlsx", "spreadsheet", "csv"]):
+            md_id = str(uuid.uuid4())
+            md_file_path = f"{os.getcwd()}/uploads/{db_chat.id}/{file.filename.split('.')[0]}.md"
+            md_file = ChatFile(
+                id=md_id,
+                file_name=f"{db_file.file_name.split('.')[0]}.md",
+                path_name=md_file_path,
+                indexed=False,
+                chat_id=chat_id,
+                mime_type="text/markdown"
+            )
+            try:
+                db_chat.files.append(md_file)
+                db_client.commit()
+                logger.info(f"Created temporary markdown file, that is not indexed yet: {md_file.file_name}")
+            except Exception as e:
+                logger.error(e)
+                db_client.rollback()
+            background_tasks.add_task(index_spreadsheet, chroma_collection=chroma_collection,
+                                      file=db_file,
+                                      db_client=db_client)
+        db_client.refresh(db_chat)
         return {
             **db_chat.model_dump(),
             'files': db_chat.files,
@@ -565,13 +591,14 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
         logger.error(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/")
-async def create_chat(
-    chat: str = Form(...),
-    file: Optional[UploadFile] = None,
-    db_client: Session = Depends(get_db_session),
-    request: Request = Request,
-    redis_client: Redis = Depends(get_redis_client)
+def create_chat(
+        chat: str = Form(...),
+        file: Optional[UploadFile] = None,
+        db_client: SessionDep = SessionDep,
+        request: Request = Request,
+        redis_client: Redis = Depends(get_redis_client)
 ):
     """
     Create a new chat.
@@ -627,19 +654,26 @@ async def create_chat(
         id=chat_id,
         avatar_path=str(avatar_path)
     )
-    db_client.add(db_chat)
-    db_client.commit()
-    db_client.refresh(db_chat)
+
+    try:
+        db_client.add(db_chat)
+        db_client.commit()
+        db_client.refresh(db_chat)
+    except Exception as e:
+        logger.error(e)
+        db_client.rollback()
+        return Response(status_code=500, content="Chat create error.")
 
     return {
         **db_chat.model_dump(),
         'files': db_chat.files,
     }
 
+
 @router.put("/{chat_id}")
 async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = File(None),
                       request: Request = Request,
-                      db_client: Session = Depends(get_db_session),
+                      db_client: SessionDep = SessionDep,
                       redis_client: Redis = Depends(get_redis_client)):
     """
     Update an existing chat.
@@ -685,7 +719,7 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
         avatar_dir.mkdir(parents=True, exist_ok=True)
 
         # Save new file
-        avatar_path = avatar_dir /  f"{chat_id}.{ext}"
+        avatar_path = avatar_dir / f"{chat_id}.{ext}"
         with open(avatar_path, "wb+") as buffer:
             buffer.write(file.file.read())
 
@@ -706,9 +740,8 @@ async def update_chat(chat_id: str, chat: str = Form(...), file: UploadFile = Fi
     }
 
 
-
 @router.delete("/{chat_id}")
-async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session),
+async def delete_chat(chat_id: str, db_client: SessionDep = SessionDep,
                       request: Request = Request,
                       redis_client: Redis = Depends(get_redis_client),
                       chroma_collection: Collection = Depends(get_chroma_collection)):
@@ -763,7 +796,7 @@ async def delete_chat(chat_id: str, db_client: Session = Depends(get_db_session)
 
 
 @router.delete("/{chat_id}/delete/{file_id}")
-async def delete_file_of_chat(chat_id: str, file_id: str, db_client: Session = Depends(get_db_session),
+async def delete_file_of_chat(chat_id: str, file_id: str, db_client: SessionDep = SessionDep,
                               request: Request = Request,
                               redis_client: Redis = Depends(get_redis_client),
                               chroma_collection: Collection = Depends(get_chroma_collection)):
