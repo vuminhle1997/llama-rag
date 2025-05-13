@@ -97,7 +97,7 @@ llama-cloud-services==0.6.5
 llama-index==0.12.23
 llama-index-agent-openai==0.4.6
 llama-index-cli==0.4.1
-llama-index-core==0.12.23.post2
+llama-index-core==0.12.24.post1
 llama-index-embeddings-adapter==0.3.0
 llama-index-embeddings-ollama==0.6.0
 llama-index-embeddings-openai==0.3.1
@@ -161,18 +161,6 @@ openai==1.65.4
 openinference-instrumentation==0.1.24
 openinference-instrumentation-llama-index==3.3.3
 openinference-semantic-conventions==0.1.15
-opentelemetry-api==1.31.1
-opentelemetry-exporter-otlp==1.31.1
-opentelemetry-exporter-otlp-proto-common==1.31.1
-opentelemetry-exporter-otlp-proto-grpc==1.31.1
-opentelemetry-exporter-otlp-proto-http==1.31.1
-opentelemetry-instrumentation==0.52b1
-opentelemetry-instrumentation-asgi==0.51b0
-opentelemetry-instrumentation-fastapi==0.51b0
-opentelemetry-proto==1.31.1
-opentelemetry-sdk==1.31.1
-opentelemetry-semantic-conventions==0.52b1
-opentelemetry-util-http==0.51b0
 orjson==3.10.15
 overrides==7.7.0
 packaging==24.2
