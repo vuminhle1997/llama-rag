@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import List
 
@@ -22,12 +21,26 @@ from llama_index.core import (
 )
 from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
 from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
-from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.readers.web import BeautifulSoupWebReader
-from llama_index.core.node_parser import SentenceSplitter
 from sqlalchemy import create_engine
-from markitdown import MarkItDown
 from utils import initialize_pg_url
+from llama_index.llms.ollama import Ollama
+
+class CustomTextExtractionTool:
+    def __init__(self, query_engine: BaseQueryEngine):
+        self.query_engine = query_engine
+
+    async def async_extract_fields_from_index_query_by_request(self, request: str):
+        """
+        Tool for extracting fields from index query by using the user's request.
+        :param request:
+        :return: str
+        """
+        try:
+            result = await self.query_engine.aquery(request)
+            return str(result.response)
+        except Exception as e:
+            return f"Error: {str(e)}"
 
 class PandasTool:
     def __init__(self, query_engine: PandasQueryEngine):
@@ -75,13 +88,15 @@ def create_filters_for_files(files: List[ChatFile]):
     ]
     return filters
 
-def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vector_store: ChromaVectorStore) -> List[BaseQueryEngine]:
+def create_query_engines_from_filters(filters: List[MetadataFilters],
+                                      chroma_vector_store: ChromaVectorStore, llm: Ollama) -> List[BaseQueryEngine]:
     """
     Creates a list of query engines from metadata filters using a Chroma vector store.
 
     Args:
         filters (List[MetadataFilter]): A list of metadata filters to create query engines from.
         chroma_vector_store (ChromaVectorStore): The Chroma vector store to use for creating the index.
+        llm (Ollama): The Ollama to use for creating the index.
 
     Returns:
         List[BaseQueryEngine]: A list of query engines, each initialized with a corresponding metadata filter.
@@ -94,11 +109,12 @@ def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vec
     vector_index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store, storage_context=storage_context,
                                                       embed_model=Settings.embed_model)
     query_engines = [
-        vector_index.as_query_engine(filter=meta_filters) for meta_filters in filters
+        vector_index.as_query_engine(filter=meta_filters, llm=llm if llm is not None else Settings.llm)
+        for meta_filters in filters
     ]
     return query_engines
 
-def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore):
+def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama):
     """
     Creates a list of query engine tools for analyzing and retrieving information 
     from a collection of files, excluding certain file types based on their MIME types.
@@ -108,6 +124,7 @@ def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: Chroma
             to be processed.
         chroma_vector_store (ChromaVectorStore): An instance of `ChromaVectorStore` 
             used for creating query engines.
+        llm (Ollama): An instance of `Ollama` used for creating query engines.
 
     Returns:
         List[QueryEngineTool]: A list of `QueryEngineTool` objects, each associated 
@@ -132,7 +149,7 @@ def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: Chroma
 
     # Create filters and query engines
     filters = create_filters_for_files(files=filtered_files)
-    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
+    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store, llm=llm)
 
     query_engine_tools = []
     for i, query_engine in enumerate(query_engines):
@@ -158,7 +175,6 @@ def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: Chroma
         )
 
     return query_engine_tools
-
 
 def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     """
@@ -209,6 +225,15 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
         ) for i, pd_tool in enumerate(pd_tools)
     ]
     return pd_tools
+
+def create_text_extraction_tool_from_file(query: BaseQueryEngine, file: ChatFile):
+    text_extractor = CustomTextExtractionTool(query_engine=query)
+    tool = FunctionTool.from_defaults(
+        async_fn=text_extractor.async_extract_fields_from_index_query_by_request,
+        name=f"TextExtractionTool-{file.file_name}",
+        description=f"Extracts fields from document {file.file_name} by using the user's request.",
+    )
+    return tool
 
 def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_store: ChromaVectorStore) -> List[QueryEngineTool]:
     """

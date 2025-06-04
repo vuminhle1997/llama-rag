@@ -9,6 +9,7 @@ from services.tools_initializer import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
+    create_text_extraction_tool_from_file
 )
 from services.indexer import (
     index_uploaded_file,
