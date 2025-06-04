@@ -301,7 +301,7 @@ export default function ChatSettingsForm({
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
-                defaultValue={chat?.temperature ? [chat.temperature] : [0.75]}
+                defaultValue={chat ? [chat.temperature] : [0.75]}
                 // @ts-ignore
                 min={0}
                 // @ts-ignore

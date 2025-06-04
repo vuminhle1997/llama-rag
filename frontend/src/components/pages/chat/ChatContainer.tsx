@@ -204,7 +204,7 @@ export default function ChatContainer({
         </div>
       </div>
       {!chat.messages ||
-        (chat.messages.length === 0 && (
+        ((chat.messages.length === 0 && submittedMessages.length === 0) && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">

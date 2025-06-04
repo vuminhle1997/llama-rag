@@ -206,6 +206,34 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 [Gesprächsverlauf hier einfügen]
 `;
 
+const textExtractorText = `
+You are an helpful AI assistant.
+Your tasks is to extract specific fields from the documents you have in your arsenal.
+
+## Tools
+You have access to several tools that help accomplish tasks effectively.
+You should determine when and how to use them to complete requests efficiently.
+If a task requires multiple steps, you can break it down and apply different tools as needed.
+Available tools:
+{tool_desc}
+
+## Output Format
+Always start with a Thought before taking action.
+
+When using a tool, follow this structured format:
+Thought: I need to use a tool to complete this request.
+Action: [Tool name] (one of {tool_names})
+Action Input: [Valid JSON format input]
+Observation Answer: [Tool response]
+
+Thought: I think I have enough information to answer!
+Final Answer: [Your answer from the tool]
+
+## Current Conversation
+Below is the current conversation consisting of interleaving human and assistant messages.
+[Your conversation between user and assistant is below]
+`;
+
 /**
  * Represents a collection of predefined templates for various roles and use cases.
  * Each template contains metadata such as title, description, avatar path, model configuration,
@@ -258,6 +286,15 @@ export const templates = [
     model: 'deepseek-r1:70b',
     context: constructionWorkerText,
   },
+  {
+    title: 'Textextraktor aus Dokumenten',
+    description:
+      'Ein KI-Assistent, der spezifische Felder aus Dokumenten extrahiert',
+    avatar_path: aiImage,
+    temperature: 0,
+    model: 'llama3.3:70b',
+    context: textExtractorText,
+  }
 ];
 
 /**
@@ -289,31 +326,10 @@ export const defaultModels = [
     isDefault: false,
   },
   {
-    id: 'phi4:latest',
+    id: 'phi4:17b',
     name: 'Phi 4',
     description:
       'Phi 4 ist ein hochmodernes Sprachmodell, das für kreative Anwendungen und komplexe Textgenerierung optimiert ist. Es bietet außergewöhnliche Fähigkeiten in der Verarbeitung natürlicher Sprache, kreativen Problemlösung und der Generierung innovativer Inhalte. Besonders geeignet für Marketing, kreative Schreibprojekte und interaktive Konversationen, unterstützt es mehrere Sprachen und passt sich flexibel an verschiedene Kontexte an.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:27b',
-    name: 'Gemma 3:27b',
-    description:
-      'Gemma 3:27b ist ein kompaktes, aber leistungsstarkes Sprachmodell, das für allgemeine Anwendungen in der Textverarbeitung und Konversation optimiert ist. Es bietet eine gute Balance zwischen Geschwindigkeit und Genauigkeit und eignet sich ideal für alltägliche Aufgaben wie Kundenservice, einfache Analysen und allgemeine Kommunikation. Es unterstützt mehrere Sprachen und ist effizient in der Verarbeitung natürlicher Sprache.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:12b',
-    name: 'Gemma 3:12b',
-    description:
-      'Gemma 3:12b ist eine kompakte Version des Gemma-Modells, die für schnelle und effiziente Textverarbeitung optimiert ist. Es eignet sich hervorragend für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es bietet eine solide Leistung bei geringem Ressourcenverbrauch.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:1b',
-    name: 'Gemma 3:1b',
-    description:
-      'Gemma 3:1b ist ein leichtgewichtiges Sprachmodell, das für schnelle und effiziente Textverarbeitung konzipiert ist. Es eignet sich ideal für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es ist besonders nützlich für ressourcenbeschränkte Umgebungen.',
     isDefault: false,
   },
 ];

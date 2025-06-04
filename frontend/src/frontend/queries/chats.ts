@@ -241,7 +241,7 @@ export const useChatStream = (chatId: string) => {
   const [isStreaming, setIsStreaming] = useState(false);
 
   const sendMessageStream = useMutation({
-    mutationFn: async (text: string) => {
+    mutationFn: async ({ text, query_params }: { text: string; query_params?: Record<string, Record<string, any>> }) => {
       setResponse('');
       setIsStreaming(true);
       try {
@@ -252,7 +252,7 @@ export const useChatStream = (chatId: string) => {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text: text }),
+            body: JSON.stringify({ text: text, params: query_params }),
             credentials: 'include',
           }
         );
