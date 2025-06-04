@@ -32,9 +32,16 @@ class CustomTextExtractionTool:
 
     async def async_extract_fields_from_index_query_by_request(self, request: str):
         """
-        Tool for extracting fields from index query by using the user's request.
-        :param request:
-        :return: str
+        Asynchronously extracts fields from an index by querying with the provided request string.
+
+        Args:
+            request (str): The query string to be sent to the index query engine.
+
+        Returns:
+            str: The response from the query engine as a string, or an error message if an exception occurs.
+
+        Raises:
+            Exception: Any exception raised during the query process is caught and returned as an error message.
         """
         try:
             result = await self.query_engine.aquery(request)
@@ -227,6 +234,20 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     return pd_tools
 
 def create_text_extraction_tool_from_file(query: BaseQueryEngine, file: ChatFile):
+    """
+    Creates a text extraction tool for a given file using a specified query engine.
+
+    This function initializes a CustomTextExtractionTool with the provided query engine,
+    wraps its asynchronous extraction method in a FunctionTool, and configures the tool
+    with a name and description based on the file's name.
+
+    Args:
+        query (BaseQueryEngine): The query engine to be used for text extraction.
+        file (ChatFile): The file from which fields will be extracted.
+
+    Returns:
+        FunctionTool: A configured tool for extracting fields from the document based on user requests.
+    """
     text_extractor = CustomTextExtractionTool(query_engine=query)
     tool = FunctionTool.from_defaults(
         async_fn=text_extractor.async_extract_fields_from_index_query_by_request,

@@ -60,33 +60,34 @@ router = APIRouter(
 )
 
 async def stream_agent_response(
-        agent: ReActAgent,
-        user_input: str,
-        db_client: SessionDep,
-        chat_id: str,
-        user_message: ChatMessage,
-        chat_memory: ChatMemoryBuffer
+    agent: ReActAgent,
+    user_input: str,
+    db_client: SessionDep,
+    chat_id: str,
+    user_message: ChatMessage,
+    chat_memory: ChatMemoryBuffer
 ) -> AsyncGenerator[str, None]:
     """
-    Asynchronously streams the response from a ReActAgent to the client in a Server-Sent Events (SSE) format.
-    This function handles the interaction with a ReActAgent to generate a streaming response based on user input.
-    It yields chunks of the response as they are generated, formatted as SSE events. The full response is saved
-    to the database once streaming is complete.
+    Asynchronously streams the response from a ReActAgent as Server-Sent Events (SSE) while saving the conversation to the database.
+
     Args:
-        agent (ReActAgent): The agent responsible for generating the response.
-        user_input (str): The input message from the user.
-        db_client (Session): The database session used to save the chat messages.
+        agent (ReActAgent): The agent responsible for generating responses.
+        user_input (str): The user's input message.
+        db_client (SessionDep): Database session dependency for ORM operations.
         chat_id (str): The unique identifier for the chat session.
-        user_message (ChatMessage): The user's message object to be saved alongside the assistant's response.
-        chat_memory (ChatMemoryBuffer): The chat memory buffer to save the chat session.
+        user_message (ChatMessage): The user's message object to be saved.
+        chat_memory (ChatMemoryBuffer): The memory buffer containing chat history.
+
     Yields:
-        str: Server-Sent Event (SSE) formatted strings containing chunks of the agent's response or status updates.
+        str: Server-Sent Event (SSE) formatted strings containing response chunks, status, or error messages.
+
     Raises:
-        Exception: If an error occurs during the agent's response generation or database operations.
-    Notes:
-        - The function ensures that the assistant's full response is saved to the database after streaming is complete.
-        - If an error occurs during streaming, an error message is sent to the client, and the error is logged.
-        - The function handles both structured response chunks (with a `delta` attribute) and raw string responses.
+        None: All exceptions are handled internally and streamed as error events.
+
+    Side Effects:
+        - Streams response chunks to the client as SSE.
+        - Saves both user and assistant messages to the database after streaming is complete.
+        - Logs errors and warnings related to streaming and database operations.
     """
     full_response_text = ""
     try:
