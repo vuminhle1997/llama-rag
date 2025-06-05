@@ -19,7 +19,9 @@ export default function ThinkAnswerBlock(props: ThinkAnswerBlockProps) {
             {block.type === 'Thought' ? (
               <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 dark:bg-yellow-900 dark:border-yellow-500 dark:text-yellow-100 p-4 rounded">
                 <p className="font-semibold mb-1">🧠 Gedanke</p>
-                <p className="whitespace-pre-line">{block.content}</p>
+                <div className="prose prose-sm sm:prose dark:prose-invert whitespace-pre-line"
+                    dangerouslySetInnerHTML={{__html: marked(block.content) }}
+                ></div>
               </div>
             ) : (
               <div className="bg-white border border-gray-200 text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 p-4 rounded shadow">
@@ -27,7 +29,7 @@ export default function ThinkAnswerBlock(props: ThinkAnswerBlockProps) {
                 <div
                   className="prose prose-sm sm:prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{
-                    __html: marked(block.content.replaceAll('\n', '<br />')),
+                    __html: marked(block.content),
                   }}
                 />
               </div>
