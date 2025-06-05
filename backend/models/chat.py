@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Dict
 from datetime import datetime
 from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,6 +11,10 @@ if TYPE_CHECKING:
     from models.chat_file import ChatFile
     from models.favourite import Favourite
     from models.chat_message import ChatMessage
+
+class FileParams(BaseModel):
+    queried: bool
+    query_type: str
 
 class ChatBase(SQLModel):
     title: str = Field(nullable=False, index=True)
@@ -52,3 +56,5 @@ class ChatUpdate(BaseModel):
 
 class ChatQuery(BaseModel):
     text: str
+    params: Dict[str, FileParams] | None
+

@@ -3,7 +3,6 @@
 import hrImage from '@/static/templates/hr.jpeg';
 import engineerImage from '@/static/templates/engineer.webp';
 import softwareEngineerImage from '@/static/templates/software_engineer.webp';
-import consultantImage from '@/static/templates/consultant.jpeg';
 import aiImage from '@/static/templates/helper.webp';
 
 const aiText = `
@@ -206,6 +205,38 @@ Nachfolgend befindet sich der Gesprächsverlauf, den du bei deinen Antworten ber
 [Gesprächsverlauf hier einfügen]
 `;
 
+const textExtractorText = `
+# 🧠 RAG Assistant System Prompt
+
+You are an intelligent assistant designed to extract specific fields or insights from documents by thinking through the problem step by step.
+
+## 🛠️ Tools
+You have access to a set of specialized tools that help you analyze, 
+extract, and process information effectively.
+Use them wisely — not everything needs a tool, but they can help with complex or data-heavy tasks.
+
+When a request is made, ask yourself:
+- What do I need to figure out?
+- Can I reason through it myself, or do I need to use a tool to get the answer?
+
+If it makes sense to use a tool, break the task down clearly.
+Choose the most suitable tool and provide it with clean, focused input. 
+Once you get the result, interpret it and decide if anything else is needed.
+
+## 📝 Output Format
+Think out loud before taking any action. This helps others understand your reasoning.
+
+### When using a tool, follow this format:
+Thought: [What you’re thinking and why you need the tool]
+Action: [Tool name] (choose from {tool_names})
+Action Input: [Tool input in JSON]
+Observation: [Result you got from the tool]
+
+### When you're done:
+Thought: I have everything I need now.
+Final Answer: [Your final answer here]
+`;
+
 /**
  * Represents a collection of predefined templates for various roles and use cases.
  * Each template contains metadata such as title, description, avatar path, model configuration,
@@ -258,6 +289,15 @@ export const templates = [
     model: 'deepseek-r1:70b',
     context: constructionWorkerText,
   },
+  {
+    title: 'Textextraktor aus Dokumenten',
+    description:
+      'Ein KI-Assistent, der spezifische Felder aus Dokumenten extrahiert',
+    avatar_path: aiImage,
+    temperature: 0,
+    model: 'llama3.3:70b',
+    context: textExtractorText,
+  }
 ];
 
 /**
@@ -289,31 +329,10 @@ export const defaultModels = [
     isDefault: false,
   },
   {
-    id: 'phi4:latest',
+    id: 'phi4:17b',
     name: 'Phi 4',
     description:
       'Phi 4 ist ein hochmodernes Sprachmodell, das für kreative Anwendungen und komplexe Textgenerierung optimiert ist. Es bietet außergewöhnliche Fähigkeiten in der Verarbeitung natürlicher Sprache, kreativen Problemlösung und der Generierung innovativer Inhalte. Besonders geeignet für Marketing, kreative Schreibprojekte und interaktive Konversationen, unterstützt es mehrere Sprachen und passt sich flexibel an verschiedene Kontexte an.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:27b',
-    name: 'Gemma 3:27b',
-    description:
-      'Gemma 3:27b ist ein kompaktes, aber leistungsstarkes Sprachmodell, das für allgemeine Anwendungen in der Textverarbeitung und Konversation optimiert ist. Es bietet eine gute Balance zwischen Geschwindigkeit und Genauigkeit und eignet sich ideal für alltägliche Aufgaben wie Kundenservice, einfache Analysen und allgemeine Kommunikation. Es unterstützt mehrere Sprachen und ist effizient in der Verarbeitung natürlicher Sprache.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:12b',
-    name: 'Gemma 3:12b',
-    description:
-      'Gemma 3:12b ist eine kompakte Version des Gemma-Modells, die für schnelle und effiziente Textverarbeitung optimiert ist. Es eignet sich hervorragend für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es bietet eine solide Leistung bei geringem Ressourcenverbrauch.',
-    isDefault: false,
-  },
-  {
-    id: 'gemma3:1b',
-    name: 'Gemma 3:1b',
-    description:
-      'Gemma 3:1b ist ein leichtgewichtiges Sprachmodell, das für schnelle und effiziente Textverarbeitung konzipiert ist. Es eignet sich ideal für einfache Aufgaben in der Verarbeitung natürlicher Sprache, darunter grundlegende Konversationen, einfache Textanalysen und schnelle Antworten. Es ist besonders nützlich für ressourcenbeschränkte Umgebungen.',
     isDefault: false,
   },
 ];

@@ -6,12 +6,14 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
 from llama_index.core import PromptTemplate
-from llama_index.core.agent import ReActAgent
+from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import MessageRole, ChatMessage as LLMChatMessage
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core.tools import BaseTool
 from redis import Redis
+from typing import List
 
 from chromadb import Collection
 from typing import Optional, AsyncGenerator
@@ -26,6 +28,7 @@ from models.chat_file import ChatFile
 from pathlib import Path
 from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_pagination
+
 from utils import decode_jwt, check_property_belongs_to_user
 from services import (
     index_uploaded_file,
@@ -37,13 +40,14 @@ from services import (
     create_search_engine_tool,
     create_url_loader_tool,
     create_query_engine_tools,
-    index_spreadsheet
+    index_spreadsheet,
+    create_text_extraction_tool_from_file
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
 
 from fastapi.responses import StreamingResponse
-from llama_index.core.chat_engine.types import AgentChatResponse, StreamingAgentChatResponse
+from llama_index.core.chat_engine.types import AgentChatResponse
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -54,41 +58,41 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
 async def stream_agent_response(
-        agent: ReActAgent,
-        user_input: str,
-        db_client: SessionDep,
-        chat_id: str,
-        user_message: ChatMessage,
+    agent: ReActAgent,
+    user_input: str,
+    db_client: SessionDep,
+    chat_id: str,
+    user_message: ChatMessage,
+    chat_memory: ChatMemoryBuffer
 ) -> AsyncGenerator[str, None]:
     """
-    Asynchronously streams the response from a ReActAgent to the client in a Server-Sent Events (SSE) format.
-    This function handles the interaction with a ReActAgent to generate a streaming response based on user input.
-    It yields chunks of the response as they are generated, formatted as SSE events. The full response is saved
-    to the database once streaming is complete.
+    Asynchronously streams the response from a ReActAgent as Server-Sent Events (SSE) while saving the conversation to the database.
+
     Args:
-        agent (ReActAgent): The agent responsible for generating the response.
-        user_input (str): The input message from the user.
-        db_client (Session): The database session used to save the chat messages.
+        agent (ReActAgent): The agent responsible for generating responses.
+        user_input (str): The user's input message.
+        db_client (SessionDep): Database session dependency for ORM operations.
         chat_id (str): The unique identifier for the chat session.
-        user_message (ChatMessage): The user's message object to be saved alongside the assistant's response.
+        user_message (ChatMessage): The user's message object to be saved.
+        chat_memory (ChatMemoryBuffer): The memory buffer containing chat history.
+
     Yields:
-        str: Server-Sent Event (SSE) formatted strings containing chunks of the agent's response or status updates.
+        str: Server-Sent Event (SSE) formatted strings containing response chunks, status, or error messages.
+
     Raises:
-        Exception: If an error occurs during the agent's response generation or database operations.
-    Notes:
-        - The function ensures that the assistant's full response is saved to the database after streaming is complete.
-        - If an error occurs during streaming, an error message is sent to the client, and the error is logged.
-        - The function handles both structured response chunks (with a `delta` attribute) and raw string responses.
+        None: All exceptions are handled internally and streamed as error events.
+
+    Side Effects:
+        - Streams response chunks to the client as SSE.
+        - Saves both user and assistant messages to the database after streaming is complete.
+        - Logs errors and warnings related to streaming and database operations.
     """
     full_response_text = ""
     try:
-        streaming_response: StreamingAgentChatResponse = await agent.astream_chat(user_input)
+        async_generator = agent.run(user_msg=user_input, memory=chat_memory)
 
-        async_generator = streaming_response.async_response_gen()
-
-        async for chunk in async_generator:
+        async for chunk in async_generator.stream_events():
             delta = None
             if hasattr(chunk, 'delta') and chunk.delta:
                 delta = chunk.delta
@@ -328,18 +332,8 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
         token_limit=3000,
     )
 
+    tools: List[BaseTool] = []
     files = db_chat.files
-    tools = create_query_engine_tools(files=files, chroma_vector_store=chroma_vector_store)
-    pd_tools = create_pandas_engines_tools_from_files(files=files)
-    sql_tools = create_sql_engines_tools_from_files(files=files, chroma_vector_store=chroma_vector_store)
-
-    scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
-    search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
-
-    tools = tools + pd_tools
-    tools = tools + sql_tools
-    tools = tools + [scrape_tool]
-    tools = tools + [search_engine_tool]
 
     if db_chat.model:
         model_from_chat = db_chat.model
@@ -347,13 +341,38 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
         model_from_chat = "llama3.3:70b"
 
     llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
-    agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
 
+    for file_id, params in chat.params.items():
+        files_to_query = [file for file in files if file.id == file_id and params.queried == True]
+        query_engine_tools = (
+            create_query_engine_tools(files=files_to_query, chroma_vector_store=chroma_vector_store, llm=llm)
+        )
+        for file in files_to_query:
+            if file.id == file_id and params.query_type == 'basic':
+                tools.append(query_engine_tools[0])
+            if file.id == file_id and params.query_type == 'text-extraction':
+                text_extraction_tool = create_text_extraction_tool_from_file(query=query_engine_tools[0].query_engine,
+                                                                             file=file)
+                tools.append(text_extraction_tool)
+            if file.id == file_id and params.query_type == 'sql':
+                sql_tools = create_sql_engines_tools_from_files(files=files_to_query,
+                                                                chroma_vector_store=chroma_vector_store)
+                tools += sql_tools
+            if file.id == file_id and params.query_type == 'spreadsheet':
+                pd_tools = create_pandas_engines_tools_from_files(files=files_to_query)
+                tools += pd_tools
+
+    scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+    search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+
+    tools.append(scrape_tool)
+    tools.append(search_engine_tool)
+
+    agent = create_agent(system_prompt=db_chat.context, tools=tools, llm=llm)
     streaming_generator = stream_agent_response(agent=agent, user_input=chat.text, db_client=db_client,
-                                                chat_id=db_chat.id, user_message=user_message)
+                                                chat_id=db_chat.id, user_message=user_message, chat_memory=chat_memory)
 
     return StreamingResponse(streaming_generator, media_type="text/event-stream")
-
 
 @router.post("/{chat_id}/chat")
 async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
@@ -439,9 +458,9 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
-        model_from_chat = "llama3.1"
+        model_from_chat = "llama3.3:70b"
 
-    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 
