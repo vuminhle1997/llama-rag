@@ -1,4 +1,3 @@
-from duckduckgo_search.cli import chat
 from llama_index.core.objects import SQLTableNodeMapping, SQLTableSchema, ObjectIndex
 from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -9,10 +8,9 @@ from llama_index.core.settings import Settings
 
 from chromadb import Collection
 from sqlalchemy import create_engine
-from sqlmodel import Session
 from markitdown import MarkItDown
 
-from models import ChatFile, Chat
+from models import ChatFile
 from utils import initialize_pg_url
 from dependencies import logger, SessionDep
 

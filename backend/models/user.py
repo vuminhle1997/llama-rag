@@ -1,6 +1,5 @@
-from typing import TYPE_CHECKING, List, Optional
 from datetime import datetime
-from sqlmodel import Field, SQLModel, Relationship
+from sqlmodel import Field, SQLModel
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
 import uuid

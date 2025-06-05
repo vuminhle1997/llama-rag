@@ -48,7 +48,6 @@ from utils import detect_sql_dump_type, delete_database_from_postgres
 
 from fastapi.responses import StreamingResponse
 from llama_index.core.chat_engine.types import AgentChatResponse
-from llama_index.core.workflow import Context
 
 BASE_UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
 BASE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -346,7 +345,8 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     for file_id, params in chat.params.items():
         files_to_query = [file for file in files if file.id == file_id and params.queried == True]
         query_engine_tools = (
-            create_query_engine_tools(files=files_to_query, chroma_vector_store=chroma_vector_store, llm=llm))
+            create_query_engine_tools(files=files_to_query, chroma_vector_store=chroma_vector_store, llm=llm)
+        )
         for file in files_to_query:
             if file.id == file_id and params.query_type == 'basic':
                 tools.append(query_engine_tools[0])
@@ -362,11 +362,11 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
                 pd_tools = create_pandas_engines_tools_from_files(files=files_to_query)
                 tools += pd_tools
 
-    # scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
-    # search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
-    #
-    # tools.append(scrape_tool)
-    # tools.append(search_engine_tool)
+    scrape_tool = create_url_loader_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+    search_engine_tool = create_search_engine_tool(chroma_vector_store=chroma_vector_store, chat=db_chat)
+
+    tools.append(scrape_tool)
+    tools.append(search_engine_tool)
 
     agent = create_agent(system_prompt=db_chat.context, tools=tools, llm=llm)
     streaming_generator = stream_agent_response(agent=agent, user_input=chat.text, db_client=db_client,
@@ -458,9 +458,9 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     if db_chat.model:
         model_from_chat = db_chat.model
     else:
-        model_from_chat = "llama3.1"
+        model_from_chat = "llama3.3:70b"
 
-    llm = Ollama(model='llama3.1', temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     agent = create_agent(memory=chat_memory, system_prompt=PromptTemplate(db_chat.context), tools=tools, llm=llm)
     agent_response: AgentChatResponse = await agent.achat(chat.text)
 

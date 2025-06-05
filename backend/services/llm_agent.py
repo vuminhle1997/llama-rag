@@ -1,17 +1,7 @@
-import json
-import asyncio
-import uuid
-
-from datetime import datetime
-from llama_index.core import PromptTemplate
 from llama_index.core.agent.workflow import ReActAgent
-from typing import List, AsyncGenerator
+from typing import List
 from llama_index.core.tools import BaseTool
 from llama_index.llms.ollama import Ollama
-from sqlmodel import Session
-from models import Chat
-
-from dependencies import logger
 
 def create_agent(system_prompt: str, tools: List[BaseTool],
                  llm: Ollama,
