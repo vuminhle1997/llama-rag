@@ -1,9 +1,20 @@
 from fastapi import FastAPI, Depends
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, JSONResponse, Response
+from starlette.responses import (
+    RedirectResponse, 
+    JSONResponse, 
+    Response
+)
 from routers import route
-from dependencies import create_db_and_tables, get_redis_client, logger, base_url
+from dependencies import (
+    create_db_and_tables, 
+    get_redis_client, 
+    logger, 
+    base_url
+)
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from phoenix.otel import register
 from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
@@ -15,8 +26,6 @@ import os
 import uvicorn
 import uuid
 import requests
-from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
-from phoenix.otel import register
 
 # LLM
 from llama_index.core.settings import Settings
@@ -25,6 +34,7 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 
 from utils import decode_jwt
 
+# loads envs and setup Phoenix monitoring
 try:
     load_dotenv()
     phoenix_key = os.getenv('PHOENIX_API_KEY')
@@ -44,9 +54,45 @@ if not os.path.exists("uploads/avatars"):
     os.makedirs("uploads/avatars")
     logger.info("Created directory uploads/avatars")
 
-# LLM
-llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url, request_timeout=420)
-embed_model = OllamaEmbedding(model_name=os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large'), base_url=base_url)
+# Settings global
+provider = os.getenv('LLM_PROVIDER', 'OLLAMA')
+api_key = None
+base_url = None
+llm = None
+embed_model = None
+
+if provider == 'IONOS':
+    from llama_index.llms.openai_like import OpenAILike
+    from llama_index.embeddings.openai import OpenAIEmbedding
+    base_url = os.getenv("IONOS_BASE_URL", "http://localhost:11434")
+    api_key = os.getenv("IONOS_API_KEY", "your_api_key_here")
+    os.environ["OPENAI_API_BASE"] = base_url
+    os.environ["OPENAI_API_KEY"] = api_key
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
+    
+    llm = OpenAILike(
+        api_base=base_url,
+        temperature=0,
+        model='meta-llama/Llama-3.3-70B-Instruct',
+        is_chat_model=True,
+        default_headers=headers,
+        api_key=api_key,
+        context_window=128000,  # Adjusted to a more reasonable value for Llama 3.3-70B-Instruct
+    )
+    embed_model = OpenAIEmbedding(
+        model_name='sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
+        api_base=base_url,
+        api_key=api_key,
+        default_headers=headers,
+        embed_batch_size=10
+    )
+else:    
+    llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url, request_timeout=420)
+    embed_model = OllamaEmbedding(model_name=os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large'), base_url=base_url)
+    
 
 Settings.llm = llm
 Settings.embed_model = embed_model
@@ -58,7 +104,7 @@ CLIENT_ID=os.getenv("CLIENT_ID")
 CLIENT_SECRET=os.getenv("CLIENT_SECRET")
 TENANT_ID=os.getenv("TENANT_ID")
 AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:4000/redirect")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
 FRONTEND_URL = os.getenv("REACT_URL", "http://localhost:3000")
@@ -70,7 +116,6 @@ origins = [
     "http://localhost:5173",
     FRONTEND_URL,
 ]
-
 
 azure_app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, AUTHORITY)
 
