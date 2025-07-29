@@ -206,7 +206,7 @@ export default function ChatContainer({
         </div>
       </div>
       {!chat.messages ||
-        ((chat.messages.length === 0 && submittedMessages.length === 0) && (
+        (chat.messages.length === 0 && submittedMessages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
@@ -221,12 +221,12 @@ export default function ChatContainer({
                 className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   if (messageText === '') {
-                    reset({ message: 'Hallo, wie heißt du?' });
+                    reset({ message: 'Hallo, wie heißen Sie?' });
                   }
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  👋 "Hallo, wie heißt du?"
+                  👋 "Hallo, wie heißen Sie?"
                 </p>
               </div>
               <div
@@ -250,13 +250,13 @@ export default function ChatContainer({
                 onClick={() => {
                   if (messageText === '') {
                     reset({
-                      message: 'Wie kannst du mir bei meiner Aufgabe helfen?',
+                      message: 'Wie können Sie mir bei meiner Aufgabe helfen?',
                     });
                   }
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  💡 "Wie kannst du mir bei meiner Aufgabe helfen?"
+                  💡 "Wie können Sie mir bei meiner Aufgabe helfen?"
                 </p>
               </div>
             </div>
@@ -268,8 +268,9 @@ export default function ChatContainer({
             <Image
               src={
                 chat.avatar_path
-                  ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
@@ -301,8 +302,9 @@ export default function ChatContainer({
             <Image
               src={
                 chat.avatar_path
-                  ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
+                  ? `${
+                      process.env.NEXT_PUBLIC_BACKEND_URL
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
@@ -345,8 +347,9 @@ export default function ChatContainer({
           return (
             <div
               key={index}
-              className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
-                }`}
+              className={`flex items-start gap-4 w-full mb-4 ${
+                message.role === 'user' ? 'justify-end' : ''
+              }`}
             >
               {message.role !== 'user' && (
                 <>
@@ -354,10 +357,11 @@ export default function ChatContainer({
                     <Image
                       src={
                         chat.avatar_path
-                          ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                          }/uploads/avatars/${chat.avatar_path
-                            .split('/')
-                            .pop()}`
+                          ? `${
+                              process.env.NEXT_PUBLIC_BACKEND_URL
+                            }/uploads/avatars/${chat.avatar_path
+                              .split('/')
+                              .pop()}`
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
@@ -373,10 +377,11 @@ export default function ChatContainer({
                 </>
               )}
               <div
-                className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user'
-                  ? 'bg-background'
-                  : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
-                  }`}
+                className={`flex-1 rounded-lg shadow-sm p-4 ${
+                  message.role === 'user'
+                    ? 'bg-background'
+                    : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
+                }`}
               >
                 {
                   <div
@@ -387,17 +392,17 @@ export default function ChatContainer({
                         : 'text-gray-800 dark:text-white'
                     }
                   >
-                    {
-                      message.role === 'user' ? (
-                        <div
-                          dangerouslySetInnerHTML={{
-                            __html: marked(message.text.replaceAll('\n', '<br />')),
-                          }}
-                        ></div>
-                      ) : (
-                        <ThinkAnswerBlock response={message.text} />
-                      )
-                    }
+                    {message.role === 'user' ? (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: marked(
+                            message.text.replaceAll('\n', '<br />')
+                          ),
+                        }}
+                      ></div>
+                    ) : (
+                      <ThinkAnswerBlock response={message.text} />
+                    )}
                   </div>
                 }
               </div>
@@ -420,8 +425,9 @@ export default function ChatContainer({
                 return (
                   <div
                     key={index}
-                    className={`flex items-start gap-4 w-full mb-4 ${message.role === 'user' ? 'justify-end' : ''
-                      }`}
+                    className={`flex items-start gap-4 w-full mb-4 ${
+                      message.role === 'user' ? 'justify-end' : ''
+                    }`}
                     ref={isLastPage ? ref : null}
                   >
                     {message.role !== 'user' && (
@@ -430,10 +436,11 @@ export default function ChatContainer({
                           <Image
                             src={
                               chat.avatar_path
-                                ? `${process.env.NEXT_PUBLIC_BACKEND_URL
-                                }/uploads/avatars/${chat.avatar_path
-                                  .split('/')
-                                  .pop()}`
+                                ? `${
+                                    process.env.NEXT_PUBLIC_BACKEND_URL
+                                  }/uploads/avatars/${chat.avatar_path
+                                    .split('/')
+                                    .pop()}`
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
@@ -449,10 +456,11 @@ export default function ChatContainer({
                       </>
                     )}
                     <div
-                      className={`flex-1 rounded-lg shadow-sm p-4 ${message.role === 'user'
-                        ? 'bg-background'
-                        : 'bg-background prose py-0'
-                        }`}
+                      className={`flex-1 rounded-lg shadow-sm p-4 ${
+                        message.role === 'user'
+                          ? 'bg-background'
+                          : 'bg-background prose py-0'
+                      }`}
                     >
                       {
                         <div
@@ -463,20 +471,23 @@ export default function ChatContainer({
                               : 'text-gray-800 dark:text-white'
                           }
                         >
-                          {message.text && (() => {
-                            if (message.role === 'user')
-                              return (
-                                <div
-                                  dangerouslySetInnerHTML={{
-                                    __html: marked(
-                                      message.text.replaceAll('\n', '<br />')
-                                    ),
-                                  }}
-                                ></div>
-                              );
+                          {message.text &&
+                            (() => {
+                              if (message.role === 'user')
+                                return (
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: marked(
+                                        message.text.replaceAll('\n', '<br />')
+                                      ),
+                                    }}
+                                  ></div>
+                                );
 
-                            return <ThinkAnswerBlock response={message.text} />;
-                          })()}
+                              return (
+                                <ThinkAnswerBlock response={message.text} />
+                              );
+                            })()}
                         </div>
                       }
                     </div>
