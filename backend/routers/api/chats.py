@@ -18,9 +18,14 @@ from typing import List
 from chromadb import Collection
 from typing import Optional, AsyncGenerator
 from starlette.requests import Request
-from dependencies import (get_redis_client, get_chroma_vector, get_chroma_collection, logger, base_url,
-                          SessionDep)
-from sqlmodel import Session
+from dependencies import (
+    get_redis_client, 
+    get_chroma_vector, 
+    get_chroma_collection, 
+    logger, 
+    base_url,
+    SessionDep
+)
 
 from models import ChatMessage
 from models.chat import Chat, ChatQuery
@@ -57,6 +62,31 @@ router = APIRouter(
     tags=["chats"],
     responses={404: {"description": "Not found"}},
 )
+
+def initialize_ionos_llm(temperature: float):
+    from llama_index.llms.openai_like import OpenAILike
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    base_url = os.getenv("IONOS_BASE_URL", "http://localhost:11434")
+    api_key = os.getenv("IONOS_API_KEY", "your_api_key_here")
+    os.environ["OPENAI_API_BASE"] = base_url
+    os.environ["OPENAI_API_KEY"] = api_key
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
+    
+    llm = OpenAILike(
+        api_base=base_url,
+        temperature=temperature,
+        model='meta-llama/Llama-3.3-70B-Instruct',
+        is_chat_model=True,
+        default_headers=headers,
+        api_key=api_key,
+        context_window=128000,  # Adjusted to a more reasonable value for Llama 3.3-70B-Instruct
+    )
+    return llm
 
 async def stream_agent_response(
     agent: ReActAgent,
@@ -339,8 +369,14 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
         model_from_chat = db_chat.model
     else:
         model_from_chat = "llama3.3:70b"
-
-    llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+        
+    provider = os.getenv('LLM_PROVIDER', 'OLLAMA')
+    llm = None
+    
+    if provider == 'OLLAMA':
+        llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
+    elif provider == 'IONOS':
+        llm = initialize_ionos_llm(temperature=db_chat.temperature)
 
     for file_id, params in chat.params.items():
         files_to_query = [file for file in files if file.id == file_id and params.queried == True]
@@ -612,7 +648,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
 
 
 @router.post("/")
-def create_chat(
+async def create_chat(
         chat: str = Form(...),
         file: Optional[UploadFile] = None,
         db_client: SessionDep = SessionDep,
