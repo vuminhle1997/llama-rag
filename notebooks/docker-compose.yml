@@ -2,16 +2,15 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:15-alpine
     container_name: postgres_db
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: admin
-      POSTGRES_DB: postgres
     ports:
       - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     restart: unless-stopped
   mysql:
     image: mysql:8.0.19
@@ -43,7 +42,19 @@ services:
       - '8080:80'
     depends_on:
       - mysql
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - '8888:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: vuminhle@outlook.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
 
 volumes:
-  postgres_data:
+  postgres:
   mysql_data:
+  pgadmin-data:
