@@ -16,6 +16,7 @@ The backend is a robust and scalable system designed to provide a REST API for i
 ## Architecture
 
 The backend communicates with the following services:
+
 - **PostgreSQL**: Primary relational database for data storage.
 - **MySQL**: Used for migration and additional relational data needs.
 - **Redis**: Provides caching and session management.
@@ -82,22 +83,22 @@ PHOENIX_API_KEY=<taken from the Phoenix Service API KEY Provider>
 
 ### 4. Start the FastAPI Server
 
-Use Granian as the ASGI server to start the FastAPI application:
+Use Hypercorn as the ASGI server to start the FastAPI application:
 
 ```bash
-granian --interface asgi --host 0.0.0.0 --port 4000 --reload --reload-ignore-dirs logs main:app
+# granian --interface asgi --host 0.0.0.0 --port 4000 --reload --reload-ignore-dirs logs main:app
+hypercorn main:app --bind 0.0.0.0:{$PORT}
 ```
 
 This command starts the server with the following settings:
-- **ASGI Interface**: Ensures high performance.
+
 - **External Access**: Accessible via `0.0.0.0`.
 - **Port**: Runs on port `4000`.
-- **Hot Reload**: Automatically reloads on code changes.
-- **Logs Directory Excluded**: Prevents unnecessary reloads due to log file changes.
 
 ## Required Services
 
 Ensure the following services are running and properly configured:
+
 - **PostgreSQL**: For relational data storage.
 - **Redis**: For caching and session management.
 - **ChromaDB**: For vector storage and retrieval.
@@ -109,4 +110,3 @@ Ensure the following services are running and properly configured:
 - The backend is designed to work seamlessly with the frontend and other components of the system.
 - Refer to the `.env.example` file for all required environment variables.
 - Use the provided [Jupyter notebooks](../notebooks) for prototyping and testing LLM workflows.
-

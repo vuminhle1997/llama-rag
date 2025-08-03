@@ -41,7 +41,7 @@ export default function ChatsNavigation() {
   const router = useRouter();
   const pathname = usePathname();
   const currentChatId = pathname.split('/').pop(); // Get the last segment of the URL which is the chat ID
-  
+
   const deleteChat = useDeleteChat(chatToDelete || '');
 
   const { fetchNextPage, hasNextPage, isFetchingNextPage, status } =
@@ -81,6 +81,16 @@ export default function ChatsNavigation() {
     });
   };
 
+  // Effect hook to fetch chats when the component mounts
+  useEffect(() => {
+    if (appState === 'loading') {
+      fetchNextPage().then(result => {
+        const newChats = result?.data?.pages.flatMap(page => page.items) || [];
+        dispatch(setChats(newChats));
+      });
+    }
+  }, [appState, fetchNextPage, dispatch]);
+
   // Effect hook to fetch next page when the load more element comes into view
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -94,7 +104,7 @@ export default function ChatsNavigation() {
   const sortedChats: Chat[] = chats;
   const groupedChats = groupChatsByDate(sortedChats as Chat[]);
   const isLoading = appState === 'loading' || status === 'pending';
-  
+
   return (
     <SidebarGroup className="p-0">
       <SidebarGroupContent>
@@ -105,7 +115,7 @@ export default function ChatsNavigation() {
                 <div key={i} className="flex items-center space-x-4">
                   <div
                     className="h-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
-                    style={{ width: `${40 + Math.random() * 50}%` }}
+                    style={{ width: `100%` }}
                   />
                 </div>
               ))}

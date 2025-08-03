@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { Button } from '@/components/ui/button';
 import {
   MagnifyingGlassCircleIcon,
-  PencilSquareIcon,
+  PencilIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -18,6 +17,7 @@ import FooterNavigation from './FooterNavigation';
 import ChatEntryForm from '../form/ChatEntryForm';
 import ChatsNavigation from './ChatsNavigation';
 import {
+  selectAppState,
   selectShowCommands,
   setShowCommands,
   useAppDispatch,
@@ -35,6 +35,7 @@ import FavouritesNavigation from './FavouritesNavigation';
  * @returns {JSX.Element} The rendered sidebar navigation component.
  */
 export default function SideBarNavigation() {
+  const appState = useAppSelector(selectAppState);
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
 
@@ -69,68 +70,62 @@ export default function SideBarNavigation() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex justify-between">
-          <div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Button
-                    variant="outline"
-                    className="bg-primary dark:bg-background hover:bg-primary/10"
+          <div className="toggle-menu">
+            {appState === 'idle' ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger
+                    className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
                     onClick={() => handleSideBarToggle()}
                   >
                     <XMarkIcon className="h-4 w-4 text-white" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
-                  <p>Seitenleiste minimieren</p>
-                  <div className="flex items-center justify-center text-center"></div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
+                    <p>Seitenleiste minimieren</p>
+                    <div className="flex items-center justify-center text-center"></div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <div className="h-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700 w-8"></div>
+            )}
           </div>
-          <div className="">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Dialog>
-                    <DialogTrigger>
-                      <Button
-                        variant="outline"
-                        className="mx-4 bg-primary dark:bg-background hover:bg-primary/10"
-                      >
-                        <PencilSquareIcon className="h-4 w-4 text-white" />
-                      </Button>
-                    </DialogTrigger>
-                    <ChatEntryForm />
-                  </Dialog>
-                </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
-                  <p>Neuen Chat erstellen</p>
-                  <div className="flex items-center justify-center text-center"></div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Button
-                    onClick={handleShowCommandDialog}
-                    variant="outline"
-                    className="bg-primary dark:bg-background hover:bg-primary/10"
-                  >
-                    <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
-                  <p>Bisherigen Chat suchen.</p>
-                  <div className="flex items-center justify-center text-center">
-                    <p>
-                      Drücke <br /> ⌘+K (macOS) <br /> Strg+K (Windows/Linux){' '}
-                      <br />
-                      um die Suche zu öffnen.
-                    </p>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="right-0 flex items-center justify-center">
+            {appState === 'idle' ? (
+              <React.Fragment>
+                <Dialog>
+                  <DialogTrigger className="mx-4 bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white">
+                    <PencilIcon className="w-4 text-white" />
+                  </DialogTrigger>
+                  <ChatEntryForm />
+                </Dialog>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={handleShowCommandDialog}
+                      className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
+                    >
+                      <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
+                    </TooltipTrigger>
+                    <TooltipContent className="dark:bg-accent bg-primary border-2 border-white shadow-sm">
+                      <p>Bisherigen Chat suchen.</p>
+                      <div className="flex items-center justify-center text-center">
+                        <p>
+                          Drücke <br /> ⌘+K (macOS) <br /> Strg+K
+                          (Windows/Linux) <br />
+                          um die Suche zu öffnen.
+                        </p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <div className="h-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700 w-8 mr-2"></div>
+                <div className="h-8 animate-pulse rounded bg-gray-200 dark:bg-gray-700 w-8"></div>
+              </React.Fragment>
+            )}
           </div>
         </div>
       </SidebarHeader>

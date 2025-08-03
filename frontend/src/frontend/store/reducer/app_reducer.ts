@@ -15,6 +15,14 @@ interface AppState {
   appState: 'idle' | 'loading' | 'failed';
   showCommands: boolean;
   theme: 'system' | 'dark' | 'light';
+  query_params: {
+    [chat_id: string]: {
+      [file_id: string]: {
+        query_type?: string;
+        queried: boolean;
+      };
+    }
+  };
 }
 
 // Define the initial state using that type
@@ -27,6 +35,7 @@ const initialState: AppState = {
   appState: 'loading',
   showCommands: false,
   theme: 'system',
+  query_params: {},
 };
 
 /**
@@ -79,6 +88,12 @@ export const appSlice = createSlice({
       state.theme = action.payload;
       localStorage.setItem('theme', action.payload);
     },
+    setQueryParams: (
+      state,
+      action: PayloadAction<AppState['query_params']>
+    ) => {
+      state.query_params = action.payload;
+    }
   },
 });
 
@@ -91,6 +106,7 @@ export const {
   setAppState,
   setShowCommands,
   setAppTheme,
+  setQueryParams,
 } = appSlice.actions;
 
 // Other code such as selectors can use the imported `RootState` type
@@ -104,5 +120,6 @@ export const selectFavouriteChats = (state: RootState) =>
 export const selectAppState = (state: RootState) => state.app.appState;
 export const selectShowCommands = (state: RootState) => state.app.showCommands;
 export const selectAppTheme = (state: RootState) => state.app.theme;
+export const selectQueryParams = (state: RootState) => state.app.query_params;
 
 export default appSlice.reducer;

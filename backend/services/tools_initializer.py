@@ -24,6 +24,30 @@ from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
 from llama_index.readers.web import BeautifulSoupWebReader
 from sqlalchemy import create_engine
 from utils import initialize_pg_url
+from llama_index.llms.ollama import Ollama
+
+class CustomTextExtractionTool:
+    def __init__(self, query_engine: BaseQueryEngine):
+        self.query_engine = query_engine
+
+    async def async_extract_fields_from_index_query_by_request(self, request: str):
+        """
+        Asynchronously extracts fields from an index by querying with the provided request string.
+
+        Args:
+            request (str): The query string to be sent to the index query engine.
+
+        Returns:
+            str: The response from the query engine as a string, or an error message if an exception occurs.
+
+        Raises:
+            Exception: Any exception raised during the query process is caught and returned as an error message.
+        """
+        try:
+            result = await self.query_engine.aquery(request)
+            return str(result.response)
+        except Exception as e:
+            return f"Error: {str(e)}"
 
 class PandasTool:
     def __init__(self, query_engine: PandasQueryEngine):
@@ -65,17 +89,21 @@ def create_filters_for_files(files: List[ChatFile]):
                     value=file.id,
                 )
             ]
-        ) for file in files if "sql" not in file.mime_type.lower()
+        )
+        for file in files
+        if all(ext not in file.mime_type.lower() for ext in ["sql", "xlsx", "csv"])
     ]
     return filters
 
-def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vector_store: ChromaVectorStore) -> List[BaseQueryEngine]:
+def create_query_engines_from_filters(filters: List[MetadataFilters],
+                                      chroma_vector_store: ChromaVectorStore, llm: Ollama) -> List[BaseQueryEngine]:
     """
     Creates a list of query engines from metadata filters using a Chroma vector store.
 
     Args:
         filters (List[MetadataFilter]): A list of metadata filters to create query engines from.
         chroma_vector_store (ChromaVectorStore): The Chroma vector store to use for creating the index.
+        llm (Ollama): The Ollama to use for creating the index.
 
     Returns:
         List[BaseQueryEngine]: A list of query engines, each initialized with a corresponding metadata filter.
@@ -88,42 +116,71 @@ def create_query_engines_from_filters(filters: List[MetadataFilters], chroma_vec
     vector_index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store, storage_context=storage_context,
                                                       embed_model=Settings.embed_model)
     query_engines = [
-        vector_index.as_query_engine(filter=meta_filters) for meta_filters in filters
+        vector_index.as_query_engine(filter=meta_filters, llm=llm if llm is not None else Settings.llm)
+        for meta_filters in filters
     ]
     return query_engines
 
-def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore):
+def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama):
     """
-    Creates a list of QueryEngineTool objects from provided files and a Chroma vector store.
-
-    The function filters out SQL files, creates appropriate filters for remaining files,
-    and generates query engines with associated metadata for each file.
+    Creates a list of query engine tools for analyzing and retrieving information 
+    from a collection of files, excluding certain file types based on their MIME types.
 
     Args:
-        files (List[ChatFile]): List of ChatFile objects containing file information.
-        chroma_vector_store (ChromaVectorStore): A ChromaVectorStore instance for vector storage.
+        files (List[ChatFile]): A list of `ChatFile` objects representing the files 
+            to be processed.
+        chroma_vector_store (ChromaVectorStore): An instance of `ChromaVectorStore` 
+            used for creating query engines.
+        llm (Ollama): An instance of `Ollama` used for creating query engines.
 
     Returns:
-        List[QueryEngineTool]: A list of QueryEngineTool objects, each containing a query engine
-        and metadata specific to a file.
+        List[QueryEngineTool]: A list of `QueryEngineTool` objects, each associated 
+        with a query engine and metadata describing its purpose.
 
-    Note:
-        - SQL files are explicitly filtered out from processing
-        - Each QueryEngineTool is named based on the corresponding file name
+    The function performs the following steps:
+        1. Filters out files with MIME types containing specific keywords 
+           (e.g., "sql", "xlsx", "csv").
+        2. Creates filters for the remaining files.
+        3. Generates query engines based on the filters and the provided 
+           `chroma_vector_store`.
+        4. Constructs `QueryEngineTool` objects for each query engine, with 
+           metadata describing the tool's purpose. Special descriptions are 
+           provided for markdown files.
     """
-    files = [file for file in files if "sql" not in file.mime_type.lower()]
-    filters = create_filters_for_files(files=files)
-    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store)
-    query_engine_tools = [
-        QueryEngineTool(
-            query_engine=query_engine,
-            metadata=ToolMetadata(
-                name=f"QueryEngineTool-{files[i].file_name}",
-                description=f"Query engine for analyzing and retrieving information from the document '{files[i].file_name}'. "
-                            f"Use this tool to perform searches and extract insights from the content of the file.",
-            )
-        ) for i, query_engine in enumerate(query_engines)
+    excluded_mime_keywords = ["sql", "xlsx", "csv"]
+    # Filter out unwanted files
+    filtered_files = [
+        file for file in files
+        if all(ext not in file.mime_type.lower() for ext in excluded_mime_keywords)
     ]
+
+    # Create filters and query engines
+    filters = create_filters_for_files(files=filtered_files)
+    query_engines = create_query_engines_from_filters(filters=filters, chroma_vector_store=chroma_vector_store, llm=llm)
+
+    query_engine_tools = []
+    for i, query_engine in enumerate(query_engines):
+        file = filtered_files[i]
+        is_markdown = file.mime_type.lower() == "text/markdown"
+
+        description = (
+            f"Query engine for deeply analyzing the markdown document '{file.file_name}'. "
+            f"This document is structured for natural language understanding—please read and reason over the full text."
+            if is_markdown else
+            f"Query engine for analyzing and retrieving information from the document '{file.file_name}'. "
+            f"Use this tool to perform searches and extract insights from the content of the file."
+        )
+
+        query_engine_tools.append(
+            QueryEngineTool(
+                query_engine=query_engine,
+                metadata=ToolMetadata(
+                    name=f"QueryEngineTool-{file.file_name}",
+                    description=description,
+                )
+            )
+        )
+
     return query_engine_tools
 
 def create_pandas_engines_tools_from_files(files: List[ChatFile]):
@@ -175,6 +232,29 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
         ) for i, pd_tool in enumerate(pd_tools)
     ]
     return pd_tools
+
+def create_text_extraction_tool_from_file(query: BaseQueryEngine, file: ChatFile):
+    """
+    Creates a text extraction tool for a given file using a specified query engine.
+
+    This function initializes a CustomTextExtractionTool with the provided query engine,
+    wraps its asynchronous extraction method in a FunctionTool, and configures the tool
+    with a name and description based on the file's name.
+
+    Args:
+        query (BaseQueryEngine): The query engine to be used for text extraction.
+        file (ChatFile): The file from which fields will be extracted.
+
+    Returns:
+        FunctionTool: A configured tool for extracting fields from the document based on user requests.
+    """
+    text_extractor = CustomTextExtractionTool(query_engine=query)
+    tool = FunctionTool.from_defaults(
+        async_fn=text_extractor.async_extract_fields_from_index_query_by_request,
+        name=f"TextExtractionTool-{file.file_name}",
+        description=f"Extracts fields from document {file.file_name} by using the user's request.",
+    )
+    return tool
 
 def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_store: ChromaVectorStore) -> List[QueryEngineTool]:
     """

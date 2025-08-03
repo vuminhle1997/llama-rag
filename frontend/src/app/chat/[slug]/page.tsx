@@ -89,6 +89,7 @@ export default function SlugChatPage({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const chats = useAppSelector(selectChats);
+  const queryParams = useAppSelector(state => state.app.query_params)[slug] || {};
 
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
@@ -315,7 +316,10 @@ export default function SlugChatPage({
         created_at: new Date().toDateString(),
       };
       setMessages([...messages, userMessage]);
-      await sendMessageStream.mutateAsync(data.message);
+      await sendMessageStream.mutateAsync({
+        text: data.message,
+        query_params: queryParams,
+      });
 
       const newMessage: Message = {
         role: 'assistant',

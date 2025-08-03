@@ -57,7 +57,6 @@ export interface ChatSettingsFormProps {
   isUpdating: boolean;
 }
 
-
 /**
  * A React component for rendering a chat settings form. This form allows users to create or edit chat configurations,
  * including uploading an avatar, setting a title, description, context, selecting a language model, and adjusting the temperature.
@@ -236,7 +235,7 @@ export default function ChatSettingsForm({
               {errors.context && (
                 <p className="text-red-500 text-sm">{errors.context.message}</p>
               )}
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 Der Kontext muss die folgenden Elemente enthalten:
                 <br />- Persönlichkeit und Rolle des KI-Assistenten
                 <br />- Kommunikationsstil und Verhaltensmuster
@@ -254,7 +253,7 @@ export default function ChatSettingsForm({
                   , um mehr darüber zu erfahren, wie Sie gute
                   Eingabeaufforderungen schreiben können.
                 </p>
-              </p>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -263,7 +262,8 @@ export default function ChatSettingsForm({
             </Label>
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Select
-                defaultValue={watch('model')}
+                defaultValue={'llama3.3:70b'}
+                value={watch('model')}
                 onValueChange={value => setValue('model', value)}
               >
                 <SelectTrigger className="w-full h-[60px]">
@@ -301,7 +301,7 @@ export default function ChatSettingsForm({
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
-                defaultValue={chat?.temperature ? [chat.temperature] : [0.75]}
+                defaultValue={chat ? [chat.temperature] : [0.75]}
                 // @ts-ignore
                 min={0}
                 // @ts-ignore

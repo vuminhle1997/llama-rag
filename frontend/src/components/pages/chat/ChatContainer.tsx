@@ -8,7 +8,6 @@ import { Message } from '@/frontend/types';
 import { getMessages } from '@/frontend/queries/messages';
 import { useInView } from 'react-intersection-observer';
 import { useInfiniteQuery, UseMutationResult } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Bars3Icon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
@@ -21,6 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { parseAgentResponse } from '@/lib/utils';
+import ThinkAnswerBlock from './components/ThinkAnswerBlock';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -49,11 +50,10 @@ export interface ChatContainerProps {
   scrollToBottom: () => void;
 }
 
-
 /**
- * ChatContainer component is responsible for rendering the chat interface, 
- * including the chat messages, user interactions, and chat settings. It 
- * handles fetching messages, managing the chat state, and rendering the 
+ * ChatContainer component is responsible for rendering the chat interface,
+ * including the chat messages, user interactions, and chat settings. It
+ * handles fetching messages, managing the chat state, and rendering the
  * appropriate UI elements based on the chat's current state.
  *
  * @param {ChatContainerProps} props - The properties passed to the ChatContainer component.
@@ -188,14 +188,11 @@ export default function ChatContainer({
         <div className="flex justify-between items-center">
           {(!open || isMobile) && (
             <Tooltip>
-              <TooltipTrigger>
-                <Button
-                  variant="outline"
-                  className="bg-primary dark:bg-background hover:bg-background/10 top-4 left-4"
-                  onClick={() => handleSideBarToggle()}
-                >
-                  <Bars3Icon className="h-4 w-4 text-white" />
-                </Button>
+              <TooltipTrigger
+                className="bg-primary dark:bg-background hover:bg-background/10 border border-white p-4 rounded-sm top-4 left-4"
+                onClick={() => handleSideBarToggle()}
+              >
+                <Bars3Icon className="h-4 w-4 text-white" />
               </TooltipTrigger>
               <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
                 <p className="text-m">Seitenleiste öffnen</p>
@@ -209,7 +206,7 @@ export default function ChatContainer({
         </div>
       </div>
       {!chat.messages ||
-        (chat.messages.length === 0 && (
+        (chat.messages.length === 0 && submittedMessages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
@@ -224,12 +221,12 @@ export default function ChatContainer({
                 className="bg-background rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
                   if (messageText === '') {
-                    reset({ message: 'Hallo, wie heißt du?' });
+                    reset({ message: 'Hallo, wie heißen Sie?' });
                   }
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  👋 "Hallo, wie heißt du?"
+                  👋 "Hallo, wie heißen Sie?"
                 </p>
               </div>
               <div
@@ -253,13 +250,13 @@ export default function ChatContainer({
                 onClick={() => {
                   if (messageText === '') {
                     reset({
-                      message: 'Wie kannst du mir bei meiner Aufgabe helfen?',
+                      message: 'Wie können Sie mir bei meiner Aufgabe helfen?',
                     });
                   }
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  💡 "Wie kannst du mir bei meiner Aufgabe helfen?"
+                  💡 "Wie können Sie mir bei meiner Aufgabe helfen?"
                 </p>
               </div>
             </div>
@@ -320,13 +317,7 @@ export default function ChatContainer({
             >
               {
                 <div key={v4()} className={'text-gray-800 dark:text-white'}>
-                  {response && (
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: marked(response.replaceAll('\n', '<br />')),
-                      }}
-                    ></div>
-                  )}
+                  {response && <ThinkAnswerBlock response={response} />}
                 </div>
               }
             </div>
@@ -340,7 +331,7 @@ export default function ChatContainer({
             </div>
 
             <img
-              src={profilePicture ? profilePicture : ''}
+              src={profilePicture ? profilePicture : undefined}
               alt="User Profile Picture"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
             />
@@ -401,17 +392,23 @@ export default function ChatContainer({
                         : 'text-gray-800 dark:text-white'
                     }
                   >
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: marked(message.text.replaceAll('\n', '<br />')),
-                      }}
-                    ></div>
+                    {message.role === 'user' ? (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: marked(
+                            message.text.replaceAll('\n', '<br />')
+                          ),
+                        }}
+                      ></div>
+                    ) : (
+                      <ThinkAnswerBlock response={message.text} />
+                    )}
                   </div>
                 }
               </div>
               {message.role === 'user' && (
                 <img
-                  src={profilePicture ? profilePicture : ''}
+                  src={profilePicture ? profilePicture : undefined}
                   alt="User Profile Picture"
                   className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                 />
@@ -474,21 +471,29 @@ export default function ChatContainer({
                               : 'text-gray-800 dark:text-white'
                           }
                         >
-                          {message.text && (
-                            <div
-                              dangerouslySetInnerHTML={{
-                                __html: marked(
-                                  message.text.replaceAll('\n', '<br />')
-                                ),
-                              }}
-                            ></div>
-                          )}
+                          {message.text &&
+                            (() => {
+                              if (message.role === 'user')
+                                return (
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: marked(
+                                        message.text.replaceAll('\n', '<br />')
+                                      ),
+                                    }}
+                                  ></div>
+                                );
+
+                              return (
+                                <ThinkAnswerBlock response={message.text} />
+                              );
+                            })()}
                         </div>
                       }
                     </div>
                     {message.role === 'user' && (
                       <img
-                        src={profilePicture ? profilePicture : ''}
+                        src={profilePicture ? profilePicture : undefined}
                         alt="User Profile Picture"
                         className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
                       />

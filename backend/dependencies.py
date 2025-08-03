@@ -7,6 +7,8 @@ from logging_config import setup_logging
 # chroma
 import chromadb
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from fastapi import Depends
+from typing import Annotated
 
 load_dotenv()
 
@@ -26,20 +28,21 @@ DATABASE_URL = os.getenv("DATABASE_URL", sqlite_url)
 engine = create_engine(DATABASE_URL)
 
 # ollama
-base_url = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:{os.getenv('OLLAMA_PORT', 11434)}"
+base_url = f"{os.getenv('OLLAMA_HOST', 'localhost')}:{os.getenv('OLLAMA_PORT', 11434)}"
 
 # chroma DB
-CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost") 
-CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000)) 
-CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4') 
+CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
+CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000))
+CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4')
 logger.info(f"Attempting to connect to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}")
 try:
     chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
-    chroma_client.heartbeat() # Check connection
+    chroma_client.heartbeat()  # Check connection
     logger.info("Successfully connected to ChromaDB.")
 except Exception as e:
     logger.error(f"Failed to connect to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}: {e}")
-    chroma_client = None 
+    chroma_client = None
+
 
 def create_db_and_tables():
     """
@@ -48,16 +51,15 @@ def create_db_and_tables():
     """
     SQLModel.metadata.create_all(engine)
 
+
 def get_db_session():
     """
     Provide a SQLModel database session.
     This function is a generator that yields a session and ensures it is closed after use.
     """
-    session = Session(engine)
-    try:
+    with Session(engine) as session:
         yield session
-    finally:
-        session.close()
+
 
 def get_redis_client():
     """
@@ -70,19 +72,26 @@ def get_redis_client():
     finally:
         redis.close()
 
+
 def get_chroma_vector():
     """
     Provide a ChromaVectorStore instance for vector storage operations.
     This function is a generator that yields the vector store.
     """
-    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
+    chroma_collection = chroma_client.get_or_create_collection(
+        os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     yield chroma_vector_store
+
 
 def get_chroma_collection():
     """
     Provide a Chroma collection instance.
     This function is a generator that yields the Chroma collection.
     """
-    chroma_collection = chroma_client.get_or_create_collection(os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
+    chroma_collection = chroma_client.get_or_create_collection(
+        os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
     yield chroma_collection
+
+
+SessionDep = Annotated[Session, Depends(get_db_session)]

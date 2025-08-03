@@ -1,0 +1,5 @@
+Query,Response
+Was sind das für Daten? Kannst du mir etwas modellieren?,"Thought: The current language of the user is: German. I need to use a tool to help me answer the question.
+Action: query_tool
+Action Input: {""input"": ""Was sind das f\u00fcr Daten? Kannst du mir etwas modellieren?""}Thought: Ich kann jetzt antworten, ohne weitere Tools zu verwenden. Ich werde das Modell für die Versicherungsdaten beschreiben.
+Answer: Das Modell für die Versicherungsdaten besteht aus zwei Entitäten: ""Versicherung"" und ""Feld"". Die Entität ""Versicherung"" hat Attribute wie Versicherungsart, Entitäts-ID und Basis-Deckung. Die Entität ""Feld"" hat Attribute wie Feldname, Kurzbeschreibung, Attributbez. PM DE, Verwendet, Voreinst., Wertebereich und Klassifik.. Die Beziehung zwischen den beiden Entitäten beschreibt, welche Felder einer Versicherung zugeordnet sind. Ein Beispiel für ein solches Modell zeigt, wie die Versicherungsart ""Investitionsvorsorge"" mit der Entitäts-ID ""1.40.13.39"" und der Basis-Deckung ""/PM0/ABDACOVCPCO"" den Feldern ""GROSSPREMIUMB_AM"" und ""RANK_TT"" zugeordnet ist."
