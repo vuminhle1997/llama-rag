@@ -1,10 +1,10 @@
-# LlamaRAG - Local LLM with RAG capabilities
+# LlamaRAG - Open-Source LLM with RAG capabilities
 
-A powerful application combining local Large Language Models with Retrieval-Augmented Generation (RAG), featuring both chat functionality and Azure API integration.
+A powerful application combining Large Language Models locally or via inference providers with Retrieval-Augmented Generation (RAG), featuring both chat functionality and Azure API integration.
 
 ## 🚀 Features
 
-- Local LLM support with customizable model selection
+- Open-Source LLM support with customizable model selection
 - RAG implementation for enhanced response accuracy
 - Interactive chat interface
 - Azure API integration for additional capabilities
@@ -14,21 +14,24 @@ A powerful application combining local Large Language Models with Retrieval-Augm
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - [NextJS](https://nextjs.org/): A React-based framework for building modern web applications
 - [Tailwind CSS](https://tailwindcss.com/): A utility-first CSS framework for rapid UI development
-- ShadcnUI Components: Pre-built UI components for enhanced design
-- TypeScript: A strongly typed programming language for JavaScript
+- [ShadcnUI](https://ui.shadcn.com/) Components: Pre-built UI components for enhanced design
+- [TypeScript](https://www.typescriptlang.org/): A strongly typed programming language for JavaScript
 
 ### Backend
+
 - [FastAPI](https://fastapi.tiangolo.com/): A modern web framework for building APIs with Python
 - [ChromaDB](https://www.trychroma.com/): A vector database for efficient document retrieval
 - [PostgreSQL](https://www.postgresql.org/): A powerful, open-source relational database system
 - [LlamaIndex](https://gpt-index.readthedocs.io/): A library for RAG implementation
-- Local LLM integration (compatible with various models, e.g., [Ollama](https://ollama.ai/))
+- Open-Source LLM integration (compatible with various models, e.g., [Ollama](https://ollama.ai/) or via inference providers, e.g. [IONOS AI Hub](https://cloud.ionos.de/managed/ai-model-hub))
 - [Redis](https://redis.io/): An in-memory data structure store for session management and caching
-- **[Arize Phoenix](https://arize.com/): A platform for tracing and monitoring application performance**
+- **[Arize Phoenix](https://arize.com/): A platform for tracing and monitoring LLM application performance**
 
 ### Storage & Caching
+
 - Local file system for document and image storage
 - Efficient document processing pipeline
 
@@ -40,6 +43,7 @@ A powerful application combining local Large Language Models with Retrieval-Augm
    cd llama-rag
    ```
 2. Install dependencies for both frontend and backend:
+
    ```bash
    # Backend
    cd backend
@@ -52,7 +56,9 @@ A powerful application combining local Large Language Models with Retrieval-Augm
    yarn set version stable
    yarn install
    ```
+
 3. Configure your environment variables:
+
    - Copy the `.env.example` file to `.env`:
      ```bash
      cp .env.example .env
@@ -60,11 +66,12 @@ A powerful application combining local Large Language Models with Retrieval-Augm
    - Update the placeholders (`<...>`) in the `.env` file with your actual configuration values.
 
 4. Start the development servers:
+
    ```bash
    # Backend
    cd backend
    source venv/bin/activate
-   granian --host 0.0.0.0 --port 4000 --reload --reload-ignore-dirs logs main:app
+   hypercorn main:app --bind 0.0.0.0:{$PORT}
 
    # Frontend
    cd ../frontend
@@ -74,9 +81,9 @@ A powerful application combining local Large Language Models with Retrieval-Augm
 ## 📝 Prerequisites
 
 - Node.js 20+
-- Python 3.8+
+- Python 3.9+
 - PostgreSQL
-- Local LLM of choice (e.g., Ollama)
+- Local LLM of choice (e.g., Ollama with [Llama3.3-70B-Instruct](https://ollama.com/library/llama3.3))
 - Docker
 
 ## 🔧 Installation & Setup
@@ -84,7 +91,7 @@ A powerful application combining local Large Language Models with Retrieval-Augm
 1. Ensure Docker is installed and running on your system.
 2. Use the provided `docker-compose.yml` file to set up the environment:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
    - The `docker-compose.yml` file includes an **Arize Phoenix** container for tracing and monitoring application performance.
 3. Access the application:
