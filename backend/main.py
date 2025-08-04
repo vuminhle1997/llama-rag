@@ -80,7 +80,7 @@ if provider == 'IONOS':
         is_chat_model=True,
         default_headers=headers,
         api_key=api_key,
-        context_window=128000,  # Adjusted to a more reasonable value for Llama 3.3-70B-Instruct
+        context_window=128000,
     )
     embed_model = OpenAIEmbedding(
         model_name='sentence-transformers/paraphrase-multilingual-mpnet-base-v2',

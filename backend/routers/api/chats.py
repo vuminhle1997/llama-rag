@@ -64,19 +64,56 @@ router = APIRouter(
 )
 
 def initialize_ionos_llm(temperature: float):
+    """
+    Initializes and returns an instance of an OpenAI-compatible LLM (OpenAILike) configured for IONOS deployment.
+
+    This function loads environment variables (e.g., `IONOS_BASE_URL`, `IONOS_API_KEY`) from a `.env` file
+    and uses them to configure the connection to a local or remote IONOS-compatible LLM API.
+
+    Parameters:
+    -----------
+    temperature : float
+        The temperature parameter for the LLM, controlling the randomness of the output. 
+        Higher values (e.g., 1.0) yield more diverse output, while lower values (e.g., 0.2) make it more deterministic.
+
+    Returns:
+    --------
+    OpenAILike
+        An instance of the `OpenAILike` LLM from LlamaIndex, configured to use the IONOS endpoint with provided settings.
+    
+    Environment Variables:
+    ----------------------
+    - IONOS_BASE_URL : str
+        The base URL of the IONOS-compatible LLM API (e.g., http://localhost:11434).
+    - IONOS_API_KEY : str
+        The API key used for authenticating with the IONOS LLM endpoint.
+
+    Notes:
+    ------
+    - Defaults are used if environment variables are not set.
+    - The `OPENAI_API_BASE` and `OPENAI_API_KEY` are set globally in the environment to ensure
+      compatibility with tools expecting OpenAI-like APIs.
+    """
     from llama_index.llms.openai_like import OpenAILike
     from dotenv import load_dotenv
-    load_dotenv()
-    
+    import os
+
+    load_dotenv()  # Load environment variables from .env file
+
+    # Read base URL and API key from environment variables or fallback to defaults
     base_url = os.getenv("IONOS_BASE_URL", "http://localhost:11434")
     api_key = os.getenv("IONOS_API_KEY", "your_api_key_here")
+
+    # Set required environment variables for OpenAI-compatible API access
     os.environ["OPENAI_API_BASE"] = base_url
     os.environ["OPENAI_API_KEY"] = api_key
+
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json',
     }
-    
+
+    # Instantiate the OpenAILike LLM with specified parameters
     llm = OpenAILike(
         api_base=base_url,
         temperature=temperature,
@@ -84,8 +121,9 @@ def initialize_ionos_llm(temperature: float):
         is_chat_model=True,
         default_headers=headers,
         api_key=api_key,
-        context_window=128000,  # Adjusted to a more reasonable value for Llama 3.3-70B-Instruct
+        context_window=128000,
     )
+
     return llm
 
 async def stream_agent_response(

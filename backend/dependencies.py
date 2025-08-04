@@ -33,7 +33,7 @@ base_url = f"{os.getenv('OLLAMA_HOST', 'localhost')}:{os.getenv('OLLAMA_PORT', 1
 # chroma DB
 CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
 CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000))
-CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4')
+CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION_NAME", 'llama-rag')
 logger.info(f"Attempting to connect to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}")
 try:
     chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
