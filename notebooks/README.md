@@ -1,51 +1,50 @@
-# Backend
+Here's a rewritten README that emphasizes the Jupyter Notebook prototyping aspect:
 
-The backend provides a REST API for interacting with Large Language Models (LLMs) while leveraging various services for data persistence, caching, and vector search. It enables RAG (Retrieval Augmented Generation) workflows by combining document retrieval with LLM-powered text generation. The API supports document ingestion, semantic search, and conversational interactions with documents.
+# LLM Prototyping & Backend API
 
-This codebase contains:
-- Python backend with FastAPI
-- Jupyter notebooks for LLM prototyping/testing
-- Integration with Postgres, Redis, ChromaDB
-- Azure Entra ID authentication
-- LLM and embedding services via Ollama
+This repository contains Jupyter Notebooks for prototyping with Large Language Models (LLMs) and a supporting backend API for production deployment. The notebooks allow for rapid experimentation with LLM workflows, while the backend provides a REST API for integrating these capabilities into applications.
 
-## Setup
+## Development Setup
 
 1. Create and activate virtual environment:
+
 ```bash
-python -m venv $PWD/venv
-source ./venv/bin/activate
+python -m venv venv
+source venv/bin/activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Create `.env` file with required environment variables:
+3. Configure environment:
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
-# Example .env configuration:
-```
-# Azure AD authentication
-```
-CLIENT_ID=your_client_id
-CLIENT_SECRET=your_client_secret
-TENANT_ID=your_tenant_id
-REDIRECT_URI=http://localhost:4000/redirect
-```
-
-# Redis configuration
-```
-REDIS_HOST=localhost
-REDIS_PORT=6379
 ```
 
 Required services:
-- PostgreSQL database
-- Redis cache
-- ChromaDB vector store
-- Ollama for LLM/embeddings
-- Azure Entra ID for auth
 
+- PostgreSQL
+- ChromaDB vector store
+- Ollama (for local LLM/embeddings) or Inference Providers (e.g. IONOS for LLM/embeddings)
+
+Start by exploring the notebooks, then use the backend API to integrate successful prototypes into the application.
+
+## Jupyter Notebooks for Prototyping
+
+The notebooks directory contains exploratory work with:
+
+- LLM prompt engineering
+- RAG (Retrieval Augmented Generation) workflows
+- Vector search experiments
+- Model benchmarks and evaluation
+
+To launch Jupyter:
+
+```bash
+jupyter notebook
+```

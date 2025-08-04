@@ -64,5 +64,6 @@ ENV PORT=4000
 EXPOSE ${PORT}
 
 # CMD uvicorn main:app --host 0.0.0.0 --port ${PORT}
-CMD granian --interface asgi --host 0.0.0.0 --port ${PORT} main:app
+# CMD granian --interface asgi --host 0.0.0.0 --port ${PORT} main:app
+CMD hypercorn main:app --bind 0.0.0.0:${PORT}
 

@@ -1,16 +1,6 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  llmsherpa:
-    image: ghcr.io/nlmatics/nlm-ingestor:latest
-    container_name: gct-insight-chat-llmsherpa
-    restart: always
-    ports:
-      - "5001:5001"
-    volumes:
-      - llmsherpa_data:/data
-    networks:
-      - gct-apps
   phoenix:
     image: arizephoenix/phoenix:latest
     container_name: gct-insight-chat-phoenix
@@ -21,8 +11,8 @@ services:
     #   PHOENIX_ENABLE_AUTH: ${PHOENIX_ENABLE_AUTH}
     #   PHOENIX_SECRET: ${PHOENIX_SECRET}
     ports:
-      - "6006:6006"  # UI and OTLP HTTP collector
-      - "4317:4317"  # OTLP gRPC collector
+      - '6006:6006' # UI and OTLP HTTP collector
+      - '4317:4317' # OTLP gRPC collector
     volumes:
       - phoenix_data:/mnt/data
     networks:
@@ -32,7 +22,7 @@ services:
     container_name: gct-insight-chat-ollama
     restart: always
     ports:
-      - "11434:11434"
+      - '11434:11434'
     volumes:
       - ollama_data:/root/.ollama
       # - /home/kiwerkstatt/.ollama:/root/.ollama
@@ -43,10 +33,10 @@ services:
     container_name: gct-insight-chat-redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     networks:
       - gct-apps
   chromadb:
@@ -54,7 +44,7 @@ services:
     container_name: gct-insight-chat-chromadb
     restart: always
     ports:
-      - "8000:8000"
+      - '8000:8000'
     volumes:
       - chromadb_data:/data
     networks:
@@ -71,7 +61,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -81,7 +71,7 @@ services:
     container_name: gct-insight-chat-postgres
     restart: always
     ports:
-      - "5432:5432"
+      - '5432:5432'
     env_file:
       - .env
     environment:
@@ -99,7 +89,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env
     environment:
@@ -123,7 +113,7 @@ services:
     env_file:
       - .env
     ports:
-      - "4000:4000"
+      - '4000:4000'
     volumes:
       - backend_data:/var/app/backend/uploads
     depends_on:

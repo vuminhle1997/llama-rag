@@ -1,6 +1,6 @@
 # Next.js v15 Frontend Application with TypeScript, ShadCN UI, Azure Entra SSO Login, Tailwind CSS, and FastAPI Backend Integration
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). It is built with TypeScript, ShadCN UI components, and Tailwind CSS for styling. The application supports Azure Entra SSO Login for authentication and communicates with a FastAPI backend service to interact with a local LLM (Large Language Model).
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). It is built with TypeScript, ShadCN UI components, and Tailwind CSS for styling. The application supports Azure Entra SSO Login for authentication and communicates with a FastAPI backend service to interact with a local or inference provided LLM.
 
 ## Prerequisites
 
@@ -65,7 +65,7 @@ The frontend communicates with a FastAPI backend service. Follow these steps to 
 4. Start the FastAPI server:
 
    ```bash
-   granian --host 0.0.0.0 --port 4000 --reload --reload-ignore-dirs logs main:app
+   hypercorn main:app --bind 0.0.0.0:{$PORT}
    ```
 
 The backend will be available at [http://localhost:4000](http://localhost:4000).
@@ -78,7 +78,7 @@ The backend will be available at [http://localhost:4000](http://localhost:4000).
 - **Azure Entra SSO Login**: Secure authentication using Azure Active Directory.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
 - **FastAPI Backend**: High-performance backend framework for Python.
-- **Local LLM Integration**: Communicates with a local Large Language Model for advanced AI capabilities.
+- **Local LLM Integration**: Communicates with a local or inference provided Large Language Model for advanced AI capabilities.
 
 ## Learn More
 
