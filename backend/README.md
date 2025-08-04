@@ -6,7 +6,7 @@ The backend is a robust and scalable system designed to provide a REST API for i
 
 - **FastAPI Framework**: Provides a high-performance REST API.
 - **LlamaIndex Integration**: Facilitates efficient document indexing and retrieval.
-- **Local LLMs with Ollama**: Supports local deployment of LLMs for text generation and embeddings.
+- **Local LLMs with Ollama or via inference providers**: Supports local deployment of LLMs for text generation and embeddings.
 - **ChromaDB**: Serves as a vector database for semantic search and document retrieval.
 - **Redis**: Used for caching and session management.
 - **Azure Entra ID**: Enables secure authentication and authorization.
@@ -57,6 +57,9 @@ CLIENT_SECRET=your_client_secret
 TENANT_ID=your_tenant_id
 REDIRECT_URI=http://localhost:4000/redirect
 
+# JWT for user and redis
+SECRET_KEY=<openssl rand -hex 32, necessary for generating SECRET>
+
 # Redis configuration
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -79,6 +82,11 @@ CHROMA_COLLECTION_NAME=llama-rage-TEST
 
 # Arize Phoenix Provider
 PHOENIX_API_KEY=<taken from the Phoenix Service API KEY Provider>
+
+# LLM communication
+LLM_PROVIDER=<IONOS|Ollama>
+IONOS_API_KEY=
+IONOS_BASE_URL=https://openai.inference.de-txl.ionos.com/v1
 ```
 
 ### 4. Start the FastAPI Server
@@ -100,9 +108,11 @@ This command starts the server with the following settings:
 Ensure the following services are running and properly configured:
 
 - **PostgreSQL**: For relational data storage.
-- **Redis**: For caching and session management.
+- **MySQL**: For importing MySQL/MariaDB dumps and migrating them to _PostgreSQL_
+- **Redis**: For session management.
 - **ChromaDB**: For vector storage and retrieval.
 - **Ollama**: For LLM and embedding services.
+- **Arize Phoenix**: For tracing and monitoring LLM activities.
 - **Azure Entra ID**: For authentication and authorization.
 
 ## Additional Notes
