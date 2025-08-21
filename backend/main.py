@@ -107,7 +107,7 @@ AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:4000/redirect")
 SCOPES = ["User.Read"]
 PORT = int(os.environ.get("PORT", 4000))
-FRONTEND_URL = os.getenv("REACT_URL", "http://localhost:3000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 origins = [
     "http://localhost",
