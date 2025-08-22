@@ -20,3 +20,6 @@ from services.indexer import (
 from services.tasks import (
     process_dump_to_persist 
 )
+from services.memory import (
+    create_memory,
+)

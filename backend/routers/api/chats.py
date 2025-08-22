@@ -46,7 +46,8 @@ from services import (
     create_url_loader_tool,
     create_query_engine_tools,
     index_spreadsheet,
-    create_text_extraction_tool_from_file
+    create_text_extraction_tool_from_file,
+    create_memory
 )
 from fastapi import BackgroundTasks
 from utils import detect_sql_dump_type, delete_database_from_postgres
@@ -395,10 +396,11 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     ]
 
     # Now the fun is getting started
-    chat_memory = ChatMemoryBuffer.from_defaults(
-        chat_history=chat_history,
-        token_limit=128_000,
-    )
+    # deprecated, old memory for agent
+    #chat_memory = ChatMemoryBuffer.from_defaults(
+    #    chat_history=chat_history,
+    #    token_limit=128_000,
+    #)
 
     tools: List[BaseTool] = []
     files = db_chat.files
@@ -415,6 +417,10 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
         llm = Ollama(model=model_from_chat, temperature=db_chat.temperature, request_timeout=500, base_url=base_url)
     elif provider == 'IONOS':
         llm = initialize_ionos_llm(temperature=db_chat.temperature)
+
+    # new implementation of agent memory
+    chat_memory = create_memory(chat_id=chat_id, llm=llm, messages=chat_history,
+                                vector_store=chroma_vector_store, token_limit=128_000)
 
     for file_id, params in chat.params.items():
         files_to_query = [file for file in files if file.id == file_id and params.queried == True]
