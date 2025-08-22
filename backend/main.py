@@ -99,14 +99,14 @@ Settings.embed_model = embed_model
 Settings.chunk_size = 512
 Settings.chunk_overlap = 50
 
+PORT = int(os.environ.get("PORT", 4000))
 ALLOWED_GROUPS_IDS = os.getenv("ALLOWED_GROUPS_IDS").split(',')
 CLIENT_ID=os.getenv("CLIENT_ID")
 CLIENT_SECRET=os.getenv("CLIENT_SECRET")
 TENANT_ID=os.getenv("TENANT_ID")
 AUTHORITY=f"https://login.microsoftonline.com/{TENANT_ID}"
-REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:4000/redirect")
 SCOPES = ["User.Read"]
-PORT = int(os.environ.get("PORT", 4000))
+REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:4000/redirect")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 origins = [
@@ -150,6 +150,7 @@ async def log_requests(request: Request, call_next):
 
 @app.on_event("startup")
 def on_startup():
+    logger.debug(f"Redirect url: {REDIRECT_URI} \n FRONTEND_URL: {FRONTEND_URL}")
     logger.debug("Creating tables for Database")
     create_db_and_tables()
 
