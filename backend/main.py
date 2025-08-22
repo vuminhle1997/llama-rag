@@ -21,7 +21,6 @@ from redis import Redis
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from hypercorn.middleware import ProxyFixMiddleware
 
 import os
 import uvicorn
@@ -132,8 +131,6 @@ app.add_middleware(
 )
 app.mount("/uploads/avatars", StaticFiles(directory="uploads/avatars"), name="avatar")
 
-fixed_app = ProxyFixMiddleware(app, mode="legacy", trusted_hops=1)
-
 def user_is_part_of_group(user_groups: list[str], allowed_groups: list[str]) -> bool:
     return bool(set(user_groups) & set(allowed_groups))
 
@@ -225,7 +222,7 @@ def auth_callback(request: Request, redis_client: Redis = Depends(get_redis_clie
         # Store access token in Redis (expires in 1 hour)
         redis_client.setex(f"session:{session_id}", 3600, token_response["access_token"])
         # Set session cookie
-        resp = RedirectResponse(url="http://localhost:3000")
+        resp = RedirectResponse(url=f"{FRONTEND_URL}")
         resp.set_cookie("session_id", session_id, httponly=True, secure=False)
         logger.info(f"Successfully logged in: {session_id} for user: {request.client.host}")
         return resp
