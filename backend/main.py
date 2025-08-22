@@ -97,7 +97,7 @@ else:
 Settings.llm = llm
 Settings.embed_model = embed_model
 Settings.chunk_size = 512
-Settings.chunk_overlap = 50
+Settings.chunk_overlap = 25
 
 PORT = int(os.environ.get("PORT", 4000))
 ALLOWED_GROUPS_IDS = os.getenv("ALLOWED_GROUPS_IDS").split(',')
