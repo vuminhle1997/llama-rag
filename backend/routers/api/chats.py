@@ -397,7 +397,7 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     # Now the fun is getting started
     chat_memory = ChatMemoryBuffer.from_defaults(
         chat_history=chat_history,
-        token_limit=3000,
+        token_limit=128_000,
     )
 
     tools: List[BaseTool] = []
@@ -513,7 +513,7 @@ async def chat_with_given_chat_id(chat_id: str, chat: ChatQuery,
     # Now the fun is getting started
     chat_memory = ChatMemoryBuffer.from_defaults(
         chat_history=chat_history,
-        token_limit=3000,
+        token_limit=128_000,
     )
 
     files = db_chat.files
