@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from routers.custom_router import APIRouter
 from .api import chats, avatar, favourites, messages, users
 
 router = APIRouter(

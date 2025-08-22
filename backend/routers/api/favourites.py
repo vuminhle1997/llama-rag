@@ -1,6 +1,7 @@
 import uuid
 from typing import Type, Optional, List
-from fastapi import APIRouter, Depends
+from routers.custom_router import APIRouter
+from fastapi import Depends
 from redis import Redis
 from sqlmodel import Session
 from starlette.exceptions import HTTPException
