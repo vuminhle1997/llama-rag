@@ -2,7 +2,8 @@ import uuid
 
 from redis import Redis
 from sqlmodel import Session
-from fastapi import APIRouter, Depends, Response
+from routers.custom_router import APIRouter
+from fastapi import Depends, Response
 
 from dependencies import get_db_session, get_redis_client, logger
 from models.user import UserLogin

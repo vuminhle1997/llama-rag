@@ -1,7 +1,8 @@
 from redis import Redis
 from sqlmodel import Session
 from starlette.requests import Request
-from fastapi import APIRouter, Depends, HTTPException
+from routers.custom_router import APIRouter
+from fastapi import Depends, HTTPException
 from fastapi.responses import FileResponse
 from dependencies import get_db_session, get_redis_client, logger
 from utils import decode_jwt
