@@ -7,13 +7,14 @@ from llama_index.core.memory import (
 from llama_index.core.settings import Settings
 from llama_index.core.llms import ChatMessage as LLMChatMessage
 from llama_index.vector_stores.chroma import ChromaVectorStore
+from llama_index.core.llms import LLM
 from typing import List
 
 def create_memory(chat_id: str,
-                  llm,
+                  llm: LLM,
                   messages: List[LLMChatMessage],
                   vector_store: ChromaVectorStore,
-                  token_limit = 128_000):
+                  token_limit: int = 128_000):
     """
     Creates a memory object for managing chat interactions and storing relevant information.
 

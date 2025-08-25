@@ -26,41 +26,6 @@ from sqlalchemy import create_engine
 from utils import initialize_pg_url
 from llama_index.llms.ollama import Ollama
 
-class CustomTextExtractionTool:
-    def __init__(self, query_engine: BaseQueryEngine):
-        self.query_engine = query_engine
-
-    async def async_extract_fields_from_index_query_by_request(self, request: str):
-        """
-        Asynchronously extracts fields from an index by querying with the provided request string.
-
-        Args:
-            request (str): The query string to be sent to the index query engine.
-
-        Returns:
-            str: The response from the query engine as a string, or an error message if an exception occurs.
-
-        Raises:
-            Exception: Any exception raised during the query process is caught and returned as an error message.
-        """
-        try:
-            result = await self.query_engine.aquery(request)
-            return str(result.response)
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-class PandasTool:
-    def __init__(self, query_engine: PandasQueryEngine):
-        self.query_engine = query_engine
-
-    async def apandas_tool(self, query: str):
-        """Executes a query with Pandas and return the string result"""
-        try:
-            result = await self.query_engine.aquery(query)
-            return str(result.response)  # Ensures only the output is returned
-        except Exception as e:
-            return f"Error: {str(e)}"
-
 def create_filters_for_files(files: List[ChatFile]):
     """
     Creates metadata filters for a list of files, excluding SQL files.
@@ -233,24 +198,23 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
 
     return pd_tools
 
-def create_text_extraction_tool_from_file(query: BaseQueryEngine, file: ChatFile):
+def create_text_extraction_tool_from_file(query_engine: BaseQueryEngine, file: ChatFile):
     """
-    Creates a text extraction tool for a given file using a specified query engine.
+    Creates a text extraction tool for a given file using the specified query engine.
 
-    This function initializes a CustomTextExtractionTool with the provided query engine,
-    wraps its asynchronous extraction method in a FunctionTool, and configures the tool
-    with a name and description based on the file's name.
+    This function initializes a QueryEngineTool instance configured to extract fields
+    from the provided document based on the user's request. The tool is named dynamically
+    using the file's name.
 
     Args:
-        query (BaseQueryEngine): The query engine to be used for text extraction.
+        query_engine (BaseQueryEngine): The query engine used to process the document.
         file (ChatFile): The file from which fields will be extracted.
 
     Returns:
-        FunctionTool: A configured tool for extracting fields from the document based on user requests.
+        QueryEngineTool: A tool configured for text extraction from the specified file.
     """
-    text_extractor = CustomTextExtractionTool(query_engine=query)
-    tool = FunctionTool.from_defaults(
-        async_fn=text_extractor.async_extract_fields_from_index_query_by_request,
+    tool = QueryEngineTool.from_defaults(
+        query_engine=query_engine,
         name=f"TextExtractionTool-{file.file_name}",
         description=f"Extracts fields from document {file.file_name} by using the user's request.",
     )
@@ -287,7 +251,6 @@ def create_sql_engines_tools_from_files(files: List[ChatFile], chroma_vector_sto
     index = VectorStoreIndex.from_vector_store(vector_store=chroma_vector_store,
                                                       storage_context=storage_context,
                                                       embed_model=Settings.embed_model)
-
     sql_tools = []
     for file in files:
         filter = MetadataFilters(

@@ -13,39 +13,37 @@ from dependencies import (
     logger, 
     base_url
 )
-from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
-from phoenix.otel import register
 from msal import ConfidentialClientApplication
 from dotenv import load_dotenv
 from redis import Redis
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from utils import decode_jwt
+from llama_index.core.settings import Settings
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 
 import os
-import uvicorn
+import asyncio
 import uuid
 import requests
-
-# LLM
-from llama_index.core.settings import Settings
-from llama_index.llms.ollama import Ollama
-from llama_index.embeddings.ollama import OllamaEmbedding
-
-from utils import decode_jwt
 
 # loads envs and setup Phoenix monitoring
 try:
     load_dotenv()
-    phoenix_key = os.getenv('PHOENIX_API_KEY')
-    if phoenix_key is None:
-        logger.error(f"Phoenix API key not found in .env file. Please paste the API Key into the .env file.")
-    logger.info(f"Setting up Arize Phoenix Tracing at: {os.getenv('PHOENIX_URL', 'http://127.0.0.1:6006/')}")
-    tracer_provider = register(project_name="llama-rag",
-                               endpoint=f"{os.getenv('PHOENIX_URL', 'http://127.0.0.1:6006')}/v1/traces",
-                               set_global_tracer_provider=False,
-                               batch=True)
-    LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
+    phoenix_key, phoenix_url = os.getenv('PHOENIX_API_KEY'), os.getenv('PHOENIX_URL')
+    if phoenix_key is None and phoenix_url is None:
+        logger.error(f"No Phoenix API key or URL found, skipping Arize Phoenix Tracing setup")
+    else:
+        from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+        from phoenix.otel import register
+        logger.info(f"Setting up Arize Phoenix Tracing at: {phoenix_url}")
+        tracer_provider = register(project_name="llama-rag",
+                                endpoint=f"{phoenix_url}/v1/traces",
+                                set_global_tracer_provider=False,
+                                batch=True)
+        LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
 except Exception as e:
     logger.error(f"Startup error: {e}")
     
@@ -61,6 +59,7 @@ base_url = None
 llm = None
 embed_model = None
 
+# Initialize LLM and embedding model based on provider
 if provider == 'IONOS':
     from llama_index.llms.openai_like import OpenAILike
     from llama_index.embeddings.openai import OpenAIEmbedding
@@ -81,6 +80,7 @@ if provider == 'IONOS':
         default_headers=headers,
         api_key=api_key,
         context_window=128000,
+        request_timeout=420
     )
     embed_model = OpenAIEmbedding(
         model_name='sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
@@ -90,10 +90,12 @@ if provider == 'IONOS':
         embed_batch_size=10
     )
 else:    
+    from llama_index.llms.ollama import Ollama
+    from llama_index.embeddings.ollama import OllamaEmbedding
     llm = Ollama(model=os.getenv('OLLAMA_MODEL', 'llama3.1'), base_url=base_url, request_timeout=420)
     embed_model = OllamaEmbedding(model_name=os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large'), base_url=base_url)
     
-
+# Set global settings for LLM and embedding model
 Settings.llm = llm
 Settings.embed_model = embed_model
 Settings.chunk_size = 512
@@ -337,4 +339,6 @@ async def get_profile_picture(request: Request,
 
 if __name__ == "__main__":
     logger.debug(f"Backend running at port: {PORT}")
-    uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
+    config = Config()
+    config.bind = [f"0.0.0.0:{PORT}"]
+    asyncio.run(serve(app, config))
