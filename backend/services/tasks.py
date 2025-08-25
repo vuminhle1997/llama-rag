@@ -1,4 +1,3 @@
-from sqlmodel import Session
 from models import Chat, ChatFile
 
 from utils import (
