@@ -1,6 +1,7 @@
 'use client';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { selectAuthorized, useAppSelector } from '../store';
 
 /**
  * Custom hook to fetch and return the avatar image for a given chat ID.
@@ -62,6 +63,8 @@ export const useGetAvatar = (chatId: string) => {
  * @returns {string | null} profilePicture - The URL of the profile picture or null if not yet fetched.
  */
 export const useGetProfilePicture = () => {
+  const isAuth = useAppSelector(selectAuthorized);
+
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,8 +83,10 @@ export const useGetProfilePicture = () => {
         console.error('Error fetching profile picture:', error);
       }
     };
-    fetchProfilePicture();
-  }, []);
+    if (isAuth) {
+      fetchProfilePicture();
+    }
+  }, [isAuth]);
 
   return { profilePicture };
 };
