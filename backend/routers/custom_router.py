@@ -4,7 +4,6 @@ from fastapi import APIRouter as FastAPIRouter
 from fastapi.types import DecoratedCallable
 
 class APIRouter(FastAPIRouter):
-<<<<<<< HEAD
     """
     A custom API router that extends FastAPI's APIRouter to handle trailing slashes
     in endpoint paths more gracefully.
@@ -28,8 +27,6 @@ class APIRouter(FastAPIRouter):
             alternate path with a trailing slash. The alternate path is excluded from
             the OpenAPI schema.
     """
-=======
->>>>>>> 0890519c75e456f02f44fa657fe32ba97bd02743
     def api_route(
         self, path: str, *, include_in_schema: bool = True, **kwargs: Any
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
