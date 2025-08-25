@@ -152,16 +152,16 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
     """
     Creates a list of Pandas-based function tools from a list of chat files.
 
-    This function processes CSV and Excel files to create PandasQueryEngine and PandasTool instances,
-    which are then wrapped into FunctionTools for data analysis capabilities.
+    This function processes CSV and Excel files to create PandasQueryEngine instances,
+    which are then wrapped into QueryEngineTool for data analysis capabilities.
 
     Args:
         files (List[ChatFile]): A list of ChatFile objects containing file information including
             mime_type and path_name. Only CSV and Excel files will be processed.
 
     Returns:
-        List[FunctionTool]: A list of FunctionTool objects, each containing:
-            - An async pandas query function
+        List[QueryEngineTool]: A list of QueryEngineTool objects, each containing:
+            - A pandas query engine 
             - A name based on the original filename
             - A description of the tool's functionality
 
@@ -178,24 +178,24 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
                 df=pd.read_csv(file.path_name),
                 verbose=True,
             )
-            pd_tool = PandasTool(query_engine=pd_query)
-            pd_tools.append(pd_tool)
+            tool = QueryEngineTool.from_defaults(
+                query_engine=pd_query,
+                name=f"PandasTool-{file.file_name}",
+                description=f"Analyze, evaluate and query the CSV spreadsheet file '{file.file_name}' using Pandas."
+            )
+            pd_tools.append(tool)
         if "excel" in file.mime_type.lower():
             pd_query = PandasQueryEngine(
                 df=pd.read_excel(file.path_name),
                 verbose=True,
             )
-            pd_tool = PandasTool(query_engine=pd_query)
-            pd_tools.append(pd_tool)
+            tool = QueryEngineTool.from_defaults(
+                query_engine=pd_query,
+                name=f"PandasTool-{file.file_name}",
+                description=f"Analyze, evaluate and query the Excel spreadsheet file '{file.file_name}' using Pandas."
+            )
+            pd_tools.append(tool)
 
-    pd_tools = [
-        FunctionTool.from_defaults(
-            async_fn=pd_tool.apandas_tool,
-            name=f"PandasTool-{files[i].file_name}",
-            description=f"Analyze and query the spreadsheet file '{files[i].file_name}' using Pandas. "
-                        f"This tool allows you to perform data analysis and extract insights from the file.",
-        ) for i, pd_tool in enumerate(pd_tools)
-    ]
     return pd_tools
 
 def create_text_extraction_tool_from_file(query_engine: BaseQueryEngine, file: ChatFile):

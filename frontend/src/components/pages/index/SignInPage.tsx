@@ -3,7 +3,6 @@
 import React from 'react';
 import Logo from '@/static/globalLogo.png';
 import Image from 'next/image';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
@@ -461,12 +460,6 @@ export default function SignInPage() {
         {/* Right Section */}
         <div className="flex w-full md:w-1/2 items-center justify-center bg-card px-4 md:px-8 py-8 md:py-0">
           <div className="w-full max-w-md space-y-8">
-            <Tabs defaultValue="azure" className="w-full">
-              <TabsList>
-                <TabsTrigger value="azure" onClick={() => setShowSections(SignInPageSections.WELCOME)}>Azure</TabsTrigger>
-                <TabsTrigger value="email" onClick={() => setShowSections(SignInPageSections.LOGIN)}>Email</TabsTrigger>
-              </TabsList>
-            </Tabs>
             {section()}
           </div>
         </div>

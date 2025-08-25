@@ -5,7 +5,7 @@ RUN corepack enable && corepack prepare yarn@stable --activate
 COPY package*.json ./
 COPY . .
 RUN yarn
-RUN yarn build
+RUN NEXT_PUBLIC_BACKEND_URL=https://api.insights.globalct.com yarn build
 
 # Production stage
 FROM node:22-alpine AS runner

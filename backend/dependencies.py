@@ -20,11 +20,13 @@ REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 
 # main DB
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-connect_args = {"check_same_thread": False}
+PG_HOST= os.getenv("PG_HOST", "localhost")
+PG_PORT = os.getenv("PG_PORT", 5432)
+PG_USER = os.getenv("PG_USER", "postgres")
+PG_PASSWORD = os.getenv("PG_PASSWORD", "password")
+PG_COLLECTION = os.getenv("PG_COLLECTION", "llama-rag")
 
-DATABASE_URL = os.getenv("DATABASE_URL", sqlite_url)
+DATABASE_URL = f"postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_COLLECTION}"
 engine = create_engine(DATABASE_URL)
 
 # ollama
