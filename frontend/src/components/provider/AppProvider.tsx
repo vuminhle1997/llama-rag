@@ -4,7 +4,7 @@ import React from 'react';
 import { store } from '@/frontend';
 import TanstackProvider from './TanstackProvider';
 
-export interface AppProviderProps extends React.PropsWithChildren {}
+export type AppProviderProps = React.PropsWithChildren;
 
 /**
  * AppProvider component that wraps its children with necessary providers.

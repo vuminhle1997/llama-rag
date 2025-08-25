@@ -21,13 +21,13 @@ interface AppState {
         query_type?: string;
         queried: boolean;
       };
-    }
+    };
   };
 }
 
 // Define the initial state using that type
 const initialState: AppState = {
-  isAuthorized: true,
+  isAuthorized: false,
   user: null,
   chats: null,
   profilePicture: null,
@@ -93,7 +93,7 @@ export const appSlice = createSlice({
       action: PayloadAction<AppState['query_params']>
     ) => {
       state.query_params = action.payload;
-    }
+    },
   },
 });
 

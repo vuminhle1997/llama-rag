@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Page } from '../types/page';
 import { Favourite } from '../types/favourites';
+import { selectAuthorized, useAppSelector } from '../store';
 
 /**
  * Custom hook to fetch a paginated list of favourites.
@@ -21,9 +22,13 @@ import { Favourite } from '../types/favourites';
  * The request includes credentials (cookies) for authentication.
  */
 export const useGetFavourites = (size: number, page: number) => {
+  const isAuth = useAppSelector(selectAuthorized);
   return useQuery({
     queryKey: ['favourites', size, page],
     queryFn: async () => {
+      if (!isAuth) {
+        return { items: [], total: 0, page, size };
+      }
       const response = await axios.get<Page<Favourite>>(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/favourites`,
         {

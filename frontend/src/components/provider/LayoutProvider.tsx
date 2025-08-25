@@ -89,7 +89,7 @@ export default function LayoutProvider({
     } else {
       setSearchedChats(chats || []);
     }
-  }, [value]);
+  }, [value, chats]);
 
   /**
    * Toggles the visibility of the commands and resets the input value.
@@ -126,7 +126,7 @@ export default function LayoutProvider({
     if (profilePicture) {
       dispatch(setProfilePicture(profilePicture));
     }
-  }, [profilePicture]);
+  }, [profilePicture, dispatch]);
 
   useEffect(() => {
     if (favouriteChats) {
@@ -134,7 +134,7 @@ export default function LayoutProvider({
         setFavouriteChats(favouriteChats.items.map(favorite => favorite.chat))
       );
     }
-  }, [favouriteChats]);
+  }, [favouriteChats, dispatch]);
 
   useEffect(() => {
     if (authData && !isLoading && !error) {
@@ -143,7 +143,7 @@ export default function LayoutProvider({
     } else if (error) {
       dispatch(setAppState('failed'));
     }
-  }, [authData, isLoading, error]);
+  }, [authData, isLoading, error, dispatch]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -154,7 +154,7 @@ export default function LayoutProvider({
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [dispatch, showCommands]);
 
   return isAuthorized ? (
     <SidebarProvider
