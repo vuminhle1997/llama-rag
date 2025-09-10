@@ -83,7 +83,7 @@ if provider == 'IONOS':
         request_timeout=420
     )
     embed_model = OpenAIEmbedding(
-        model_name='sentence-transformers/paraphrase-multilingual-mpnet-base-v2',
+        model_name='BAAI/bge-m3',
         api_base=base_url,
         api_key=api_key,
         default_headers=headers,
@@ -98,8 +98,8 @@ else:
 # Set global settings for LLM and embedding model
 Settings.llm = llm
 Settings.embed_model = embed_model
-Settings.chunk_size = 512
-Settings.chunk_overlap = 25
+Settings.chunk_size = 1024
+Settings.chunk_overlap = 100
 
 PORT = int(os.environ.get("PORT", 4000))
 ALLOWED_GROUPS_IDS = os.getenv("ALLOWED_GROUPS_IDS").split(',')
