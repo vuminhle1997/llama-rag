@@ -55,7 +55,7 @@ import _ from 'lodash';
 
 /**
  * Component that renders a chat page for a specific chat identified by a slug.
- * 
+ *
  * This component handles:
  * - Chat message display and scrolling
  * - File uploads and management
@@ -63,12 +63,12 @@ import _ from 'lodash';
  * - Chat deletion and editing
  * - Favorite status management
  * - Various dialog states for different actions
- * 
+ *
  * @param {Object} props - Component props
  * @param {Promise<{slug: string}>} props.params - Object containing the chat slug from URL params
- * 
+ *
  * @returns {JSX.Element} A complete chat interface with messages, input area, and various dialogs
- * 
+ *
  * @example
  * <SlugChatPage params={Promise.resolve({slug: "chat-123"})} />
  *
@@ -89,7 +89,8 @@ export default function SlugChatPage({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const chats = useAppSelector(selectChats);
-  const queryParams = useAppSelector(state => state.app.query_params)[slug] || {};
+  const queryParams =
+    useAppSelector(state => state.app.query_params)[slug] || {};
 
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
@@ -144,7 +145,7 @@ export default function SlugChatPage({
       message: '',
     },
   });
-  
+
   /**
    * Handles the deletion of a file by its ID.
    *
@@ -218,8 +219,6 @@ export default function SlugChatPage({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log(file);
-
     const allowedTypes = [
       'application/pdf',
       'text/csv',
@@ -230,7 +229,7 @@ export default function SlugChatPage({
       'application/sql',
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (file.name.length < 0 && !allowedTypes.includes(file.type)) {
       setAlert({
         show: true,
         type: 'error',
@@ -246,8 +245,15 @@ export default function SlugChatPage({
     try {
       setIsUploading(true);
       const formData = new FormData();
-      formData.set('file', file);
 
+      if (file.type.length < 1 && file.name.toLowerCase().endsWith('.sql')) {
+        const sqlFile = new File([file], file.name, {
+          type: 'application/sql',
+        });
+        formData.set('file', sqlFile);
+      } else {
+        formData.set('file', file);
+      }
       await uploadFileMutation.mutateAsync(formData);
 
       await refetchChat();
@@ -289,10 +295,10 @@ export default function SlugChatPage({
 
   /**
    * Handles the submission of a chat message.
-   * 
+   *
    * @param data - The chat form data containing the message to be sent
    * @throws {Error} When there is an error sending the message
-   * 
+   *
    * This function:
    * - Sets submission and typing states
    * - Creates and adds user message to messages list
@@ -366,10 +372,10 @@ export default function SlugChatPage({
    * Makes a mutation request to delete the chat and handles the response.
    * On successful deletion, redirects to the home page and refreshes the window.
    * On error, logs the failure message to the console.
-   * 
+   *
    * @remarks
    * This function uses the deleteChat mutation from a query client and the Next.js router for navigation.
-   * 
+   *
    * @throws {Error} Logs any errors that occur during the deletion process
    */
   const confirmDelete = () => {
@@ -383,7 +389,6 @@ export default function SlugChatPage({
       },
     });
   };
-
 
   useEffect(() => {
     dispatch(setAppState('loading'));
