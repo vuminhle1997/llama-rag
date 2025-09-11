@@ -14,9 +14,9 @@ import { useRouter } from 'next/navigation';
 import {
   selectProfilePicture,
   selectAppState,
-  setAppState,
   selectChats,
   setChats,
+  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -25,7 +25,6 @@ import {
   useDeleteFavourite,
 } from '@/frontend/queries/favourites';
 import ChatEntryForm from '@/components/form/ChatEntryForm';
-import ChatLoadingScreen from '@/components/pages/chat/ChatLoadingScreen';
 import PendingMessageLoader from '@/components/form/PendingMessageLoader';
 import ChatNotFoundScreen, {
   UserChatNotFoundScreen,
@@ -52,10 +51,11 @@ import ChatEditAlertDialog, {
 } from '@/components/pages/chat/components/ChatEditAlertDialog';
 import AuthProvider from '@/components/AuthProvider';
 import _ from 'lodash';
+import DashboardLoadingSkeleton from '@/components/pages/index/DashboardLoadingSkeleton';
 
 /**
  * Component that renders a chat page for a specific chat identified by a slug.
- * 
+ *
  * This component handles:
  * - Chat message display and scrolling
  * - File uploads and management
@@ -63,12 +63,12 @@ import _ from 'lodash';
  * - Chat deletion and editing
  * - Favorite status management
  * - Various dialog states for different actions
- * 
+ *
  * @param {Object} props - Component props
  * @param {Promise<{slug: string}>} props.params - Object containing the chat slug from URL params
- * 
+ *
  * @returns {JSX.Element} A complete chat interface with messages, input area, and various dialogs
- * 
+ *
  * @example
  * <SlugChatPage params={Promise.resolve({slug: "chat-123"})} />
  *
@@ -89,7 +89,8 @@ export default function SlugChatPage({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const chats = useAppSelector(selectChats);
-  const queryParams = useAppSelector(state => state.app.query_params)[slug] || {};
+  const queryParams =
+    useAppSelector(state => state.app.query_params)[slug] || {};
 
   const appState = useAppSelector(selectAppState);
   const profilePicture = useAppSelector(selectProfilePicture);
@@ -144,7 +145,7 @@ export default function SlugChatPage({
       message: '',
     },
   });
-  
+
   /**
    * Handles the deletion of a file by its ID.
    *
@@ -218,8 +219,6 @@ export default function SlugChatPage({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log(file);
-
     const allowedTypes = [
       'application/pdf',
       'text/csv',
@@ -230,7 +229,7 @@ export default function SlugChatPage({
       'application/sql',
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (file.name.length < 0 && !allowedTypes.includes(file.type)) {
       setAlert({
         show: true,
         type: 'error',
@@ -246,8 +245,15 @@ export default function SlugChatPage({
     try {
       setIsUploading(true);
       const formData = new FormData();
-      formData.set('file', file);
 
+      if (file.type.length < 1 && file.name.toLowerCase().endsWith('.sql')) {
+        const sqlFile = new File([file], file.name, {
+          type: 'application/sql',
+        });
+        formData.set('file', sqlFile);
+      } else {
+        formData.set('file', file);
+      }
       await uploadFileMutation.mutateAsync(formData);
 
       await refetchChat();
@@ -289,10 +295,10 @@ export default function SlugChatPage({
 
   /**
    * Handles the submission of a chat message.
-   * 
+   *
    * @param data - The chat form data containing the message to be sent
    * @throws {Error} When there is an error sending the message
-   * 
+   *
    * This function:
    * - Sets submission and typing states
    * - Creates and adds user message to messages list
@@ -366,17 +372,16 @@ export default function SlugChatPage({
    * Makes a mutation request to delete the chat and handles the response.
    * On successful deletion, redirects to the home page and refreshes the window.
    * On error, logs the failure message to the console.
-   * 
+   *
    * @remarks
    * This function uses the deleteChat mutation from a query client and the Next.js router for navigation.
-   * 
+   *
    * @throws {Error} Logs any errors that occur during the deletion process
    */
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
         router.push('/');
-        window.location.reload();
       },
       onError: (error: Error) => {
         console.error('Failed to delete chat:', error);
@@ -384,25 +389,24 @@ export default function SlugChatPage({
     });
   };
 
-
   useEffect(() => {
-    dispatch(setAppState('loading'));
-    // @eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    if (chat && !isStreaming) {
-      window.document.title = `global CT InsightChat - ${chat?.title}`;
+    if (chat) {
       dispatch(setAppState('idle'));
-    } else if (isStreaming) {
+      window.document.title = `global CT InsightChat - ${chat?.title}`;
+    } else {
+      window.document.title = `global CT InsightChat - Lädt Chat . . .`;
+    }
+  }, [chat, dispatch]);
+
+  useEffect(() => {
+    if (isStreaming) {
       if (response.length < 1) {
         window.document.title = `🤔 agentic RAG denkt ...`;
       } else {
         window.document.title = `🤖 agentic RAG chattet ...`;
       }
     }
-    // @eslint-disable-next-line
-  }, [chat, isStreaming, response]);
+  }, [isStreaming, response, dispatch]);
 
   useEffect(() => {
     scrollToBottom();
@@ -476,7 +480,7 @@ export default function SlugChatPage({
 
   return (
     <AuthProvider
-      fallback={<ChatLoadingScreen />}
+      fallback={<DashboardLoadingSkeleton />}
       errorFallback={<ChatNotFoundScreen />}
     >
       {appState === 'idle' && (

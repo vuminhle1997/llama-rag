@@ -20,7 +20,7 @@ export default function ChatAlertSuccess(
   { mode }: { mode: 'create' | 'update' } = { mode: 'create' }
 ) {
   return (
-    <div className="fixed top-4 right-4 z-50 w-96">
+    <div className="fixed bottom-4 right-4 z-50 w-96">
       <Alert variant="default" className="relative">
         <Check className="h-4 w-4" />
         <AlertTitle>

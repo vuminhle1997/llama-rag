@@ -11,6 +11,7 @@ import {
   selectAppState,
   setChats,
   selectChats,
+  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
@@ -72,8 +73,12 @@ export default function ChatsNavigation() {
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
+        // Remove deleted chat from redux state
+        const remaining = chats.filter(c => c.id !== chatToDelete);
+        dispatch(setChats(remaining));
         router.push('/');
-        window.location.reload();
+        setIsDeleteDialogOpen(false);
+        setChatToDelete(null);
       },
       onError: error => {
         console.error('Failed to delete chat:', error);
@@ -87,6 +92,7 @@ export default function ChatsNavigation() {
       fetchNextPage().then(result => {
         const newChats = result?.data?.pages.flatMap(page => page.items) || [];
         dispatch(setChats(newChats));
+        dispatch(setAppState('idle'));
       });
     }
   }, [appState, fetchNextPage, dispatch]);

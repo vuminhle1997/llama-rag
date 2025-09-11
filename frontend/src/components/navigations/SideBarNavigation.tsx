@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   MagnifyingGlassCircleIcon,
   PencilIcon,
@@ -38,6 +38,7 @@ export default function SideBarNavigation() {
   const appState = useAppSelector(selectAppState);
   const dispatch = useAppDispatch();
   const showCommands = useAppSelector(selectShowCommands);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const { toggleSidebar } = useSidebar();
 
@@ -75,7 +76,7 @@ export default function SideBarNavigation() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger
-                    className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
+                    className="bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white"
                     onClick={() => handleSideBarToggle()}
                   >
                     <XMarkIcon className="h-4 w-4 text-white" />
@@ -93,17 +94,17 @@ export default function SideBarNavigation() {
           <div className="right-0 flex items-center justify-center">
             {appState === 'idle' ? (
               <React.Fragment>
-                <Dialog>
-                  <DialogTrigger className="mx-4 bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white">
+                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                  <DialogTrigger className="mx-4 bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white">
                     <PencilIcon className="w-4 text-white" />
                   </DialogTrigger>
-                  <ChatEntryForm />
+                  <ChatEntryForm onCreated={() => setIsCreateOpen(false)} />
                 </Dialog>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger
                       onClick={handleShowCommandDialog}
-                      className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
+                      className="bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white"
                     >
                       <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
                     </TooltipTrigger>

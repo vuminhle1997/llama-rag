@@ -2,6 +2,7 @@ import asyncio
 import json
 import uuid
 import os
+import time
 from datetime import datetime
 from routers.custom_router import APIRouter
 from fastapi import Depends, HTTPException, UploadFile, File, Form, Response
@@ -639,8 +640,7 @@ async def upload_file_to_chat(chat_id: str, file: UploadFile = File(...),
 
     if file.content_type.lower().find("sql") != -1 and db_chat is not None:
         logger.info(f"Processing SQL File for Chat: {db_chat.id}")
-        database_name = (f"{db_chat.title}-{file.filename}".lower().replace(" ", "")
-                         .replace("-", "_").replace(".", "_").strip(""))
+        database_name = f"sd_{db_chat.id.replace('-', '_')[:5]}_{time.time_ns()}"
         db_file.database_name = database_name
         database_type = detect_sql_dump_type(str(file_path))
         db_file.database_type = database_type

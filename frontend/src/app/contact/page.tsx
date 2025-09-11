@@ -1,4 +1,5 @@
 import React from 'react';
+import BackHomeButtonIfLoggedOut from '@/components/BackHomeButtonIfLoggedOut';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -17,7 +18,8 @@ export default function ContactPage() {
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="max-w-3xl mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-6">Kontakt</h1>
+        <h1 className="text-4xl font-bold mb-2">Kontakt</h1>
+        <BackHomeButtonIfLoggedOut />
 
         <p className="mb-6 text-lg">
           Wenn Sie Fragen zu unseren Leistungen oder unserer Plattform haben,

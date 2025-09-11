@@ -80,8 +80,7 @@ def get_chroma_vector():
     Provide a ChromaVectorStore instance for vector storage operations.
     This function is a generator that yields the vector store.
     """
-    chroma_collection = chroma_client.get_or_create_collection(
-        os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
+    chroma_collection = chroma_client.get_or_create_collection(CHROMA_COLLECTION)
     chroma_vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
     yield chroma_vector_store
 
@@ -91,8 +90,7 @@ def get_chroma_collection():
     Provide a Chroma collection instance.
     This function is a generator that yields the Chroma collection.
     """
-    chroma_collection = chroma_client.get_or_create_collection(
-        os.environ.get("CHROMA_COLLECTION_NAME", 'llama-test-chroma-4'))
+    chroma_collection = chroma_client.get_or_create_collection(CHROMA_COLLECTION)
     yield chroma_collection
 
 

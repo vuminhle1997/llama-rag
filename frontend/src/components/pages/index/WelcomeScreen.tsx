@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Bars3Icon, PencilSquareIcon } from '@heroicons/react/24/solid';
@@ -35,6 +35,7 @@ import {
 export default function WelcomeScreen() {
   const isMobile = useIsMobile();
   const { open, toggleSidebar } = useSidebar();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
@@ -46,12 +47,13 @@ export default function WelcomeScreen() {
           <TooltipTrigger>
             <Button
               variant="outline"
-              className="bg-primary dark:bg-accent hover:bg-primary/10 top-4 left-4 absolute"
+              className="bg-primary dark:bg-accent hover:bg-primary/50 text-white top-4 left-4 absolute"
               onClick={() => handleSideBarToggle()}
             >
               <Bars3Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
+          {/* TODO: fix tooltip anchor */}
           <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
             <p>Seitenleiste öffnen</p>
           </TooltipContent>
@@ -67,7 +69,7 @@ export default function WelcomeScreen() {
         </p>
 
         <div className="flex justify-center mb-8 animate-fade-in delay-300">
-          <Dialog>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
@@ -77,7 +79,7 @@ export default function WelcomeScreen() {
                 Neuen Chat erstellen
               </Button>
             </DialogTrigger>
-            <ChatEntryForm />
+            <ChatEntryForm onCreated={() => setIsCreateOpen(false)} />
           </Dialog>
         </div>
       </div>

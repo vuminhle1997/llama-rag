@@ -68,7 +68,8 @@ export const ChatNavigationItem = ({
   const handleDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
-        window.location.reload();
+        // TODO: propagate state update via context/redux if this component is used
+        // For now, rely on parent to refetch/invalidate
       },
       onError: error => {
         console.error('Failed to delete chat:', error);
@@ -133,7 +134,7 @@ export const ChatNavigationItem = ({
               onSuccess={() => {
                 setIsDialogOpen(false);
                 setSelectedChat(null);
-                window.location.reload();
+                // Avoid full reload; parent should handle state update
               }}
             />
           )}
