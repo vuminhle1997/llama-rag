@@ -46,12 +46,13 @@ export default function WelcomeScreen() {
           <TooltipTrigger>
             <Button
               variant="outline"
-              className="bg-primary dark:bg-accent hover:bg-primary/10 top-4 left-4 absolute"
+              className="bg-primary dark:bg-accent hover:bg-primary/50 text-white top-4 left-4 absolute"
               onClick={() => handleSideBarToggle()}
             >
               <Bars3Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
+          {/* TODO: fix tooltip anchor */}
           <TooltipContent className="dark:bg-accent bg-primary border border-white shadow-sm">
             <p>Seitenleiste öffnen</p>
           </TooltipContent>

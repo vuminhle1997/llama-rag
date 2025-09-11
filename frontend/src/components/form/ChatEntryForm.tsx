@@ -248,8 +248,8 @@ export default function ChatEntryForm({
       } else {
         setTimeout(() => {
           router.push(`/chat/${response.id}`);
-          window.location.reload();
-        }, 3000);
+          // Avoid full page reload; rely on client-side state updates / react-query
+        }, 1500);
       }
     } catch (error) {
       console.error(error);

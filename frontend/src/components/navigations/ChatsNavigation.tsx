@@ -72,8 +72,12 @@ export default function ChatsNavigation() {
   const confirmDelete = () => {
     deleteChat.mutate(undefined, {
       onSuccess: () => {
+        // Remove deleted chat from redux state
+        const remaining = chats.filter(c => c.id !== chatToDelete);
+        dispatch(setChats(remaining));
         router.push('/');
-        window.location.reload();
+        setIsDeleteDialogOpen(false);
+        setChatToDelete(null);
       },
       onError: error => {
         console.error('Failed to delete chat:', error);

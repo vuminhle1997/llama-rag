@@ -52,6 +52,7 @@ import ChatEditAlertDialog, {
 } from '@/components/pages/chat/components/ChatEditAlertDialog';
 import AuthProvider from '@/components/AuthProvider';
 import _ from 'lodash';
+import DashboardLoadingSkeleton from '@/components/pages/index/DashboardLoadingSkeleton';
 
 /**
  * Component that renders a chat page for a specific chat identified by a slug.
@@ -382,7 +383,7 @@ export default function SlugChatPage({
     deleteChat.mutate(undefined, {
       onSuccess: () => {
         router.push('/');
-        window.location.reload();
+        // Avoid full reload; rely on state
       },
       onError: (error: Error) => {
         console.error('Failed to delete chat:', error);
@@ -390,10 +391,13 @@ export default function SlugChatPage({
     });
   };
 
+  // Avoid forcing global app state to 'loading' on every chat navigation.
+  // Only set to loading if chats have not been loaded yet (initial app bootstrap).
   useEffect(() => {
-    dispatch(setAppState('loading'));
-    // @eslint-disable-next-line
-  }, []);
+    if (!chats || chats.length === 0) {
+      dispatch(setAppState('loading'));
+    }
+  }, [chats, dispatch]);
 
   useEffect(() => {
     if (chat && !isStreaming) {
@@ -407,7 +411,7 @@ export default function SlugChatPage({
       }
     }
     // @eslint-disable-next-line
-  }, [chat, isStreaming, response]);
+  }, [chat, isStreaming, response, dispatch]);
 
   useEffect(() => {
     scrollToBottom();
@@ -481,7 +485,7 @@ export default function SlugChatPage({
 
   return (
     <AuthProvider
-      fallback={<ChatLoadingScreen />}
+      fallback={<DashboardLoadingSkeleton />}
       errorFallback={<ChatNotFoundScreen />}
     >
       {appState === 'idle' && (

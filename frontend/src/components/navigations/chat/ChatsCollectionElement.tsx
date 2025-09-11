@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { SidebarMenuButton, SidebarMenuItem } from '../../ui/sidebar';
 import {
   DropdownMenu,
@@ -9,12 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../../ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../../ui/tooltip';
+// (Removed unused tooltip imports)
 import { Dialog, DialogTrigger } from '../../ui/dialog';
 import EllipsisHorizontalIcon from '@heroicons/react/24/solid/EllipsisHorizontalIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
@@ -52,6 +48,7 @@ export default function ChatsCollectionElement({
 }: ChatsCollectionElementProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
+  const router = useRouter();
   return (
     <div key={date}>
       <div className="date-separator font-bold text-center py-4">
@@ -67,6 +64,11 @@ export default function ChatsCollectionElement({
           <Link
             href={`/chat/${chat.id}`}
             className="flex-1 flex justify-center items-center"
+            onClick={e => {
+              e.preventDefault();
+              // client-side navigation without forcing a remount of sidebar layout
+              router.push(`/chat/${chat.id}`);
+            }}
           >
             <Image
               src={
@@ -124,7 +126,7 @@ export default function ChatsCollectionElement({
                 onSuccess={() => {
                   setIsDialogOpen(false);
                   setSelectedChat(null);
-                  window.location.reload();
+                  // Avoid full reload; rely on react-query invalidation or parent state refresh if needed
                 }}
               />
             )}
