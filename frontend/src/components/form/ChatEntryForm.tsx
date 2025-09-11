@@ -51,6 +51,7 @@ interface ChatEntryFormProps {
   onSuccess?: () => void;
   mode?: 'create' | 'update';
   onCreated?: (chat: Chat) => void; // called only when a new chat is created
+  onUpdated?: (chat: Chat) => void; // called only when an existing chat is updated
 }
 
 /**
@@ -100,6 +101,7 @@ export default function ChatEntryForm({
   onSuccess,
   mode = chat ? 'update' : 'create',
   onCreated,
+  onUpdated,
 }: ChatEntryFormProps) {
   const {
     register,
@@ -254,6 +256,7 @@ export default function ChatEntryForm({
             c.id === response.id ? response : c
           );
           dispatch(setChats(updated));
+          if (onUpdated) onUpdated(response);
         }
       }
 

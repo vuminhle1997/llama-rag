@@ -123,10 +123,14 @@ export default function ChatsCollectionElement({
             {selectedChat && (
               <ChatEntryForm
                 chat={selectedChat}
+                onUpdated={updated => {
+                  setIsDialogOpen(false);
+                  setSelectedChat(null);
+                  router.push(`/chat/${updated.id}`);
+                }}
                 onSuccess={() => {
                   setIsDialogOpen(false);
                   setSelectedChat(null);
-                  // Avoid full reload; rely on react-query invalidation or parent state refresh if needed
                 }}
               />
             )}

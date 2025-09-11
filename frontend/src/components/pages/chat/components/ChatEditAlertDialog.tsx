@@ -5,6 +5,7 @@ import { DialogHeader } from '@/components/ui/dialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import React from 'react';
 import { Chat } from '@/frontend/types';
+import { useRouter } from 'next/navigation';
 
 export interface ChatEditAlertDialogProps {
   isDialogOpen: boolean;
@@ -29,6 +30,7 @@ export default function ChatEditAlertDialog({
   selectedChat,
   setIsDialogOpen,
 }: ChatEditAlertDialogProps) {
+  const router = useRouter();
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="sm:max-w-[800px]">
@@ -38,6 +40,11 @@ export default function ChatEditAlertDialog({
         <ChatEntryForm
           chat={selectedChat || undefined}
           mode="update"
+          onUpdated={chat => {
+            setIsDialogOpen(false);
+            refetchChat();
+            router.push(`/chat/${chat.id}`);
+          }}
           onSuccess={() => {
             setIsDialogOpen(false);
             refetchChat();

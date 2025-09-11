@@ -25,7 +25,6 @@ import {
   useDeleteFavourite,
 } from '@/frontend/queries/favourites';
 import ChatEntryForm from '@/components/form/ChatEntryForm';
-import ChatLoadingScreen from '@/components/pages/chat/ChatLoadingScreen';
 import PendingMessageLoader from '@/components/form/PendingMessageLoader';
 import ChatNotFoundScreen, {
   UserChatNotFoundScreen,
