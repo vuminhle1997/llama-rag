@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Bars3Icon, PencilSquareIcon } from '@heroicons/react/24/solid';
@@ -35,6 +35,7 @@ import {
 export default function WelcomeScreen() {
   const isMobile = useIsMobile();
   const { open, toggleSidebar } = useSidebar();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const handleSideBarToggle = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
@@ -68,7 +69,7 @@ export default function WelcomeScreen() {
         </p>
 
         <div className="flex justify-center mb-8 animate-fade-in delay-300">
-          <Dialog>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
@@ -78,7 +79,7 @@ export default function WelcomeScreen() {
                 Neuen Chat erstellen
               </Button>
             </DialogTrigger>
-            <ChatEntryForm />
+            <ChatEntryForm onCreated={() => setIsCreateOpen(false)} />
           </Dialog>
         </div>
       </div>

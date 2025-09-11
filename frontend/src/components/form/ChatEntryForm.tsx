@@ -11,16 +11,16 @@ import { useForm } from 'react-hook-form';
 import { Chat } from '@/frontend/types';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/frontend/store/hooks/hooks';
+import { useAppSelector, useAppDispatch } from '@/frontend/store/hooks/hooks';
 import {
   selectChats,
   selectFavouriteChats,
+  setChats,
 } from '@/frontend/store/reducer/app_reducer';
 import { StaticImageData } from 'next/image';
 import { useGetAvatar } from '@/frontend/queries/avatar';
 import axios from 'axios';
 import ChatAlertError from './alerts/ChatAlertError';
-import ChatAlertSuccess from './alerts/ChatAlertSuccess';
 import FavouritesChatNavigation from './subnavigation/FavouritesChatNavigation';
 import TemplatesChatNavigation from './subnavigation/TemplatesChatNavigation';
 import UsersChatNavigation from './subnavigation/UsersChatNavigation';
@@ -50,6 +50,7 @@ interface ChatEntryFormProps {
   chat?: Chat;
   onSuccess?: () => void;
   mode?: 'create' | 'update';
+  onCreated?: (chat: Chat) => void; // called only when a new chat is created
 }
 
 /**
@@ -98,6 +99,7 @@ export default function ChatEntryForm({
   chat,
   onSuccess,
   mode = chat ? 'update' : 'create',
+  onCreated,
 }: ChatEntryFormProps) {
   const {
     register,
@@ -120,7 +122,6 @@ export default function ChatEntryForm({
           model: 'llama3.3:70b',
         },
   });
-  const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,6 +132,7 @@ export default function ChatEntryForm({
   const router = useRouter();
   const existingChats = useAppSelector(selectChats);
   const favouriteChats = useAppSelector(selectFavouriteChats);
+  const dispatch = useAppDispatch();
   const { avatar } = useGetAvatar(chat?.id || '');
 
   const useAsTemplate = async (
@@ -234,27 +236,37 @@ export default function ChatEntryForm({
     }
 
     try {
-      let response;
+      let response: Chat;
       if (mode === 'create') {
         response = await createChat(formData);
+        if (response) {
+          const current = existingChats || [];
+          dispatch(
+            setChats([response, ...current.filter(c => c.id !== response.id)])
+          );
+          if (onCreated) onCreated(response);
+        }
       } else {
         response = await updateChat(formData);
+        // Update existing chat in list
+        if (response && existingChats) {
+          const updated = existingChats.map(c =>
+            c.id === response.id ? response : c
+          );
+          dispatch(setChats(updated));
+        }
       }
 
-      setShowSuccess(true);
       setShowError(false);
       if (onSuccess) {
         onSuccess();
       } else {
-        setTimeout(() => {
-          router.push(`/chat/${response.id}`);
-          // Avoid full page reload; rely on client-side state updates / react-query
-        }, 1500);
+        // Navigate to the newly created/updated chat without waiting for a toast
+        router.push(`/chat/${response.id}`);
       }
     } catch (error) {
       console.error(error);
       setShowError(true);
-      setShowSuccess(false);
       setTimeout(() => {
         setShowError(false);
       }, 3000);
@@ -355,7 +367,6 @@ export default function ChatEntryForm({
           <ChatSettingsForm {...chatSettingsFormProps} />
         </div>
       </DialogContent>
-      {showSuccess && <ChatAlertSuccess mode={mode} />}
       {showError && <ChatAlertError mode={mode} />}
     </>
   );
