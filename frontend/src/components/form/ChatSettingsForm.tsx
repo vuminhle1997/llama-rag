@@ -89,14 +89,12 @@ export default function ChatSettingsForm({
   watch,
   setValue,
   errors,
-  chat,
   fileInputRef,
   avatarPreview,
   mode,
   setAvatarPreview,
   isCreating,
   isUpdating,
-  getValues,
 }: ChatSettingsFormProps) {
   const isPending = mode === 'create' ? isCreating : isUpdating;
   return (
@@ -304,13 +302,11 @@ export default function ChatSettingsForm({
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
-                // defaultValue={chat ? [chat.temperature] : [0.75]}
-                // @ts-ignore
                 min={0}
-                // @ts-ignore
                 max={1}
                 step={0.01}
-                {...register('temperature')}
+                value={[Number(watch('temperature') ?? 0.75)]}
+                onValueChange={([val]) => setValue('temperature', val)}
               />
               <div className="flex flex-col justify-center items-center">
                 <p className="text-center">{watch('temperature')}</p>
