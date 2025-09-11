@@ -75,7 +75,7 @@ export default function SideBarNavigation() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger
-                    className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
+                    className="bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white"
                     onClick={() => handleSideBarToggle()}
                   >
                     <XMarkIcon className="h-4 w-4 text-white" />
@@ -94,7 +94,7 @@ export default function SideBarNavigation() {
             {appState === 'idle' ? (
               <React.Fragment>
                 <Dialog>
-                  <DialogTrigger className="mx-4 bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white">
+                  <DialogTrigger className="mx-4 bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white">
                     <PencilIcon className="w-4 text-white" />
                   </DialogTrigger>
                   <ChatEntryForm />
@@ -103,7 +103,7 @@ export default function SideBarNavigation() {
                   <Tooltip>
                     <TooltipTrigger
                       onClick={handleShowCommandDialog}
-                      className="bg-primary dark:bg-background hover:bg-primary/10 p-3 rounded-sm dark:border-white border border-white"
+                      className="bg-primary dark:bg-background hover:bg-primary/50 p-3 rounded-sm dark:border-white border border-white"
                     >
                       <MagnifyingGlassCircleIcon className="h-4 w-4 text-white" />
                     </TooltipTrigger>

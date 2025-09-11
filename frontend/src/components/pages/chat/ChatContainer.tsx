@@ -189,7 +189,7 @@ export default function ChatContainer({
           {(!open || isMobile) && (
             <Tooltip>
               <TooltipTrigger
-                className="bg-primary dark:bg-background hover:bg-background/10 border border-white p-4 rounded-sm top-4 left-4"
+                className="bg-primary dark:bg-background hover:bg-primary/50 border border-white p-4 rounded-sm top-4 left-4"
                 onClick={() => handleSideBarToggle()}
               >
                 <Bars3Icon className="h-4 w-4 text-white" />
