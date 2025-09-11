@@ -23,6 +23,48 @@ The backend communicates with the following services:
 - **Ollama Service**: Handles LLM and embedding operations.
 - **ChromaDB Service**: Manages vector storage and retrieval for semantic search.
 
+## Updating dependencies
+
+If the dependencies in requirements are out-dated, use this command to update the mandatory packages for the backend project:
+
+```bash
+pip install "fastapi[all]" \
+python-multipart \
+msal \
+dotenv \
+fastapi_pagination \
+hypercorn \
+sqlmodel \
+pydantic \
+openpyxl \
+alembic \
+sqlalchemy \
+llama-cloud-services \
+llama-index \
+llama-index-experimental \
+llama-index-llms-ollama \
+llama-index-embeddings-ollama \
+llama-index-llms-openai \
+llama-index-embeddings-openai \
+llama-index-llms-openai_like \
+llama-index-embeddings-openai_like \
+llama-index-vector-stores-chroma \
+llama-index-tools-duckduckgo \
+llama-index-readers-web \
+redis \
+mysql-connector-python \
+chromadb==1.0.4 \
+psycopg2-binary \
+markitdown \
+deepeval \
+pytest \
+arize-phoenix-otel \
+openinference-instrumentation-llama-index \
+opentelemetry-instrumentation-fastapi \
+pandas \
+numpy
+```
+
 ## Setup Instructions
 
 ### 1. Create and Activate Virtual Environment
