@@ -25,7 +25,7 @@ The backend communicates with the following services:
 
 ## Updating dependencies
 
-If the dependencies in requirements are out-dated, use this command to update the mandatory packages for the backend project:
+If the dependencies in requirements.txt are out-dated, use this command to update the mandatory packages for the backend project:
 
 ```bash
 pip install "fastapi[all]" \
