@@ -104,15 +104,16 @@ export default function ChatEntryForm({
     handleSubmit,
     setValue,
     watch,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: chat
       ? {
           title: chat.title,
-          description: chat.description || '',
-          context: chat.context || '',
+          description: chat.description,
+          context: chat.context,
           avatar: undefined,
-          temperature: chat.temperature || 0.75,
+          temperature: chat.temperature,
           model: chat.model || 'llama3.3:70b',
         }
       : {
@@ -275,6 +276,7 @@ export default function ChatEntryForm({
     handleAvatarClick,
     isCreating,
     isUpdating,
+    getValues,
   };
 
   return (

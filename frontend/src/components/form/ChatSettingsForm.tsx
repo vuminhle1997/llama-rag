@@ -22,6 +22,7 @@ import { Button } from '../ui/button';
 import { placeholderForContext } from './templates';
 import {
   FieldErrors,
+  UseFormGetValues,
   UseFormHandleSubmit,
   UseFormRegister,
   UseFormSetValue,
@@ -55,6 +56,7 @@ export interface ChatSettingsFormProps {
   setAvatarPreview: React.Dispatch<React.SetStateAction<string | null>>;
   isCreating: boolean;
   isUpdating: boolean;
+  getValues: UseFormGetValues<FormData>;
 }
 
 /**
@@ -94,6 +96,7 @@ export default function ChatSettingsForm({
   setAvatarPreview,
   isCreating,
   isUpdating,
+  getValues,
 }: ChatSettingsFormProps) {
   const isPending = mode === 'create' ? isCreating : isUpdating;
   return (
@@ -301,7 +304,7 @@ export default function ChatSettingsForm({
             <div className="lg:col-span-3 col-span-full space-y-2">
               <Slider
                 id="temperature"
-                defaultValue={chat ? [chat.temperature] : [0.75]}
+                // defaultValue={chat ? [chat.temperature] : [0.75]}
                 // @ts-ignore
                 min={0}
                 // @ts-ignore
