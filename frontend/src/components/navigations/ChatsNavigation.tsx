@@ -11,6 +11,7 @@ import {
   selectAppState,
   setChats,
   selectChats,
+  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { groupChatsByDate } from '@/frontend/utils';
 import DeleteChatDialog from './chat/DeleteChatDialog';
@@ -91,6 +92,7 @@ export default function ChatsNavigation() {
       fetchNextPage().then(result => {
         const newChats = result?.data?.pages.flatMap(page => page.items) || [];
         dispatch(setChats(newChats));
+        dispatch(setAppState('idle'));
       });
     }
   }, [appState, fetchNextPage, dispatch]);

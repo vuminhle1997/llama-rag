@@ -14,9 +14,9 @@ import { useRouter } from 'next/navigation';
 import {
   selectProfilePicture,
   selectAppState,
-  setAppState,
   selectChats,
   setChats,
+  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -382,7 +382,6 @@ export default function SlugChatPage({
     deleteChat.mutate(undefined, {
       onSuccess: () => {
         router.push('/');
-        // Avoid full reload; rely on state
       },
       onError: (error: Error) => {
         console.error('Failed to delete chat:', error);
@@ -390,27 +389,24 @@ export default function SlugChatPage({
     });
   };
 
-  // Avoid forcing global app state to 'loading' on every chat navigation.
-  // Only set to loading if chats have not been loaded yet (initial app bootstrap).
   useEffect(() => {
-    if (!chats || chats.length === 0) {
-      dispatch(setAppState('loading'));
+    if (chat) {
+      dispatch(setAppState('idle'));
+      window.document.title = `global CT InsightChat - ${chat?.title}`;
+    } else {
+      window.document.title = `global CT InsightChat - Lädt Chat . . .`;
     }
-  }, [chats, dispatch]);
+  }, [chat, dispatch]);
 
   useEffect(() => {
-    if (chat && !isStreaming) {
-      window.document.title = `global CT InsightChat - ${chat?.title}`;
-      dispatch(setAppState('idle'));
-    } else if (isStreaming) {
+    if (isStreaming) {
       if (response.length < 1) {
         window.document.title = `🤔 agentic RAG denkt ...`;
       } else {
         window.document.title = `🤖 agentic RAG chattet ...`;
       }
     }
-    // @eslint-disable-next-line
-  }, [chat, isStreaming, response, dispatch]);
+  }, [isStreaming, response, dispatch]);
 
   useEffect(() => {
     scrollToBottom();

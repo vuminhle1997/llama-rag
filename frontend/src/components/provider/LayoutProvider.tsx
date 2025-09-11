@@ -139,7 +139,6 @@ export default function LayoutProvider({
   useEffect(() => {
     if (authData && !isLoading && !error) {
       dispatch(setUser(authData.user));
-      dispatch(setAppState('idle'));
     } else if (error) {
       dispatch(setAppState('failed'));
     }
