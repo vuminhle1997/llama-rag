@@ -98,8 +98,8 @@ else:
 # Set global settings for LLM and embedding model
 Settings.llm = llm
 Settings.embed_model = embed_model
-Settings.chunk_size = 1024
-Settings.chunk_overlap = 100
+Settings.chunk_size = 512
+Settings.chunk_overlap = 20
 
 PORT = int(os.environ.get("PORT", 4000))
 ALLOWED_GROUPS_IDS = os.getenv("ALLOWED_GROUPS_IDS").split(',')
