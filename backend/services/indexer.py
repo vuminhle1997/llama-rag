@@ -1,4 +1,4 @@
-from llama_index.core.objects import SQLTableNodeMapping, SQLTableSchema, ObjectIndex
+from llama_index.core.objects import SQLTableNodeMapping, SQLTableSchema
 from llama_index.core.readers import SimpleDirectoryReader
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext, SQLDatabase
@@ -144,30 +144,39 @@ def index_sql_dump(file: ChatFile, chroma_collection: Collection):
     Returns:
         None
     """
-    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
-    pg_url = initialize_pg_url(file.database_name)
-    db_engine = create_engine(pg_url)
-    sql_database = SQLDatabase(db_engine, include_tables=file.tables)
-    tables_node_mapping = SQLTableNodeMapping(sql_database)
+    if not file.tables:
+        logger.warning(f"No tables to index for database: {file.database_name} (file_id={file.id})")
+        return
 
-    table_schema_objs = [
-        SQLTableSchema(table_name=table_name)
-        for table_name in file.tables
-    ]
-    nodes = tables_node_mapping.to_nodes(objs=table_schema_objs)
-    for node in nodes:
-        node.metadata = {
-            'file_id': file.id,
-        }
+    try:
+        vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        pg_url = initialize_pg_url(file.database_name)
+        db_engine = create_engine(pg_url)
+        sql_database = SQLDatabase(db_engine, include_tables=file.tables)
+        tables_node_mapping = SQLTableNodeMapping(sql_database)
 
-    ObjectIndex.from_objects(
-        objects=nodes,
-        object_mapping=tables_node_mapping,
-        index_cls=VectorStoreIndex,
-        storage_context=storage_context,
-        show_progress=True,
-    )
+        table_schema_objs = [SQLTableSchema(table_name=t) for t in file.tables]
+
+        # Convert table schemas to nodes (schema text) and attach metadata
+        nodes = tables_node_mapping.to_nodes(objs=table_schema_objs)
+        for node in nodes:
+            # Preserve any existing metadata and append our own
+            base_meta = getattr(node, 'metadata', {}) or {}
+            base_meta.update({'file_id': file.id})
+            node.metadata = base_meta
+
+        # Directly build a VectorStoreIndex from nodes (no ObjectIndex indirection needed here)
+        VectorStoreIndex(
+            nodes,
+            storage_context=storage_context,
+            show_progress=True,
+            embed_model=Settings.embed_model,
+        )
+        logger.info(f"Indexed SQL schema for {len(nodes)} tables (file_id={file.id}).")
+    except Exception as e:
+        logger.error(f"Error indexing SQL dump for file_id={file.id}: {e}", exc_info=True)
+        raise
 
 
 def deletes_file_index_from_collection(file_id: str, chroma_collection: Collection):
