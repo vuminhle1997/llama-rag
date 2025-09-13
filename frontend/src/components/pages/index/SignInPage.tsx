@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useLoginUser, useRegisterUser } from '@/frontend/queries';
+import { WaveBackground } from '@/components/ui/wave-animation';
 
 enum SignInPageSections {
   LOGIN = 'login',
@@ -439,29 +440,30 @@ export default function SignInPage() {
     <div className="relative flex min-h-screen flex-col">
       <main className="flex flex-grow flex-col md:flex-row items-center justify-center md:items-stretch">
         {/* Left Section */}
-        <div className="flex w-full md:w-1/2 flex-col items-center justify-center md:bg-gray-400/10 p-4 md:p-0">
-          <div className="text-center">
+        <div className="relative flex w-full md:w-1/2 flex-col items-center justify-center md:bg-primary/10 p-4 md:p-0 overflow-hidden">
+          {/* Content above waves */}
+          <div className="relative z-10 text-center">
             <Image
               src={Logo}
               alt="Login illustration"
-              className="mx-auto w-2/3 md:w-1/2 animate-fade-in-up"
+              className="mx-auto w-2/3 md:w-1/2 drop-shadow-lg animate-fade-in-up delay-200"
             />
             <div className="mt-8">
-              <h1 className="mb-3 text-2xl md:text-4xl font-bold text-foreground animate-fade-in">
+              <h1 className="mb-3 text-2xl md:text-4xl font-bold text-foreground animate-fade-in-up delay-300">
                 Global CT InsightChat
               </h1>
-              <p className="mb-6 text-lg md:text-xl text-muted-foreground animate-fade-in">
+              <p className="mb-6 text-lg md:text-xl text-muted-foreground animate-fade-in-up delay-400">
                 Intelligenz durch datengestützte Gespräche
               </p>
             </div>
           </div>
+          {/* Animated waves background */}
+          <WaveBackground />
         </div>
 
         {/* Right Section */}
         <div className="flex w-full md:w-1/2 items-center justify-center bg-card px-4 md:px-8 py-8 md:py-0">
-          <div className="w-full max-w-md space-y-8">
-            {section()}
-          </div>
+          <div className="w-full max-w-md space-y-8">{section()}</div>
         </div>
       </main>
 
