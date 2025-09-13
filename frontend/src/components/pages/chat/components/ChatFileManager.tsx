@@ -19,8 +19,21 @@ import { UseMutationResult } from '@tanstack/react-query';
 import { de } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { selectQueryParams, setQueryParams, useAppDispatch, useAppSelector } from '@/frontend';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  selectQueryParams,
+  setQueryParams,
+  useAppDispatch,
+  useAppSelector,
+} from '@/frontend';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export interface ChatFileManagerProps {
   isFileDialogOpen: boolean;
@@ -59,7 +72,9 @@ export default function ChatFileManager({
     const storedQueries = localStorage.getItem('queries');
     if (storedQueries) {
       const parsedQueries = JSON.parse(storedQueries)[chat.id] || [];
-      const queryParamsObject: { [fileId: string]: { queried: boolean; query_type?: string } } = {};
+      const queryParamsObject: {
+        [fileId: string]: { queried: boolean; query_type?: string };
+      } = {};
 
       for (const query of parsedQueries) {
         queryParamsObject[query.id] = {
@@ -67,20 +82,28 @@ export default function ChatFileManager({
           query_type: query.params.query_type || 'basic',
         };
       }
-      dispatch(setQueryParams({
-        [chat.id]: queryParamsObject,
-      }));
+      dispatch(
+        setQueryParams({
+          [chat.id]: queryParamsObject,
+        })
+      );
     }
   }, [dispatch]);
 
-  const handleQueryChange = (chat: Chat, file: File, queryParam: { queried: boolean; query_type: string }) => {
+  const handleQueryChange = (
+    chat: Chat,
+    file: File,
+    queryParam: { queried: boolean; query_type: string }
+  ) => {
     // Update Redux store
-    dispatch(setQueryParams({
-      [chat.id]: {
-        ...queryParams,
-        [file.id]: queryParam,
-      },
-    }));
+    dispatch(
+      setQueryParams({
+        [chat.id]: {
+          ...queryParams,
+          [file.id]: queryParam,
+        },
+      })
+    );
 
     // Update localStorage
     const storedQueries = localStorage.getItem('queries');
@@ -89,7 +112,7 @@ export default function ChatFileManager({
     // Convert current state to array format for storage
     const queryArray = Object.entries(queryParams).map(([fileId, params]) => ({
       id: fileId,
-      params: params
+      params: params,
     }));
 
     // Add or update the current file's query params
@@ -103,7 +126,7 @@ export default function ChatFileManager({
     // Update localStorage with the new state
     parsedQueries[chat.id] = queryArray;
     localStorage.setItem('queries', JSON.stringify(parsedQueries));
-  }
+  };
 
   return (
     <Dialog open={isFileDialogOpen} onOpenChange={setIsFileDialogOpen}>
@@ -111,164 +134,173 @@ export default function ChatFileManager({
         <DialogHeader>
           <DialogTitle>Dokumente verwalten</DialogTitle>
           <span>PDFs, Excel, CSVs und SQL-Dateien</span>
-
         </DialogHeader>
         <Tabs defaultValue="Übersicht">
           <TabsList>
             <TabsTrigger value="Übersicht">Übersicht</TabsTrigger>
             <TabsTrigger value="Abfragen">Abfragen</TabsTrigger>
           </TabsList>
-          <TabsContent value="Übersicht"><Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Dateiname</TableHead>
-                <TableHead>Typ</TableHead>
-                <TableHead>Datenbankname</TableHead>
-                <TableHead>Tabellen</TableHead>
-                <TableHead>Datenbanktyp</TableHead>
-                <TableHead>Hochgeladen am</TableHead>
-                <TableHead>Indexiert</TableHead>
-                <TableHead>Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {chat.files?.map((file: File) => (
-                <TableRow key={file.id}>
-                  <TableCell>{file.file_name}</TableCell>
-                  <TableCell>{file.mime_type}</TableCell>
-                  <TableCell>{file.database_name || '-'}</TableCell>
-                  <TableCell>
-                    {file.tables ? file.tables.join(', ') : '-'}
-                  </TableCell>
-                  <TableCell>{file.database_type || '-'}</TableCell>
-                  <TableCell>
-                    {format(new Date(file.created_at), 'PPpp', { locale: de })}
-                  </TableCell>
-                  <TableCell>
-                    {
-                      file.indexed && 'Ja'
-                    }
-                    {
-                      file.indexed === false && 'Nein'
-                    }
-                    {
-                      file.indexed === null && '-'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteFile(file.id)}
-                      disabled={deleteFileMutation.isPending || file.indexed === false}
-                      className="h-8"
-                    >
-                      {deleteFileMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        'Löschen'
-                      )}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!chat.files || chat.files.length === 0) && (
+          <TabsContent value="Übersicht">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-muted-foreground"
-                  >
-                    Noch keine Dateien hochgeladen
-                  </TableCell>
+                  <TableHead>Dateiname</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Datenbankname</TableHead>
+                  <TableHead>Tabellen</TableHead>
+                  <TableHead>Datenbanktyp</TableHead>
+                  <TableHead>Hochgeladen am</TableHead>
+                  <TableHead>Indexiert</TableHead>
+                  <TableHead>Aktionen</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {chat.files?.map((file: File) => (
+                  <TableRow key={file.id}>
+                    <TableCell>{file.file_name}</TableCell>
+                    <TableCell>{file.mime_type}</TableCell>
+                    <TableCell>{file.database_name || '-'}</TableCell>
+                    <TableCell>
+                      {file.tables ? file.tables.join(', ') : '-'}
+                    </TableCell>
+                    <TableCell>{file.database_type || '-'}</TableCell>
+                    <TableCell>
+                      {format(new Date(file.created_at), 'PPpp', {
+                        locale: de,
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      {file.indexed && 'Ja'}
+                      {file.indexed === false && 'Nein'}
+                      {file.indexed === null && '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteFile(file.id)}
+                        disabled={
+                          deleteFileMutation.isPending || file.indexed === false
+                        }
+                        className="h-8"
+                      >
+                        {deleteFileMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          'Löschen'
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!chat.files || chat.files.length === 0) && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground"
+                    >
+                      Noch keine Dateien hochgeladen
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </TabsContent>
-          <TabsContent value="Abfragen"><Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Abfragen?</TableHead>
-                <TableHead>Dateiname</TableHead>
-                <TableHead>Daten-Typ</TableHead>
-                <TableHead>Abfrage-Typ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {chat.files?.map((file: File) => (
-                <TableRow key={file.id}>
-                  <TableCell className='w-4'>
-                    <Checkbox
-                      checked={queryParams[file.id]?.queried || false}
-                      onCheckedChange={(checked) => {
-                        const queryParam = {
-                          queried: checked as boolean,
-                          query_type: queryParams[file.id]?.query_type || 'basic',
-                        };
-                        handleQueryChange(chat, file, queryParam);
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{file.file_name}</TableCell>
-                  <TableCell>{file.mime_type}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={queryParams[file.id]?.query_type || 'basic'}
-                      defaultValue="basic"
-                      disabled={!queryParams[file.id]?.queried}
-                      onValueChange={(value) => {
-                        const queryParam = {
-                          queried: true, // Ensure the file is marked as queried when type is selected
-                          query_type: value,
-                        };
-                        handleQueryChange(chat, file, queryParam);
-                      }
-                      }>
-                      <SelectTrigger className=''>
-                        <SelectValue placeholder="Tool-Abfrage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="basic">Klassiche Abfrage</SelectItem>
-                        {
-                          (
-                            file.mime_type === 'application/pdf' ||
+          <TabsContent value="Abfragen">
+            <div className="flex flex-row gap-4 my-4">
+              <div className="flex flex-row gap-4">
+                <Switch checked disabled />
+                <Label>Suchmaschinentool (DuckDuckGo)</Label>
+              </div>
+              <div className="flex flex-row gap-4">
+                <Switch checked disabled />
+                <Label>Webseiteninhalt über Link scrapen</Label>
+              </div>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Abfragen?</TableHead>
+                  <TableHead>Dateiname</TableHead>
+                  <TableHead>Daten-Typ</TableHead>
+                  <TableHead>Abfrage-Typ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {chat.files?.map((file: File) => (
+                  <TableRow key={file.id}>
+                    <TableCell className="w-4">
+                      <Checkbox
+                        checked={queryParams[file.id]?.queried || false}
+                        onCheckedChange={checked => {
+                          const queryParam = {
+                            queried: checked as boolean,
+                            query_type:
+                              queryParams[file.id]?.query_type || 'basic',
+                          };
+                          handleQueryChange(chat, file, queryParam);
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{file.file_name}</TableCell>
+                    <TableCell>{file.mime_type}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={queryParams[file.id]?.query_type || 'basic'}
+                        defaultValue="basic"
+                        disabled={!queryParams[file.id]?.queried}
+                        onValueChange={value => {
+                          const queryParam = {
+                            queried: true, // Ensure the file is marked as queried when type is selected
+                            query_type: value,
+                          };
+                          handleQueryChange(chat, file, queryParam);
+                        }}
+                      >
+                        <SelectTrigger className="">
+                          <SelectValue placeholder="Tool-Abfrage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">
+                            Klassiche Abfrage
+                          </SelectItem>
+                          {(file.mime_type === 'application/pdf' ||
                             file.mime_type === 'text/plain' ||
                             file.mime_type === 'text/markdown' ||
-                            file.mime_type === 'text/x-markdown'
-                          ) && (
-                            <SelectItem value="text-extraction">Textextraktion</SelectItem>
-                          )
-                        }
-                        {
-                          file.mime_type === 'application/sql' && (
+                            file.mime_type === 'text/x-markdown') && (
+                            <SelectItem value="text-extraction">
+                              Textextraktion
+                            </SelectItem>
+                          )}
+                          {file.mime_type === 'application/sql' && (
                             <SelectItem value="sql">SQL-Abfrage</SelectItem>
-                          )
-                        }
-                        {
-                          file.mime_type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mime_type === 'text/csv' && (
-                            <SelectItem value="spreadsheet">Spreadsheet-Abfrage</SelectItem>
-                          )
-                        }
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!chat.files || chat.files.length === 0) && (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center text-muted-foreground"
-                  >
-                    Noch keine Dateien hochgeladen
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                          )}
+                          {file.mime_type ===
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                            (file.mime_type === 'text/csv' && (
+                              <SelectItem value="spreadsheet">
+                                Spreadsheet-Abfrage
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(!chat.files || chat.files.length === 0) && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground"
+                    >
+                      Noch keine Dateien hochgeladen
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </TabsContent>
         </Tabs>
-
       </DialogContent>
     </Dialog>
   );
