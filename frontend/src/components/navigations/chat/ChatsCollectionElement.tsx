@@ -10,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../../ui/dropdown-menu';
-// (Removed unused tooltip imports)
 import { Dialog, DialogTrigger } from '../../ui/dialog';
 import EllipsisHorizontalIcon from '@heroicons/react/24/solid/EllipsisHorizontalIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
@@ -49,6 +48,7 @@ export default function ChatsCollectionElement({
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedChat, setSelectedChat] = React.useState<Chat | null>(null);
   const router = useRouter();
+
   return (
     <div key={date}>
       <div className="date-separator font-bold text-center py-4">
@@ -66,7 +66,6 @@ export default function ChatsCollectionElement({
             className="flex-1 flex justify-center items-center"
             onClick={e => {
               e.preventDefault();
-              // client-side navigation without forcing a remount of sidebar layout
               router.push(`/chat/${chat.id}`);
             }}
           >
@@ -74,7 +73,7 @@ export default function ChatsCollectionElement({
               src={
                 `${
                   process.env.NEXT_PUBLIC_BACKEND_URL
-                }/uploads/avatars/${chat.avatar_path.split('/').pop()}` ||
+                }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}` ||
                 aiHelper.src
               }
               alt={`Avatar of ${chat.title}`}
