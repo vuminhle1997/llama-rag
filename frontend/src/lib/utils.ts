@@ -12,7 +12,8 @@ export function parseAgentResponse(
 
   const blocks: { type: string; content: string }[] = [];
   //@ts-ignore
-  const regex = /(Thought|Answer)\s*:?\s*(.*?)(?=\n*(Thought|Answer)\s*:|\n*$)/gs;
+  const regex =
+    /(Thought|Answer|Observation)\s*:?\s*(.*?)(?=\n*(Thought|Answer|Observation)\s*:|\n*$)/gs;
 
   let match;
   while ((match = regex.exec(clean)) !== null) {

@@ -396,13 +396,6 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
         for message in old_messages
     ]
 
-    # Now the fun is getting started
-    # deprecated, old memory for agent
-    #chat_memory = ChatMemoryBuffer.from_defaults(
-    #    chat_history=chat_history,
-    #    token_limit=128_000,
-    #)
-
     tools: List[BaseTool] = []
     files = db_chat.files
 
@@ -426,15 +419,11 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
     for file_id, params in chat.params.items():
         files_to_query = [file for file in files if file.id == file_id and params.queried == True]
         query_engine_tools = (
-            create_query_engine_tools(files=files_to_query, chroma_vector_store=chroma_vector_store, llm=llm)
+            create_query_engine_tools(files=files_to_query, chroma_vector_store=chroma_vector_store, llm=llm, params=params)
         )
+        if len(query_engine_tools) > 0:
+            tools += query_engine_tools
         for file in files_to_query:
-            if file.id == file_id and params.query_type == 'basic':
-                tools.append(query_engine_tools[0])
-            if file.id == file_id and params.query_type == 'text-extraction':
-                text_extraction_tool = create_text_extraction_tool_from_file(query=query_engine_tools[0].query_engine,
-                                                                             file=file)
-                tools.append(text_extraction_tool)
             if file.id == file_id and params.query_type == 'sql':
                 sql_tools = create_sql_engines_tools_from_files(files=files_to_query,
                                                                 chroma_vector_store=chroma_vector_store)
