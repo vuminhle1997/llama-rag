@@ -13,7 +13,7 @@ from llama_index.core.vector_stores import (
     MetadataFilters,
     FilterOperator,
 )
-from models import ChatFile, Chat
+from models import ChatFile, Chat, FileParams
 from llama_index.core import (
     StorageContext, 
     VectorStoreIndex, 
@@ -86,7 +86,7 @@ def create_query_engines_from_filters(filters: List[MetadataFilters],
     ]
     return query_engines
 
-def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama, params: Dict[str, any] = None) -> List[QueryEngineTool]:
+def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama, params: Dict[str, FileParams] = None) -> List[QueryEngineTool]:
     """
     Creates a list of query engine tools (basic RAG or text-extraction) for analyzing and retrieving information 
     from a collection of files, excluding certain file types based on their MIME types.

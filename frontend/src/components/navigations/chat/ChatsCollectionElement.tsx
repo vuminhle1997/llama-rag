@@ -73,7 +73,7 @@ export default function ChatsCollectionElement({
               src={
                 `${
                   process.env.NEXT_PUBLIC_BACKEND_URL
-                }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}` ||
+                }/uploads/avatars/${chat.avatar_path.split('/').pop()}` ||
                 aiHelper.src
               }
               alt={`Avatar of ${chat.title}`}

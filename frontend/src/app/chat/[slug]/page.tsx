@@ -16,7 +16,6 @@ import {
   selectAppState,
   selectChats,
   setChats,
-  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';

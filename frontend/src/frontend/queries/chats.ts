@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Chat, Page } from '../types';
 import { useState } from 'react';
+import { ChatParams } from '../store';
 
 /**
  * Custom hook to post chat data to the backend.
@@ -246,7 +247,7 @@ export const useChatStream = (chatId: string) => {
       query_params,
     }: {
       text: string;
-      query_params?: Record<string, Record<string, unknown>>;
+      query_params?: ChatParams;
     }) => {
       setResponse('');
       setIsStreaming(true);

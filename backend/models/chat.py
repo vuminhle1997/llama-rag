@@ -53,8 +53,12 @@ class ChatUpdate(BaseModel):
     temperature: float
     description: Optional[str]
     context: str
+    
+class ChatParams(BaseModel):
+    use_websearch: bool
+    use_link_scraping: bool
+    files: Optional[Dict[str, FileParams]] = {}
 
 class ChatQuery(BaseModel):
     text: str
-    params: Dict[str, FileParams] | None
-
+    params: ChatParams

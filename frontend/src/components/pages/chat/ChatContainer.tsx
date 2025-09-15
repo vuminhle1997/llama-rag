@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import ThinkAnswerBlock from './components/ThinkAnswerBlock';
+import ReasoningIndicator from './components/ReasoningIndicator';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -277,26 +278,7 @@ export default function ChatContainer({
         {/**
          * This scope is the writing indicator.
          */}
-        {isStreaming && (
-          <div className="flex items-start space-x-4">
-            <div className="flex-1 bg-background rounded-lg shadow-sm p-4">
-              <div className="flex space-x-2">
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '0ms' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '200ms' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '400ms' }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
+        {isStreaming && <ReasoningIndicator />}
 
         {/**
          * This scope consists of:
@@ -312,7 +294,7 @@ export default function ChatContainer({
                 chat.avatar_path
                   ? `${
                       process.env.NEXT_PUBLIC_BACKEND_URL
-                    }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}`
+                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                   : '/ai.jpeg'
               }
               alt="The AI assistant's avatar typing indicator"
@@ -324,7 +306,7 @@ export default function ChatContainer({
               className={`flex-1 rounded-lg shadow-sm p-4 bg-background dark:prose-invert dark:[&_strong]:text-white py-0`}
             >
               {
-                <div key={v4()} className={'text-gray-800 dark:text-white'}>
+                <div className={'text-gray-800 dark:text-white'}>
                   {response && <ThinkAnswerBlock response={response} />}
                 </div>
               }
@@ -356,10 +338,10 @@ export default function ChatContainer({
          * - user submitted messages
          * - assistant responses after submissions
          */}
-        {submittedMessages.map((message, index) => {
+        {submittedMessages.map(message => {
           return (
             <div
-              key={index}
+              key={message.id}
               className={`flex items-start gap-4 w-full mb-4 ${
                 message.role === 'user' ? 'justify-end' : ''
               }`}
@@ -372,7 +354,7 @@ export default function ChatContainer({
                         chat.avatar_path
                           ? `${
                               process.env.NEXT_PUBLIC_BACKEND_URL
-                            }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}`
+                            }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
@@ -394,28 +376,23 @@ export default function ChatContainer({
                     : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
                 }`}
               >
-                {
-                  <div
-                    key={v4()}
-                    className={
-                      message.role === 'user'
-                        ? ''
-                        : 'text-gray-800 dark:text-white'
-                    }
-                  >
-                    {message.role === 'user' ? (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: marked(
-                            message.text.replaceAll('\n', '<br />')
-                          ),
-                        }}
-                      ></div>
-                    ) : (
-                      <ThinkAnswerBlock response={message.text} />
-                    )}
-                  </div>
-                }
+                <div
+                  className={
+                    message.role === 'user'
+                      ? ''
+                      : 'text-gray-800 dark:text-white'
+                  }
+                >
+                  {message.role === 'user' ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(message.text.replaceAll('\n', '<br />')),
+                      }}
+                    ></div>
+                  ) : (
+                    <ThinkAnswerBlock response={message.text} />
+                  )}
+                </div>
               </div>
               {message.role === 'user' && (
                 <Image
@@ -432,12 +409,12 @@ export default function ChatContainer({
 
         {messagesFetched && messagesFetched.pages[0].items.length > 0 && (
           <>
-            {messagesFetched.pages.map(page => {
-              return page.items.map((message, index) => {
+            {messagesFetched.pages.map(page =>
+              page.items.map((message, index) => {
                 const isLastPage = page.items.length === index + 1;
                 return (
                   <div
-                    key={index}
+                    key={message.id}
                     className={`flex items-start gap-4 w-full mb-4 ${
                       message.role === 'user' ? 'justify-end' : ''
                     }`}
@@ -451,7 +428,7 @@ export default function ChatContainer({
                               chat.avatar_path
                                 ? `${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                  }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}`
+                                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
@@ -473,34 +450,26 @@ export default function ChatContainer({
                           : 'bg-background prose py-0'
                       }`}
                     >
-                      {
-                        <div
-                          key={v4()}
-                          className={
-                            message.role === 'user'
-                              ? ''
-                              : 'text-gray-800 dark:text-white'
-                          }
-                        >
-                          {message.text &&
-                            (() => {
-                              if (message.role === 'user')
-                                return (
-                                  <div
-                                    dangerouslySetInnerHTML={{
-                                      __html: marked(
-                                        message.text.replaceAll('\n', '<br />')
-                                      ),
-                                    }}
-                                  ></div>
-                                );
-
-                              return (
-                                <ThinkAnswerBlock response={message.text} />
-                              );
-                            })()}
-                        </div>
-                      }
+                      <div
+                        className={
+                          message.role === 'user'
+                            ? ''
+                            : 'text-gray-800 dark:text-white'
+                        }
+                      >
+                        {message.text &&
+                          (message.role === 'user' ? (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(
+                                  message.text.replaceAll('\n', '<br />')
+                                ),
+                              }}
+                            ></div>
+                          ) : (
+                            <ThinkAnswerBlock response={message.text} />
+                          ))}
+                      </div>
                     </div>
                     {message.role === 'user' && (
                       <Image
@@ -513,8 +482,8 @@ export default function ChatContainer({
                     )}
                   </div>
                 );
-              });
-            })}
+              })
+            )}
           </>
         )}
       </div>

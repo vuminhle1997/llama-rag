@@ -74,7 +74,7 @@ export default function UsersChatNavigation({
                   <Image
                     src={`${
                       process.env.NEXT_PUBLIC_BACKEND_URL
-                    }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? existingChat.avatar_path.split('\\').pop() : existingChat.avatar_path.split('/').pop()}`}
+                    }/uploads/avatars/${existingChat.avatar_path.split('/').pop()}`}
                     width={50}
                     height={50}
                     className="rounded-full"

@@ -182,7 +182,7 @@ export default function FavouritesNavigation() {
                           <Image
                             src={`${
                               process.env.NEXT_PUBLIC_BACKEND_URL
-                            }/uploads/avatars/${window.navigator.platform.toLowerCase().includes('win') ? chat.avatar_path.split('\\').pop() : chat.avatar_path.split('/').pop()}`}
+                            }/uploads/avatars/${chat.avatar_path.split('/').pop()}`}
                             alt={`Avatar of ${chat.title}`}
                             className="h-10 w-10 rounded-full mr-2 border-2 dark:border-0 border-primary"
                             width={40}
