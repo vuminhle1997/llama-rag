@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import Dict, List
 
 import pandas as pd
 from llama_index.core.indices.struct_store import SQLTableRetrieverQueryEngine
@@ -13,7 +13,7 @@ from llama_index.core.vector_stores import (
     MetadataFilters,
     FilterOperator,
 )
-from models import ChatFile, Chat
+from models import ChatFile, Chat, FileParams
 from llama_index.core import (
     StorageContext, 
     VectorStoreIndex, 
@@ -86,9 +86,9 @@ def create_query_engines_from_filters(filters: List[MetadataFilters],
     ]
     return query_engines
 
-def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama):
+def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: ChromaVectorStore, llm: Ollama, params: Dict[str, FileParams] = None) -> List[QueryEngineTool]:
     """
-    Creates a list of query engine tools for analyzing and retrieving information 
+    Creates a list of query engine tools (basic RAG or text-extraction) for analyzing and retrieving information 
     from a collection of files, excluding certain file types based on their MIME types.
 
     Args:
@@ -97,6 +97,12 @@ def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: Chroma
         chroma_vector_store (ChromaVectorStore): An instance of `ChromaVectorStore` 
             used for creating query engines.
         llm (Ollama): An instance of `Ollama` used for creating query engines.
+        params (Dict[str, any], optional): A dictionary containing parameters for 
+            configuring the query engines. Expected keys include:
+                - 'query_type' (str): The type of query engine to create. 
+                  Possible values are 'basic' for a standard RAG tool or 
+                  'text-extraction' for a tool focused on extracting fields 
+                  from documents. Defaults to None.
 
     Returns:
         List[QueryEngineTool]: A list of `QueryEngineTool` objects, each associated 
@@ -136,15 +142,24 @@ def create_query_engine_tools(files: List[ChatFile], chroma_vector_store: Chroma
             f"Use this tool to perform searches and extract insights from the content of the file."
         )
 
-        query_engine_tools.append(
-            QueryEngineTool(
-                query_engine=query_engine,
-                metadata=ToolMetadata(
-                    name=f"QueryEngineTool-{file.file_name}",
-                    description=description,
+        if params.query_type == 'basic':
+            query_engine_tools.append(
+                QueryEngineTool(
+                    query_engine=query_engine,
+                    metadata=ToolMetadata(
+                        name=f"QueryEngineTool-{file.file_name}",
+                        description=description,
+                    )
                 )
             )
-        )
+        elif params.query_type == 'text-extraction':
+            query_engine_tools.append(
+                QueryEngineTool.from_defaults(
+                    query_engine=query_engine,
+                    name=f"TextExtractionTool-{file.file_name}",
+                    description=f"Extracts fields from document {file.file_name} by using the user's request.",
+                )
+            )
 
     return query_engine_tools
 

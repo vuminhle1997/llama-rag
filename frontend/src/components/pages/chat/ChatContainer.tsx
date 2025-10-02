@@ -1,7 +1,7 @@
 'use client';
 
 import { Chat, Favourite } from '@/frontend/types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { marked } from 'marked';
 import { v4 } from 'uuid';
 import { Message } from '@/frontend/types';
@@ -20,8 +20,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { parseAgentResponse } from '@/lib/utils';
 import ThinkAnswerBlock from './components/ThinkAnswerBlock';
+import ReasoningIndicator from './components/ReasoningIndicator';
 
 export interface ChatContainerProps {
   chatContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -104,6 +104,10 @@ export default function ChatContainer({
 
   const [submittedMessages, setSubmittedMessages] = useState<Message[]>([]);
 
+  // Track streaming transition and last processed pending message to avoid duplicates
+  const lastProcessedPendingRef = useRef<string | null>(null);
+  const prevIsStreamingRef = useRef<boolean>(isStreaming);
+
   const {
     data: messagesFetched,
     fetchNextPage,
@@ -112,7 +116,7 @@ export default function ChatContainer({
     queryKey: ['messages', chat.id],
     queryFn: ({ pageParam = 1 }) =>
       getMessages({ size: 10, page: pageParam, chatId: chat.id }),
-    getNextPageParam: (lastPage, pages) => {
+    getNextPageParam: lastPage => {
       if (lastPage.page >= lastPage.pages) return undefined;
       return lastPage.page + 1;
     },
@@ -144,9 +148,13 @@ export default function ChatContainer({
     }
   }, [messagesFetched, chatContainerRef]);
 
+  // Add submitted messages only once when streaming finishes (transition true -> false)
   useEffect(() => {
-    if (!isStreaming && response.length > 0) {
-      if (pendingMessage) {
+    const wasStreaming = prevIsStreamingRef.current;
+
+    if (wasStreaming && !isStreaming && pendingMessage) {
+      // Only process if this pending message hasn't been handled yet
+      if (lastProcessedPendingRef.current !== pendingMessage) {
         const userMessage: Message = {
           id: v4(),
           role: 'user',
@@ -162,12 +170,16 @@ export default function ChatContainer({
           block_type: 'text',
         };
         setSubmittedMessages(prev => [assistantMessage, userMessage, ...prev]);
+        lastProcessedPendingRef.current = pendingMessage;
         setTimeout(() => {
           scrollToBottom();
         }, 750);
       }
     }
-  }, [isStreaming, response]);
+
+    // Update previous streaming state for next render
+    prevIsStreamingRef.current = isStreaming;
+  }, [isStreaming, pendingMessage, response, scrollToBottom]);
 
   const chatSettingsProps: ChatSettingsDialogProps = {
     chat: chat!,
@@ -206,7 +218,7 @@ export default function ChatContainer({
         </div>
       </div>
       {!chat.messages ||
-        (chat.messages.length === 0 && submittedMessages.length === 0 && (
+        (chat.messages.length === 0 && !isStreaming && (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
@@ -226,7 +238,7 @@ export default function ChatContainer({
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  👋 "Hallo, wie heißen Sie?"
+                  👋 &quot;Hallo, wie heißen Sie?&quot;
                 </p>
               </div>
               <div
@@ -241,8 +253,8 @@ export default function ChatContainer({
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  🛠️ "Welche Werkzeuge stehen zur Verfügung, um mein Problem zu
-                  lösen?"
+                  🛠️ &quot;Welche Werkzeuge stehen zur Verfügung, um mein
+                  Problem zu lösen?&quot;
                 </p>
               </div>
               <div
@@ -256,49 +268,27 @@ export default function ChatContainer({
                 }}
               >
                 <p className="text-gray-700 dark:text-white">
-                  💡 "Wie können Sie mir bei meiner Aufgabe helfen?"
+                  💡 &quot;Wie können Sie mir bei meiner Aufgabe helfen?&quot;
                 </p>
               </div>
             </div>
           </div>
         ))}
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6 flex flex-col-reverse">
-        {isStreaming && response.length < 1 && (
-          <div className="flex items-start space-x-4">
-            <Image
-              src={
-                chat.avatar_path
-                  ? `${
-                      process.env.NEXT_PUBLIC_BACKEND_URL
-                    }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
-                  : '/ai.jpeg'
-              }
-              alt="The AI assistant's avatar typing indicator"
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
-              width={40}
-              height={40}
-            />
-            <div className="flex-1 bg-background rounded-lg shadow-sm p-4">
-              <div className="flex space-x-2">
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '0ms' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '200ms' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: '400ms' }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/**
+         * This scope is the writing indicator.
+         */}
+        {isStreaming && <ReasoningIndicator />}
+
+        {/**
+         * This scope consists of:
+         * - Assistant Response streamed
+         * - Pending Message that is sent by the user
+         * - and indicator
+         */}
         {/* Assistant Response */}
         {isStreaming && response.length > 0 && (
-          <div className="flex items-start space-x-4">
+          <div className="flex items-start space-x-4 my-4">
             <Image
               src={
                 chat.avatar_path
@@ -316,24 +306,29 @@ export default function ChatContainer({
               className={`flex-1 rounded-lg shadow-sm p-4 bg-background dark:prose-invert dark:[&_strong]:text-white py-0`}
             >
               {
-                <div key={v4()} className={'text-gray-800 dark:text-white'}>
+                <div className={'text-gray-800 dark:text-white'}>
                   {response && <ThinkAnswerBlock response={response} />}
                 </div>
               }
             </div>
           </div>
         )}
-        {/* Pending Message */}
         {isStreaming && pendingMessage && (
-          <div className="flex items-start space-x-4 justify-end">
+          <div className="flex items-start space-x-4 justify-end my-4">
             <div className="flex-1 bg-background rounded-lg shadow-sm p-4">
-              <p>{pendingMessage}</p>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: pendingMessage.replaceAll('\n', '<br />'),
+                }}
+              ></div>
             </div>
 
-            <img
-              src={profilePicture ? profilePicture : undefined}
+            <Image
+              src={profilePicture ? profilePicture : '/ai.jpeg'}
               alt="User Profile Picture"
               className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
+              width={40}
+              height={40}
             />
           </div>
         )}
@@ -343,10 +338,10 @@ export default function ChatContainer({
          * - user submitted messages
          * - assistant responses after submissions
          */}
-        {submittedMessages.map((message, index) => {
+        {submittedMessages.map(message => {
           return (
             <div
-              key={index}
+              key={message.id}
               className={`flex items-start gap-4 w-full mb-4 ${
                 message.role === 'user' ? 'justify-end' : ''
               }`}
@@ -359,9 +354,7 @@ export default function ChatContainer({
                         chat.avatar_path
                           ? `${
                               process.env.NEXT_PUBLIC_BACKEND_URL
-                            }/uploads/avatars/${chat.avatar_path
-                              .split('/')
-                              .pop()}`
+                            }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                           : '/ai.jpeg'
                       }
                       alt="The avatar of the AI assistant chat partner"
@@ -383,34 +376,31 @@ export default function ChatContainer({
                     : 'bg-background dark:prose-invert dark:[&_strong]:text-white  py-0'
                 }`}
               >
-                {
-                  <div
-                    key={v4()}
-                    className={
-                      message.role === 'user'
-                        ? ''
-                        : 'text-gray-800 dark:text-white'
-                    }
-                  >
-                    {message.role === 'user' ? (
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: marked(
-                            message.text.replaceAll('\n', '<br />')
-                          ),
-                        }}
-                      ></div>
-                    ) : (
-                      <ThinkAnswerBlock response={message.text} />
-                    )}
-                  </div>
-                }
+                <div
+                  className={
+                    message.role === 'user'
+                      ? ''
+                      : 'text-gray-800 dark:text-white'
+                  }
+                >
+                  {message.role === 'user' ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: marked(message.text.replaceAll('\n', '<br />')),
+                      }}
+                    ></div>
+                  ) : (
+                    <ThinkAnswerBlock response={message.text} />
+                  )}
+                </div>
               </div>
               {message.role === 'user' && (
-                <img
-                  src={profilePicture ? profilePicture : undefined}
+                <Image
+                  src={profilePicture ? profilePicture : '/ai.jpeg'}
                   alt="User Profile Picture"
                   className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
+                  width={40}
+                  height={40}
                 />
               )}
             </div>
@@ -419,12 +409,12 @@ export default function ChatContainer({
 
         {messagesFetched && messagesFetched.pages[0].items.length > 0 && (
           <>
-            {messagesFetched.pages.map(page => {
-              return page.items.map((message, index) => {
+            {messagesFetched.pages.map(page =>
+              page.items.map((message, index) => {
                 const isLastPage = page.items.length === index + 1;
                 return (
                   <div
-                    key={index}
+                    key={message.id}
                     className={`flex items-start gap-4 w-full mb-4 ${
                       message.role === 'user' ? 'justify-end' : ''
                     }`}
@@ -438,9 +428,7 @@ export default function ChatContainer({
                               chat.avatar_path
                                 ? `${
                                     process.env.NEXT_PUBLIC_BACKEND_URL
-                                  }/uploads/avatars/${chat.avatar_path
-                                    .split('/')
-                                    .pop()}`
+                                  }/uploads/avatars/${chat.avatar_path.split('/').pop()}`
                                 : '/ai.jpeg'
                             }
                             alt="The avatar of the AI assistant chat partner"
@@ -462,46 +450,40 @@ export default function ChatContainer({
                           : 'bg-background prose py-0'
                       }`}
                     >
-                      {
-                        <div
-                          key={v4()}
-                          className={
-                            message.role === 'user'
-                              ? ''
-                              : 'text-gray-800 dark:text-white'
-                          }
-                        >
-                          {message.text &&
-                            (() => {
-                              if (message.role === 'user')
-                                return (
-                                  <div
-                                    dangerouslySetInnerHTML={{
-                                      __html: marked(
-                                        message.text.replaceAll('\n', '<br />')
-                                      ),
-                                    }}
-                                  ></div>
-                                );
-
-                              return (
-                                <ThinkAnswerBlock response={message.text} />
-                              );
-                            })()}
-                        </div>
-                      }
+                      <div
+                        className={
+                          message.role === 'user'
+                            ? ''
+                            : 'text-gray-800 dark:text-white'
+                        }
+                      >
+                        {message.text &&
+                          (message.role === 'user' ? (
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: marked(
+                                  message.text.replaceAll('\n', '<br />')
+                                ),
+                              }}
+                            ></div>
+                          ) : (
+                            <ThinkAnswerBlock response={message.text} />
+                          ))}
+                      </div>
                     </div>
                     {message.role === 'user' && (
-                      <img
-                        src={profilePicture ? profilePicture : undefined}
+                      <Image
+                        src={profilePicture ? profilePicture : '/ai.jpeg'}
                         alt="User Profile Picture"
                         className="flex-shrink-0 w-12 h-12 rounded-full bg-background flex items-center justify-center object-cover"
+                        width={40}
+                        height={40}
                       />
                     )}
                   </div>
                 );
-              });
-            })}
+              })
+            )}
           </>
         )}
       </div>

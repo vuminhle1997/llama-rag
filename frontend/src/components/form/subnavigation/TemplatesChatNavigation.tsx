@@ -4,6 +4,7 @@ import { Chat } from '@/frontend/types';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { templates } from '../templates';
+import Image, { StaticImageData } from 'next/image';
 
 export interface TemplatesChatNavigationProps {
   useAsTemplate: (
@@ -15,7 +16,7 @@ export interface TemplatesChatNavigationProps {
           title: string;
           description: string;
           context: string;
-          avatar_path?: any;
+          avatar_path?: StaticImageData;
           model?: string;
         }
   ) => void;
@@ -47,9 +48,11 @@ export default function TemplatesChatNavigation({
         >
           <div className="flex items-center gap-3">
             {template.avatar_path && (
-              <img
+              <Image
+                width={128}
+                height={128}
                 src={template.avatar_path.src}
-                alt={template.title}
+                alt={`Template ${template.title} Avatar`}
                 className="w-12 h-12 rounded-full object-cover"
               />
             )}

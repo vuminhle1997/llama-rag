@@ -5,6 +5,22 @@ import type { RootState } from '../store';
 import { UserProfile } from '@/frontend/types';
 import { Chat } from '@/frontend/types';
 
+export interface FileParams {
+  query_type?: string;
+  queried: boolean;
+}
+
+export interface ChatParams {
+  text?: string;
+  use_websearch: boolean;
+  use_link_scraping: boolean;
+  files: Record<string, FileParams>;
+}
+
+export interface ChatQueriesParams {
+  [chat_id: string]: ChatParams;
+}
+
 // Define a type for the slice state
 interface AppState {
   isAuthorized: boolean;
@@ -15,14 +31,7 @@ interface AppState {
   appState: 'idle' | 'loading' | 'failed';
   showCommands: boolean;
   theme: 'system' | 'dark' | 'light';
-  query_params: {
-    [chat_id: string]: {
-      [file_id: string]: {
-        query_type?: string;
-        queried: boolean;
-      };
-    };
-  };
+  query_params: Record<string, ChatParams>;
 }
 
 // Define the initial state using that type

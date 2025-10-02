@@ -16,7 +16,6 @@ import {
   selectAppState,
   selectChats,
   setChats,
-  setAppState,
 } from '@/frontend/store/reducer/app_reducer';
 import { useAppDispatch, useAppSelector } from '@/frontend/store/hooks/hooks';
 import { useForm } from 'react-hook-form';
@@ -391,12 +390,11 @@ export default function SlugChatPage({
 
   useEffect(() => {
     if (chat) {
-      dispatch(setAppState('idle'));
       window.document.title = `global CT InsightChat - ${chat?.title}`;
     } else {
       window.document.title = `global CT InsightChat - Lädt Chat . . .`;
     }
-  }, [chat, dispatch]);
+  }, [chat]);
 
   useEffect(() => {
     if (isStreaming) {
