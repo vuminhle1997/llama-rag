@@ -11,7 +11,6 @@ export function parseAgentResponse(
   const clean = raw.replaceAll('<br>', '\n');
 
   const blocks: { type: string; content: string }[] = [];
-  //@ts-ignore
   const regex =
     /(Thought|Answer|Observation)\s*:?\s*(.*?)(?=\n*(Thought|Answer|Observation)\s*:|\n*$)/gs;
 
