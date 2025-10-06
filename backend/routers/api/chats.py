@@ -414,7 +414,7 @@ async def chat_stream(chat_id: str, chat: ChatQuery,
 
     # new implementation of agent memory
     chat_memory = create_memory(chat_id=chat_id, llm=llm, messages=chat_history,
-                                vector_store=chroma_vector_store, token_limit=128_000)
+                                vector_store=chroma_vector_store, token_limit=128_000, system_prompt=db_chat.context)
 
     for file_id, file_params in chat.params.files.items():
         files_to_query = [file for file in files if file.id == file_id and file_params.queried == True]
