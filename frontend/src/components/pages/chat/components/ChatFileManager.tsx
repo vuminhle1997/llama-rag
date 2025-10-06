@@ -348,13 +348,13 @@ export default function ChatFileManager({
                           {file.mime_type === 'application/sql' && (
                             <SelectItem value="sql">SQL-Abfrage</SelectItem>
                           )}
-                          {file.mime_type ===
+                          {(file.mime_type ===
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-                            (file.mime_type === 'text/csv' && (
+                            file.mime_type === 'text/csv') && (
                               <SelectItem value="spreadsheet">
                                 Spreadsheet-Abfrage
                               </SelectItem>
-                            ))}
+                            )}
                         </SelectContent>
                       </Select>
                     </TableCell>
