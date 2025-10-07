@@ -204,7 +204,11 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
                 description=f"Analyze, evaluate and query the CSV spreadsheet file '{file.file_name}' using Pandas."
             )
             pd_tools.append(tool)
-        if "excel" in file.mime_type.lower():
+        if ("excel" in file.mime_type.lower() or 
+            "xlsx" in file.mime_type.lower() or 
+            "spreadsheet" in file.mime_type.lower() or 
+            "vnd.ms-excel" in file.mime_type.lower() or 
+            "vnd.openxmlformats-officedocument.spreadsheetml.sheet" in file.mime_type.lower()):
             pd_query = PandasQueryEngine(
                 df=pd.read_excel(file.path_name),
                 verbose=True,
