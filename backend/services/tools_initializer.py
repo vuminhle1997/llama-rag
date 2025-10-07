@@ -185,7 +185,12 @@ def create_pandas_engines_tools_from_files(files: List[ChatFile]):
         >>> pd_tools = create_pandas_engines_tools_from_files(chat_files)
     """
     pd_tools = []
-    files = [file for file in files if "csv" in file.mime_type.lower() or "excel" in file.mime_type.lower()]
+    files = [file for file in files if "csv" in file.mime_type.lower() 
+             or "excel" in file.mime_type.lower() or "xlsx" in file.mime_type.lower()
+             or "spreadsheet" in file.mime_type.lower()
+             or "sheet" in file.mime_type.lower()
+             or "vnd.ms-excel" in file.mime_type.lower()
+             or "vnd.openxmlformats-officedocument.spreadsheetml.sheet" in file.mime_type.lower()]
 
     for file in files:
         if "csv" in file.mime_type.lower():
